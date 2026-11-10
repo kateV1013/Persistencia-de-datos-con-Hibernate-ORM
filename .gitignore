@@ -1,0 +1,32 @@
+# --- Credenciales locales (NUNCA subir) ---
+db.properties
+*.env
+.env
+
+# --- Maven ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# --- IntelliJ IDEA ---
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# --- Eclipse / VS Code ---
+.classpath
+.project
+.settings/
+.vscode/
+bin/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs y temporales ---
+*.log
+*.tmp
+hs_err_pid*
