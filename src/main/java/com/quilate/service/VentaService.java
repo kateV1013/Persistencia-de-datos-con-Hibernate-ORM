@@ -85,6 +85,22 @@ public class VentaService {
         return confirmarInterno(ventaId, apartadoId, true);
     }
 
+    public Venta convertirApartado(Long apartadoId) {
+        return enTransaccion(em -> {
+            Apartado a = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
+            if (a == null || a.getEstado() != EstadoApartado.ACTIVO)
+                throw new ReglaNegocioException("Seleccione un apartado activo.");
+            Venta v = new Venta(a.getCliente());
+            cargarDetalles(em, v, List.of(new SolicitudDetalleVenta(a.getPieza().getId(), a.getCantidad(), BigDecimal.ZERO)));
+            v.setApartadoOrigen(a);
+            v.setInventarioComprometido(true);
+            v.setEstado(EstadoVenta.CONFIRMADA);
+            a.setEstado(EstadoApartado.COMPLETADO);
+            em.persist(v);
+            return v;
+        });
+    }
+
     public Venta anular(Long ventaId) {
         return enTransaccion(em -> {
             Venta venta = requerirVenta(em, ventaId, LockModeType.PESSIMISTIC_WRITE);
@@ -144,7 +160,8 @@ public class VentaService {
                 if (venta.getDetalles().size() != 1
                         || !venta.getDetalles().getFirst().getPieza().getId()
                         .equals(apartado.getPieza().getId())
-                        || !venta.getDetalles().getFirst().getCantidad().equals(apartado.getCantidad())) {
+                        || !venta.getDetalles().getFirst().getCantidad().equals(apartado.getCantidad())
+                        || !venta.getCliente().getId().equals(apartado.getCliente().getId())) {
                     throw new ReglaNegocioException(
                             "La venta debe coincidir con la pieza y cantidad reservadas en el apartado.");
                 }
