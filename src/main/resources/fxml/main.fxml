@@ -28,8 +28,10 @@
             <Tab text="Clientes"><StackPane><Label text="Integrante 1"/></StackPane></Tab>
             <Tab text="Ventas"><StackPane><Label text="Integrante 2: Empleados, Ventas y Detalle"/></StackPane></Tab>
             <Tab text="Descuentos"><StackPane><Label text="Integrante 3: Descuentos"/></StackPane></Tab>
-            <Tab text="Pedidos personalizados"><StackPane><Label text="Integrante 3: Pedidos personalizados"/></StackPane></Tab>
-            <Tab text="Reportes"><StackPane><Label text="Consultas HQL y graficas"/></StackPane></Tab>
+            <!-- Integrante 4: pedidos personalizados y reportes -->
+            <Tab text="Pedidos personalizados"><fx:include source="pedidos.fxml"/></Tab>
+            <Tab text="Tipos de servicio"><fx:include source="servicios.fxml"/></Tab>
+            <Tab text="Piezas más vendidas"><fx:include source="reporte_piezas.fxml"/></Tab>
         </TabPane>
     </center>
 

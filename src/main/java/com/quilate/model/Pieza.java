@@ -1,95 +1,105 @@
 package com.quilate.model;
 
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.ToString;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
-/**
- * Entidad JPA que representa una Pieza del inventario de la joyería.
- *
- * <p>Restricciones de negocio:
- * <ul>
- *   <li>{@code codigoBarras} es único y obligatorio.</li>
- *   <li>{@code nombre}, {@code costo}, {@code precioVenta} y
- *       {@code existencias} son obligatorios.</li>
- *   <li>{@code existencias} no puede ser negativo (validado en el DAO/Controller).</li>
- *   <li>Cada pieza pertenece a exactamente una {@link Categoria} ({@code @ManyToOne}).</li>
- * </ul>
- * </p>
- */
+import java.math.BigDecimal;
+
 @Entity
-@Table(name = "piezas",
-       uniqueConstraints = @UniqueConstraint(
-               name = "uk_pieza_codigo_barras",
-               columnNames = "codigo_barras"))
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString(exclude = "categoria")   // evitar loop en toString con Categoria
+@Table(name = "piezas", uniqueConstraints = @UniqueConstraint(
+        name = "uk_pieza_codigo_barras", columnNames = "codigo_barras"))
 public class Pieza {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    /**
-     * Código de barras de la pieza. Único en toda la tabla.
-     * El lector físico de barras lo ingresa como texto.
-     */
     @Column(name = "codigo_barras", nullable = false, unique = true, length = 50)
     private String codigoBarras;
 
-    /** Nombre descriptivo de la pieza. */
-    @Column(name = "nombre", nullable = false, length = 200)
+    @Column(nullable = false, length = 200)
     private String nombre;
 
-    /** Costo de adquisición de la pieza (en la moneda del negocio). */
-    @Column(name = "costo", nullable = false)
+    @Column(length = 50)
+    private String material;
+
+    private Short quilates;
+
+    @Column(name = "peso_gramos", precision = 8, scale = 2)
+    private BigDecimal pesoGramos;
+
+    @Column(nullable = false)
     private Double costo;
 
-    /** Precio de venta al público. */
     @Column(name = "precio_venta", nullable = false)
     private Double precioVenta;
 
-    /**
-     * Cantidad en existencia en inventario físico.
-     * Nunca debe ser negativo.
-     */
-    @Column(name = "existencias", nullable = false)
+    @Column(nullable = false)
     private Integer existencias;
 
-    /**
-     * Categoría a la que pertenece esta pieza.
-     *
-     * <ul>
-     *   <li>{@code fetch = LAZY}: carga la categoría solo cuando se accede.</li>
-     *   <li>{@code optional = false}: toda pieza DEBE tener categoría.</li>
-     * </ul>
-     */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "categoria_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_pieza_categoria"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id", foreignKey = @ForeignKey(name = "fk_pieza_categoria"))
     private Categoria categoria;
 
-    // ── Constructor de conveniencia (sin ID, para altas) ─────────────────
+    public Pieza() {
+    }
 
-    /**
-     * Crea una pieza nueva (sin ID) lista para persistir.
-     * El {@code id} lo asigna Hibernate tras el {@code persist()}.
-     */
-    public Pieza(String codigoBarras, String nombre,
-                 Double costo, Double precioVenta,
+    public Pieza(String codigoBarras, String nombre, Double costo, Double precioVenta,
                  Integer existencias, Categoria categoria) {
         this.codigoBarras = codigoBarras;
-        this.nombre       = nombre;
-        this.costo        = costo;
-        this.precioVenta  = precioVenta;
-        this.existencias  = existencias;
-        this.categoria    = categoria;
+        this.nombre = nombre;
+        this.costo = costo;
+        this.precioVenta = precioVenta;
+        this.existencias = existencias;
+        this.categoria = categoria;
+    }
+
+    /** Constructor compatible con los datos y pruebas del modulo de reportes. */
+    public Pieza(String codigoBarras, String nombre, String material, BigDecimal costo,
+                 BigDecimal precioVenta, String categoria, int cantidadDisponible) {
+        this.codigoBarras = codigoBarras;
+        this.nombre = nombre;
+        this.material = material;
+        this.costo = costo.doubleValue();
+        this.precioVenta = precioVenta.doubleValue();
+        this.existencias = cantidadDisponible;
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getCodigoBarras() { return codigoBarras; }
+    public void setCodigoBarras(String codigoBarras) { this.codigoBarras = codigoBarras; }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public String getMaterial() { return material; }
+    public void setMaterial(String material) { this.material = material; }
+    public Short getQuilates() { return quilates; }
+    public void setQuilates(Short quilates) { this.quilates = quilates; }
+    public BigDecimal getPesoGramos() { return pesoGramos; }
+    public void setPesoGramos(BigDecimal pesoGramos) { this.pesoGramos = pesoGramos; }
+    public Double getCosto() { return costo; }
+    public void setCosto(Double costo) { this.costo = costo; }
+    public Double getPrecioVenta() { return precioVenta; }
+    public void setPrecioVenta(Double precioVenta) { this.precioVenta = precioVenta; }
+    public Integer getExistencias() { return existencias; }
+    public void setExistencias(Integer existencias) { this.existencias = existencias; }
+    public Categoria getCategoria() { return categoria; }
+    public void setCategoria(Categoria categoria) { this.categoria = categoria; }
+
+    public Integer getCantidadDisponible() { return existencias; }
+    public void setCantidadDisponible(Integer cantidadDisponible) { this.existencias = cantidadDisponible; }
+
+    @Override
+    public String toString() {
+        return nombre;
     }
 }

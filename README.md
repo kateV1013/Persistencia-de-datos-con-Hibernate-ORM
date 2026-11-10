@@ -1,19 +1,20 @@
 # Quilate — Sistema de Ventas y Análisis de Clientes para Joyería
 
 Aplicación de escritorio en **JavaFX** con persistencia mediante **Hibernate ORM (JPA)** y **PostgreSQL**.
-Registra piezas por código de barras, ventas con control de stock, descuentos con límite de rentabilidad,
-pedidos personalizados con cupo semanal y reportes de ventas y clientes.
+Registra piezas por código de barras, ventas, descuentos con límite de rentabilidad,
+pedidos personalizados (grabados, reparaciones…) con cupo semanal y reportes de ventas.
 
-## Tecnologías
+## Requisitos
 
 | Herramienta | Versión |
 |---|---|
 | Java (JDK) | 21 |
-| JavaFX | 21.0.5 |
-| Hibernate ORM | 6.6.4.Final |
-| PostgreSQL / driver JDBC | 15+ / 42.7.4 |
-| Maven | 3.9 (incluido con `mvnw`) |
-| IDE | IntelliJ IDEA |
+| IntelliJ IDEA | Community o Ultimate (2024.1 o superior) |
+| PostgreSQL | 15 o superior (con pgAdmin o `psql`) |
+| Maven | No hace falta instalarlo: el proyecto incluye `mvnw` |
+
+Dependencias principales (se descargan solas desde `pom.xml`): JavaFX 21.0.5, Hibernate ORM 6.6.4,
+driver PostgreSQL 42.7.4. Para las pruebas: JUnit 5 y H2.
 
 ## Estructura del proyecto
 
@@ -21,54 +22,102 @@ pedidos personalizados con cupo semanal y reportes de ventas y clientes.
 src/main/java/com/quilate/
 ├── Launcher.java        ← punto de entrada (ejecutar este)
 ├── MainApp.java         ← aplicación JavaFX
-├── model/               ← entidades @Entity
-├── dao/                 ← GenericDAO + un DAO por entidad (CRUD y consultas HQL)
-├── service/             ← reglas de negocio y validaciones
+├── model/               ← entidades @Entity (Cliente, Pieza, Venta, DetalleVenta, TipoServicio, PedidoPersonalizado…)
+├── dao/                 ← GenericDAO (CRUD) + un DAO por entidad y ReporteDAO (consultas HQL)
+├── dto/                 ← resultados de consultas (PiezaMasVendida)
+├── service/             ← reglas de negocio y validaciones (cupo semanal, etc.)
 ├── controller/          ← controladores de las vistas FXML
 ├── exception/           ← ReglaNegocioException
-└── util/                ← JPAUtil (EntityManagerFactory), AlertUtil
+└── util/                ← JPAUtil (EntityManagerFactory), Transaccion, Tareas, AlertUtil, Formatos
 src/main/resources/
 ├── META-INF/persistence.xml
-├── fxml/                ← vistas
+├── fxml/                ← vistas (main, pedidos, servicios, reporte_piezas)
 └── css/styles.css
-database/                ← scripts SQL de la base de datos
+src/test/java/           ← pruebas automáticas con H2 en memoria
+database/
+├── 01_quilate_bd_inicial.sql       ← tablas base, trigger de descuento y datos de prueba
+└── 02_pedidos_y_estado_venta.sql   ← tipo_servicio, pedido_personalizado y estado de venta
 ```
 
-## Instalación
+## 1. Preparar PostgreSQL
 
-### 1. Preparar la base de datos
-
-1. Instalar PostgreSQL y abrir pgAdmin o `psql`.
-2. Crear la base de datos:
+1. Abrir pgAdmin (o `psql`) con el usuario administrador y crear la base:
    ```sql
    CREATE DATABASE quilate;
    ```
-3. Ejecutar el script de tablas de la carpeta `database/` sobre la base `quilate`.
+2. Conectarse a la base `quilate` y ejecutar **en este orden** los scripts de la carpeta `database/`:
+   1. `01_quilate_bd_inicial.sql`
+   2. `02_pedidos_y_estado_venta.sql`
 
-### 2. Configurar la conexión (sin subir credenciales)
+   En pgAdmin: clic derecho sobre `quilate` → **Query Tool** → abrir el archivo → **Execute (F5)**.
+   Con `psql`:
+   ```bash
+   psql -U postgres -d quilate -f database/01_quilate_bd_inicial.sql
+   ```
+   ```bash
+   psql -U postgres -d quilate -f database/02_pedidos_y_estado_venta.sql
+   ```
+3. (Recomendado) Crear un usuario solo para la aplicación en lugar de usar `postgres`:
+   ```sql
+   CREATE USER quilate_app WITH PASSWORD 'elige_una_contraseña';
+   GRANT CONNECT ON DATABASE quilate TO quilate_app;
+   GRANT USAGE ON SCHEMA public TO quilate_app;
+   GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO quilate_app;
+   GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO quilate_app;
+   ```
 
-Copiar el archivo de ejemplo y poner **tus** datos locales:
+Los cambios al esquema se agregan como un archivo nuevo (`03_...sql`) con `ALTER TABLE`;
+no se editan los scripts que ya se ejecutaron.
 
-```bash
-cp db.properties.example db.properties
+## 2. Configurar la conexión con variables de entorno
+
+La aplicación **no tiene credenciales en el código**. `JPAUtil` las lee de estas variables de entorno:
+
+| Variable | Ejemplo |
+|---|---|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/quilate` |
+| `DB_USER` | `quilate_app` |
+| `DB_PASSWORD` | *(tu contraseña local)* |
+
+### En IntelliJ IDEA
+
+1. Abrir `Launcher.java` y pulsar el ▶ verde junto a `main` una vez (crea la configuración "Launcher").
+2. Menú **Run → Edit Configurations… → Launcher**.
+3. En **Environment variables** pegar (con tus datos):
+   ```
+   DB_URL=jdbc:postgresql://localhost:5432/quilate;DB_USER=quilate_app;DB_PASSWORD=tu_contraseña
+   ```
+4. **OK**. Deja desmarcada la opción *Store as project file* para que la configuración (con la contraseña)
+   no se suba al repositorio.
+
+### En Windows (terminal)
+
+```powershell
+setx DB_URL "jdbc:postgresql://localhost:5432/quilate"
+setx DB_USER "quilate_app"
+setx DB_PASSWORD "tu_contraseña"
 ```
 
-```properties
-jakarta.persistence.jdbc.url=jdbc:postgresql://localhost:5432/quilate
-jakarta.persistence.jdbc.user=postgres
-jakarta.persistence.jdbc.password=tu_contraseña
-hibernate.hbm2ddl.auto=validate
-```
+Cerrar y abrir de nuevo la terminal o IntelliJ para que tome los valores.
 
-`db.properties` está en `.gitignore` y **nunca se sube a GitHub**.
-También se pueden usar las variables de entorno `DB_URL`, `DB_USER` y `DB_PASSWORD`.
+### Alternativa: archivo `db.properties`
 
-### 3. Ejecutar
+También se puede copiar `db.properties.example` como `db.properties` en la raíz del proyecto y poner ahí los datos.
+Ese archivo está en `.gitignore`. Si existen ambos, las variables de entorno tienen prioridad.
 
-**Desde IntelliJ IDEA:** `File → Open` → seleccionar la carpeta del proyecto (se importa como Maven) →
-abrir `Launcher.java` → **Run**.
+Por defecto `hibernate.hbm2ddl.auto=validate`: Hibernate comprueba al arrancar que las entidades coincidan con
+las tablas y **no modifica la base**. Si falta una tabla o columna, la aplicación lo indica en la barra inferior.
 
-**Desde la terminal:**
+## 3. Ejecutar
+
+**Desde IntelliJ IDEA:**
+
+1. **File → Open** → seleccionar la carpeta del proyecto. IntelliJ lo importa como proyecto Maven
+   (si pregunta, elegir **Trust Project** y el JDK 21).
+2. Esperar a que termine de descargar las dependencias (barra inferior).
+3. Abrir `src/main/java/com/quilate/Launcher.java` → **Run 'Launcher.main()'**.
+
+**Desde la terminal** (con las variables de entorno definidas):
 
 ```bash
 ./mvnw javafx:run
@@ -78,24 +127,50 @@ En Windows: `mvnw.cmd javafx:run`.
 
 La barra inferior de la ventana indica si la conexión con PostgreSQL fue exitosa.
 
-## Reparto del trabajo
+### Pruebas automáticas
 
-| Integrante | Entidades | Extra |
-|---|---|---|
-| 1 | Categoria, Pieza, Cliente | Configuración de Hibernate y conexión, búsqueda por código de barras, validación de stock |
-| 2 | Empleado, Venta, DetalleVenta | Consulta HQL 1 mostrada en la aplicación |
-| 3 | Descuento, PedidoPersonalizado | Consulta HQL 2, README y `.gitignore` |
+Las pruebas usan una base H2 en memoria, así que **no necesitan PostgreSQL**:
+
+```bash
+./mvnw test
+```
+
+En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
+
+## Funcionalidades — Integrante 4: pedidos personalizados y reportes
+
+- **Tipos de servicio** (pestaña *Tipos de servicio*): CRUD completo. No se permiten nombres repetidos
+  ni precios negativos, y no se puede eliminar un servicio que ya se usó en pedidos.
+- **Pedidos personalizados** (pestaña *Pedidos personalizados*): registrar, consultar, modificar y cancelar
+  grabados, reparaciones y otros trabajos.
+  - Relaciones: un **cliente** tiene muchos pedidos y un **tipo de servicio** se usa en muchos pedidos (`@ManyToOne` / `@OneToMany`).
+  - **Límite: 20 pedidos activos por semana (lunes a domingo).** Si la semana está llena, el pedido se rechaza
+    y se avisa. El cupo se vuelve a revisar cuando se **cambia la fecha** de un pedido.
+    Al elegir una fecha se muestra cuántos pedidos hay en esa semana.
+  - Cancelar no borra el pedido: lo marca como `CANCELADO` y libera su espacio.
+- **Consulta HQL — piezas más vendidas** (pestaña *Piezas más vendidas*): une `DetalleVenta`, `Venta` y `Pieza`
+  y suma las cantidades vendidas **solo de ventas confirmadas**; se muestra en un gráfico de barras y una tabla.
+  Está en `ReporteDAO.piezasMasVendidas`.
 
 ## Flujo de trabajo con Git
 
 1. `main` siempre debe compilar. No se hace push directo a `main`.
-2. Crear una rama por funcionalidad:
+2. Cada integrante trabaja en su propia rama creada desde `dev`:
    ```bash
-   git checkout main
+   git checkout dev
+   ```
+   ```bash
    git pull
-   git checkout -b feat/entidad-pieza
+   ```
+   ```bash
+   git checkout -b Feature/TuNombre
    ```
 3. Commits pequeños y descriptivos: `feat: agregar entidad Pieza y su DAO`, `fix: validar stock negativo`.
-4. Subir la rama y abrir un **Pull Request** hacia `main`.
-5. Otro integrante revisa, comenta y aprueba antes de fusionar.
-6. Después de cada merge: `git pull` en `main` y comprobar que compila y arranca.
+4. Subir la rama y abrir un **Pull Request** hacia `dev`. Otro integrante lo revisa y aprueba antes de fusionar.
+5. Después de cada merge: `git pull` en `dev` y comprobar que compila (`./mvnw test`) y arranca.
+6. Al final, `dev` se integra a `main` con un Pull Request revisado.
+
+## Seguridad
+
+- Nunca subir contraseñas: usar variables de entorno o `db.properties` (ignorado por Git).
+- No subir respaldos de la base (`*.backup`, `*.dump`) ni configuraciones locales de IntelliJ.

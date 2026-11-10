@@ -34,3 +34,49 @@
 .button:hover {
     -fx-background-color: #c39b26;
 }
+
+/* --- Formularios (pedidos, servicios, reportes) --- */
+.formulario {
+    -fx-background-color: #ffffff;
+    -fx-padding: 12;
+    -fx-background-radius: 6;
+    -fx-border-color: #e3dccb;
+    -fx-border-radius: 6;
+}
+
+.titulo-seccion {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f1b16;
+}
+
+.barra-filtros {
+    -fx-alignment: center-left;
+}
+
+.mensaje {
+    -fx-text-fill: #6b6355;
+}
+
+.cupo {
+    -fx-text-fill: #3d6b35;
+    -fx-font-size: 12px;
+}
+
+.cupo-lleno {
+    -fx-text-fill: #b3261e;
+    -fx-font-weight: bold;
+}
+
+.button.peligro {
+    -fx-background-color: #b3261e;
+    -fx-text-fill: #ffffff;
+}
+
+.button.peligro:hover {
+    -fx-background-color: #8c1d18;
+}
+
+.chart-bar {
+    -fx-bar-fill: #d4af37;
+}

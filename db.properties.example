@@ -1,5 +1,7 @@
+# Opcion alternativa a las variables de entorno DB_URL, DB_USER y DB_PASSWORD.
 # Copia este archivo como "db.properties" en la raiz del proyecto y pon TUS datos.
 # db.properties esta en .gitignore: nunca se sube a GitHub.
+# Si tambien hay variables de entorno, estas tienen prioridad.
 
 jakarta.persistence.jdbc.url=jdbc:postgresql://localhost:5432/quilate
 jakarta.persistence.jdbc.user=postgres
