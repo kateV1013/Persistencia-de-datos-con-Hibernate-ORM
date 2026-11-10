@@ -32,6 +32,15 @@ public final class JPAUtil {
         return emf;
     }
 
+    /**
+     * Crea el EntityManagerFactory con propiedades explicitas en lugar de db.properties.
+     * Lo usan las pruebas automaticas para conectarse a una base H2 en memoria.
+     */
+    public static synchronized void inicializar(Map<String, Object> propiedades) {
+        cerrar();
+        emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT, propiedades);
+    }
+
     public static EntityManager getEntityManager() {
         return getEntityManagerFactory().createEntityManager();
     }
