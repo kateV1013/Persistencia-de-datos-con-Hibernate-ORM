@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.quilate.controller.VentaController">
+    <top>
+        <VBox spacing="8" styleClass="formulario">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Label text="Registro de ventas" styleClass="titulo-seccion"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Cliente:"/>
+                <ComboBox fx:id="cmbCliente" prefWidth="250" promptText="Seleccione un cliente"/>
+                <Label text="Pago:"/>
+                <ComboBox fx:id="cmbMetodoPago" prefWidth="150"/>
+                <Button text="Nueva" onAction="#nuevaVenta"/>
+                <Button text="Recargar" onAction="#recargar"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Pieza:"/>
+                <ComboBox fx:id="cmbPieza" prefWidth="330" promptText="Seleccione una pieza"/>
+                <Label text="Cantidad:"/>
+                <TextField fx:id="txtCantidad" prefWidth="65"/>
+                <Label text="Descuento por unidad (Q):"/>
+                <TextField fx:id="txtDescuento" prefWidth="90"/>
+                <Button text="Agregar" onAction="#agregarDetalle"/>
+            </HBox>
+            <Label fx:id="lblDescuentoMaximo" text="Descuento maximo: --" styleClass="mensaje"/>
+        </VBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.58">
+            <VBox spacing="7">
+                <padding><Insets top="8" right="5" bottom="8" left="8"/></padding>
+                <Label text="Detalle de la venta" styleClass="titulo-seccion"/>
+                <TableView fx:id="tablaDetalles" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colPieza" text="Pieza" prefWidth="190"/>
+                        <TableColumn fx:id="colCantidad" text="Cant." prefWidth="55"/>
+                        <TableColumn fx:id="colPrecio" text="Precio" prefWidth="75"/>
+                        <TableColumn fx:id="colDescuento" text="Descuento" prefWidth="85"/>
+                        <TableColumn fx:id="colSubtotal" text="Subtotal" prefWidth="90"/>
+                    </columns>
+                </TableView>
+                <HBox spacing="8" alignment="CENTER_RIGHT">
+                    <Button text="Quitar linea" onAction="#quitarDetalle" styleClass="peligro"/>
+                    <Label fx:id="lblTotal" text="Total: Q 0.00" styleClass="total-venta"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_RIGHT">
+                    <Button text="Guardar preparacion" onAction="#guardarPreparacion"/>
+                    <Button text="Confirmar venta" onAction="#confirmarVenta" styleClass="confirmar"/>
+                </HBox>
+            </VBox>
+
+            <VBox spacing="7">
+                <padding><Insets top="8" right="8" bottom="8" left="5"/></padding>
+                <Label text="Ventas registradas" styleClass="titulo-seccion"/>
+                <TableView fx:id="tablaVentas" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colVentaId" text="#" prefWidth="45"/>
+                        <TableColumn fx:id="colCliente" text="Cliente" prefWidth="145"/>
+                        <TableColumn fx:id="colFecha" text="Fecha" prefWidth="125"/>
+                        <TableColumn fx:id="colTotalVenta" text="Total" prefWidth="75"/>
+                        <TableColumn fx:id="colEstado" text="Estado" prefWidth="95"/>
+                    </columns>
+                </TableView>
+                <Button text="Anular seleccionada y devolver stock"
+                        onAction="#anularVenta" styleClass="peligro" maxWidth="Infinity"/>
+            </VBox>
+        </SplitPane>
+    </center>
+
+    <bottom>
+        <Label fx:id="lblMensaje" styleClass="mensaje">
+            <padding><Insets top="5" right="10" bottom="5" left="10"/></padding>
+        </Label>
+    </bottom>
+</BorderPane>

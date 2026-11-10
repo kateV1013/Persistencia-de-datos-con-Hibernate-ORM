@@ -5,7 +5,6 @@ import javafx.scene.control.ButtonType;
 
 import java.util.Optional;
 
-/** Mensajes estandar para validaciones y errores en JavaFX. */
 public final class AlertUtil {
 
     private AlertUtil() {
@@ -23,7 +22,6 @@ public final class AlertUtil {
         mostrar(Alert.AlertType.ERROR, "Error", mensaje);
     }
 
-    /** Muestra un error a partir de una excepcion, usando la causa mas especifica. */
     public static void error(Throwable e) {
         Throwable causa = e;
         while (causa.getCause() != null && causa.getCause() != causa) {

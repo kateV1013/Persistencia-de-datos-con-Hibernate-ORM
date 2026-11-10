@@ -31,12 +31,12 @@ src/main/java/com/quilate/
 └── util/                ← JPAUtil (EntityManagerFactory), Transaccion, Tareas, AlertUtil, Formatos
 src/main/resources/
 ├── META-INF/persistence.xml
-├── fxml/                ← vistas (main, pedidos, servicios, reporte_piezas)
+├── fxml/                ← vistas (main, ventas, pedidos, servicios, reporte_piezas)
 └── css/styles.css
 src/test/java/           ← pruebas automáticas con H2 en memoria
 database/
-├── 01_quilate_bd_inicial.sql       ← tablas base, trigger de descuento y datos de prueba
-└── 02_pedidos_y_estado_venta.sql   ← tipo_servicio, pedido_personalizado y estado de venta
+├── 01_quilate_bd_inicial.sql       ← inventario, clientes, apartados, ventas y datos de prueba
+└── 02_pedidos_y_estado_venta.sql   ← tipo_servicio y pedido_personalizado
 ```
 
 ## 1. Preparar PostgreSQL
@@ -136,6 +136,17 @@ Las pruebas usan una base H2 en memoria, así que **no necesitan PostgreSQL**:
 ```
 
 En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
+
+## Funcionalidades — Integrante 3: ventas y descuentos
+
+- **Ventas** (pestaña *Ventas*): permite seleccionar cliente y método de pago, agregar piezas,
+  cambiar cantidades, aplicar descuentos monetarios por unidad y guardar ventas en preparación.
+- El descuento máximo se calcula como `precio de venta - costo`; no se permite vender bajo costo.
+- Al confirmar, la venta, sus detalles y la reducción de existencias se guardan en una sola
+  transacción. Si falta stock o falla alguna operación, Hibernate revierte todo.
+- Las ventas confirmadas no se borran: se anulan y el inventario se reintegra una sola vez.
+- `VentaService.confirmarDesdeApartado` convierte un apartado activo sin descontar dos veces,
+  verifica pieza y cantidad, y marca el apartado como completado en la misma transacción.
 
 ## Funcionalidades — Integrante 4: pedidos personalizados y reportes
 

@@ -80,3 +80,18 @@
 .chart-bar {
     -fx-bar-fill: #d4af37;
 }
+
+.total-venta {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f1b16;
+}
+
+.button.confirmar {
+    -fx-background-color: #3d6b35;
+    -fx-text-fill: white;
+}
+
+.button.confirmar:hover {
+    -fx-background-color: #2f5429;
+}
