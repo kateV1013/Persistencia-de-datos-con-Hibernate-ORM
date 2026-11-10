@@ -81,6 +81,13 @@ public class VentaController {
         cmbPieza.valueProperty().addListener((obs, anterior, pieza) -> mostrarDescuentoMaximo(pieza));
         tablaVentas.getSelectionModel().selectedItemProperty()
                 .addListener((obs, anterior, venta) -> cargarVenta(venta));
+        tablaDetalles.getSelectionModel().selectedItemProperty().addListener((o, a, linea) -> {
+            if (linea != null) {
+                cmbPieza.setValue(linea.pieza());
+                txtCantidad.setText(Integer.toString(linea.cantidad()));
+                txtDescuento.setText(linea.descuento().toPlainString());
+            }
+        });
         recargar();
         nuevaVenta();
     }
@@ -98,15 +105,13 @@ public class VentaController {
                 throw new ReglaNegocioException(
                         "Stock insuficiente. Disponible: " + pieza.getExistencias() + ".");
             }
-            if (carrito.stream().anyMatch(linea -> linea.pieza().getId().equals(pieza.getId()))) {
-                throw new ReglaNegocioException(
-                        "La pieza ya esta agregada. Quitala para cambiar su cantidad.");
-            }
+
 
             BigDecimal precio = BigDecimal.valueOf(pieza.getPrecioVenta());
             BigDecimal costo = BigDecimal.valueOf(pieza.getCosto());
             BigDecimal subtotal = CalculadoraVenta.calcularSubtotal(
                     precio, costo, descuento, cantidad);
+            carrito.removeIf(linea -> linea.pieza().getId().equals(pieza.getId()));
             carrito.add(new LineaCarrito(pieza, cantidad, precio, descuento, subtotal));
             actualizarTotal();
             txtCantidad.setText("1");
@@ -144,6 +149,7 @@ public class VentaController {
     private void confirmarVenta() {
         try {
             Venta guardada = guardar();
+            ventaEnEdicionId = guardada.getId();
             Venta confirmada = ventaService.confirmar(guardada.getId());
             AlertUtil.info("Venta " + confirmada.getId() + " confirmada. Inventario actualizado.");
             recargar();
@@ -254,7 +260,7 @@ public class VentaController {
         try {
             BigDecimal maximo = CalculadoraVenta.calcularDescuentoMaximo(
                     BigDecimal.valueOf(pieza.getPrecioVenta()), BigDecimal.valueOf(pieza.getCosto()));
-            lblDescuentoMaximo.setText("Descuento maximo por unidad: Q " + maximo);
+            lblDescuentoMaximo.setText("Descuento maximo por unidad: C$ " + maximo);
         } catch (RuntimeException e) {
             lblDescuentoMaximo.setText(e.getMessage());
         }
@@ -263,7 +269,7 @@ public class VentaController {
     private void actualizarTotal() {
         BigDecimal total = CalculadoraVenta.calcularTotal(
                 carrito.stream().map(LineaCarrito::subtotal).toList());
-        lblTotal.setText("Total: Q " + total);
+        lblTotal.setText("Total: C$ " + total);
     }
 
     private BigDecimal decimalOZero(String texto) {
