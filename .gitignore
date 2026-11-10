@@ -1,14 +1,28 @@
 # --- Credenciales locales (NUNCA subir) ---
 db.properties
-*.env
+**/db.properties
+!db.properties.example
 .env
+.env.*
+!.env.example
+*.env
+*.pgpass
+.pgpass
+
+# --- Respaldos y datos locales de la base ---
+*.backup
+*.dump
+*.sql.gz
+*.mv.db
+*.trace.db
 
 # --- Maven ---
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
-# --- IntelliJ IDEA ---
+# --- IntelliJ IDEA (incluye run configurations con variables de entorno) ---
 .idea/
+.run/
 *.iml
 *.iws
 *.ipr
