@@ -1,15 +1,35 @@
-# ── Credenciales (NUNCA subir) ────────────────────────────
+# Credenciales locales
+db.properties
 .env
+*.env
 
-# ── Maven ─────────────────────────────────────────────────
+# Maven y Java
 target/
 *.class
+!.mvn/wrapper/maven-wrapper.jar
 
-# ── IntelliJ IDEA ─────────────────────────────────────────
-.idea/workspace.xml
-.idea/tasks.xml
+# IntelliJ IDEA
+.idea/
 *.iml
+*.iws
+*.ipr
+out/
 
-# ── macOS / Windows ───────────────────────────────────────
+# Eclipse / VS Code
+.classpath
+.project
+.settings/
+.vscode/
+bin/
+
+# Sistema operativo
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Logs, temporales y respaldos
+*.log
+*.tmp
+*.bak
+*.backup
+hs_err_pid*
