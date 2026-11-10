@@ -50,6 +50,11 @@ public class Pieza {
     @JoinColumn(name = "categoria_id", foreignKey = @ForeignKey(name = "fk_pieza_categoria"))
     private Categoria categoria;
 
+    @jakarta.persistence.OneToMany(mappedBy = "pieza")
+    private java.util.List<Apartado> apartados = new java.util.ArrayList<>();
+
+    public java.util.List<Apartado> getApartados() { return apartados; }
+
     public Pieza() {
     }
 

@@ -33,6 +33,8 @@ public class ClienteService {
             throw new ValidacionException("El nombre es obligatorio.");
         }
         c.setNombre(c.getNombre().trim());
+        if (c.getNombre().length() > 60) throw new ValidacionException("Nombre: máximo 60 caracteres.");
+        if (c.getCorreo() != null && c.getCorreo().isBlank()) c.setCorreo(null);
         if (c.getTelefono() != null && !c.getTelefono().isBlank()
                 && !TELEFONO.matcher(c.getTelefono().trim()).matches()) {
             throw new ValidacionException("El teléfono solo admite dígitos, +, - y espacios (8 a 20 caracteres).");

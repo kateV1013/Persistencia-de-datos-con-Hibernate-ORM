@@ -71,9 +71,13 @@ public class ClienteDAO {
                             "SELECT COUNT(a) FROM Apartado a WHERE a.cliente.id = :id", Long.class)
                     .setParameter("id", id)
                     .getSingleResult();
+            total += em.createQuery("select count(v) from Venta v where v.cliente.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult();
+            total += em.createQuery("select count(p) from PedidoPersonalizado p where p.cliente.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult();
             if (total > 0) {
                 throw new EntidadConDependenciasException(
-                        "No se puede eliminar: el cliente tiene " + total + " apartado(s) asociado(s).");
+                        "No se puede eliminar: el cliente tiene " + total + " movimiento(s) asociado(s).");
             }
             Cliente cliente = em.find(Cliente.class, id);
             if (cliente != null) em.remove(cliente);
