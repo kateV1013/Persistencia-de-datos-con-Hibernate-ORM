@@ -7,10 +7,11 @@
     <persistence-unit name="quilatePU" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <!--
-            Registrar aqui cada entidad nueva del paquete com.quilate.model, por ejemplo:
-            <class>com.quilate.model.Pieza</class>
-        -->
+        <!-- Registrar aqui cada entidad nueva del paquete com.quilate.model -->
+        <class>com.quilate.model.Cliente</class>
+        <class>com.quilate.model.Pieza</class>
+        <class>com.quilate.model.Venta</class>
+        <class>com.quilate.model.DetalleVenta</class>
 
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
