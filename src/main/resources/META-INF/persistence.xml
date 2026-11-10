@@ -44,6 +44,17 @@
             TODO: Integrante 4 proporcionará:
                   com.quilate.model.TipoServicio
                   com.quilate.model.PedidoPersonalizado
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <persistence-unit name="quilatePU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!--
+            Registrar aqui cada entidad nueva del paquete com.quilate.model, por ejemplo:
+            <class>com.quilate.model.Pieza</class>
         -->
 
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
@@ -83,4 +94,10 @@
 
     </persistence-unit>
 
+            <!-- La URL, usuario y contrasena NO van aqui: se leen de db.properties (ver JPAUtil) -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
 </persistence>

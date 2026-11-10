@@ -1,0 +1,10 @@
+# Copia este archivo como "db.properties" en la raiz del proyecto y pon TUS datos.
+# db.properties esta en .gitignore: nunca se sube a GitHub.
+
+jakarta.persistence.jdbc.url=jdbc:postgresql://localhost:5432/quilate
+jakarta.persistence.jdbc.user=postgres
+jakarta.persistence.jdbc.password=CAMBIAR
+
+# validate = comprueba que las entidades coincidan con las tablas existentes (no modifica la BD)
+# update   = crea/ajusta tablas automaticamente (solo en desarrollo)
+hibernate.hbm2ddl.auto=validate
