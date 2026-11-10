@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.quilate.controller.PedidoController">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+    <top>
+        <HBox spacing="12" styleClass="barra-filtros">
+            <BorderPane.margin><Insets bottom="8"/></BorderPane.margin>
+            <Label text="Pedidos personalizados" styleClass="titulo-seccion"/>
+            <CheckBox fx:id="chkCancelados" text="Mostrar cancelados" onAction="#onRefrescar"/>
+            <Button text="Refrescar" onAction="#onRefrescar"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TableView fx:id="tabla">
+            <columns>
+                <TableColumn fx:id="colId" text="N.º" prefWidth="50"/>
+                <TableColumn fx:id="colCliente" text="Cliente" prefWidth="150"/>
+                <TableColumn fx:id="colServicio" text="Servicio" prefWidth="120"/>
+                <TableColumn fx:id="colDescripcion" text="Trabajo" prefWidth="200"/>
+                <TableColumn fx:id="colFecha" text="Fecha" prefWidth="90"/>
+                <TableColumn fx:id="colPrecio" text="Precio" prefWidth="100"/>
+                <TableColumn fx:id="colEstado" text="Estado" prefWidth="90"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <right>
+        <VBox spacing="6" prefWidth="310" styleClass="formulario">
+            <BorderPane.margin><Insets left="12"/></BorderPane.margin>
+            <Label fx:id="lblModo" text="Nuevo pedido" styleClass="titulo-seccion"/>
+
+            <Label text="Cliente *"/>
+            <ComboBox fx:id="cmbCliente" maxWidth="Infinity" promptText="Selecciona el cliente"/>
+
+            <Label text="Tipo de servicio *"/>
+            <ComboBox fx:id="cmbServicio" maxWidth="Infinity" promptText="Grabado, reparación..."/>
+
+            <Label text="Descripción del trabajo *"/>
+            <TextArea fx:id="txtDescripcion" prefRowCount="3" wrapText="true"
+                      promptText="Ej. Grabar &quot;M &amp; J 2026&quot; en el interior del anillo"/>
+
+            <Label text="Fecha programada *"/>
+            <DatePicker fx:id="dpFecha" maxWidth="Infinity"/>
+            <Label fx:id="lblCupo" styleClass="cupo" wrapText="true"/>
+
+            <Label text="Precio (C$) *"/>
+            <TextField fx:id="txtPrecio" promptText="0.00"/>
+
+            <Label text="Estado"/>
+            <ComboBox fx:id="cmbEstado" maxWidth="Infinity"/>
+
+            <HBox spacing="8">
+                <VBox.margin><Insets top="6"/></VBox.margin>
+                <Button text="Nuevo" onAction="#onNuevo"/>
+                <Button fx:id="btnGuardar" text="Guardar" onAction="#onGuardar"/>
+                <Button fx:id="btnCancelarPedido" text="Cancelar pedido" onAction="#onCancelarPedido"
+                        styleClass="peligro"/>
+            </HBox>
+
+            <Label fx:id="lblMensaje" wrapText="true" styleClass="mensaje"/>
+        </VBox>
+    </right>
+</BorderPane>
