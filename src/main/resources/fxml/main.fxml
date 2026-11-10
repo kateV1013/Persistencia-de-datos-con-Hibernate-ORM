@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.quilate.controller.MainController">
+
+    <top>
+        <HBox styleClass="header">
+            <Label text="Quilate" styleClass="titulo"/>
+            <Label text="Sistema de Ventas y Analisis de Clientes" styleClass="subtitulo"/>
+        </HBox>
+    </top>
+
+    <center>
+        <!--
+            Cada integrante reemplaza el contenido de su pestana por su FXML, por ejemplo:
+            <Tab text="Piezas" closable="false"><fx:include source="piezas.fxml"/></Tab>
+        -->
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Piezas"><StackPane><Label text="Integrante 1: Categorias, Piezas y Clientes"/></StackPane></Tab>
+            <Tab text="Clientes"><StackPane><Label text="Integrante 1"/></StackPane></Tab>
+            <Tab text="Ventas"><StackPane><Label text="Integrante 2: Empleados, Ventas y Detalle"/></StackPane></Tab>
+            <Tab text="Descuentos"><StackPane><Label text="Integrante 3: Descuentos"/></StackPane></Tab>
+            <Tab text="Pedidos personalizados"><StackPane><Label text="Integrante 3: Pedidos personalizados"/></StackPane></Tab>
+            <Tab text="Reportes"><StackPane><Label text="Consultas HQL y graficas"/></StackPane></Tab>
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox styleClass="barra-estado">
+            <padding><Insets top="4" right="10" bottom="4" left="10"/></padding>
+            <Label fx:id="lblEstado"/>
+        </HBox>
+    </bottom>
+</BorderPane>
