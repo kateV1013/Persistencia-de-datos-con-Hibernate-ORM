@@ -1,5 +1,6 @@
 package com.quilate.model;
 
+import com.quilate.service.CalculadoraVenta;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,13 +10,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
-/**
- * Pieza vendida dentro de una venta (tabla detalle_venta de quilate_bd_inicial.sql).
- * El trigger trg_validar_descuento bloquea descuentos que dejen la pieza bajo su costo.
- */
 @Entity
 @Table(name = "detalle_venta")
 public class DetalleVenta {
@@ -23,7 +22,7 @@ public class DetalleVenta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_detalle")
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_venta", nullable = false)
@@ -33,78 +32,80 @@ public class DetalleVenta {
     @JoinColumn(name = "id_pieza", nullable = false)
     private Pieza pieza;
 
-    @Column(name = "cantidad", nullable = false)
+    @Column(nullable = false)
     private Integer cantidad;
 
-    @Column(name = "precio_unitario", nullable = false, precision = 10, scale = 2)
+    @Column(name = "precio_unitario", nullable = false, precision = 12, scale = 2)
     private BigDecimal precioUnitario;
 
-    @Column(name = "descuento_pct", nullable = false, precision = 5, scale = 2)
-    private BigDecimal descuentoPct = BigDecimal.ZERO;
+    @Column(name = "costo_unitario_venta", nullable = false, precision = 12, scale = 2)
+    private BigDecimal costoUnitarioVenta;
 
-    /** Columna GENERATED en PostgreSQL: solo lectura, nunca se inserta ni actualiza. */
-    @Column(name = "subtotal", precision = 12, scale = 2, insertable = false, updatable = false)
-    private BigDecimal subtotal;
+    /** Descuento monetario aplicado a cada unidad. */
+    @Column(name = "descuento_aplicado", nullable = false, precision = 12, scale = 2)
+    private BigDecimal descuentoAplicado = BigDecimal.ZERO.setScale(2);
 
     public DetalleVenta() {
     }
 
-    public DetalleVenta(Pieza pieza, int cantidad, BigDecimal precioUnitario, BigDecimal descuentoPct) {
+    /** Constructor para ventas: conserva precio, costo y descuento monetario por unidad. */
+    public DetalleVenta(Pieza pieza, int cantidad, BigDecimal precioUnitario,
+                        BigDecimal costoUnitarioVenta, BigDecimal descuentoAplicado) {
         this.pieza = pieza;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
-        this.descuentoPct = descuentoPct;
+        this.costoUnitarioVenta = costoUnitarioVenta;
+        this.descuentoAplicado = descuentoAplicado;
     }
 
-    public Integer getId() {
-        return id;
+    /** Constructor compatible con datos de reporte cuyo descuento se expresa como porcentaje. */
+    public DetalleVenta(Pieza pieza, int cantidad, BigDecimal precioUnitario,
+                        BigDecimal descuentoPct) {
+        this(
+                pieza,
+                cantidad,
+                precioUnitario,
+                BigDecimal.valueOf(pieza.getCosto()),
+                precioUnitario.multiply(descuentoPct)
+                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+        );
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Venta getVenta() {
-        return venta;
-    }
-
-    public void setVenta(Venta venta) {
-        this.venta = venta;
-    }
-
-    public Pieza getPieza() {
-        return pieza;
-    }
-
-    public void setPieza(Pieza pieza) {
-        this.pieza = pieza;
-    }
-
-    public Integer getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(Integer cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public BigDecimal getPrecioUnitario() {
-        return precioUnitario;
-    }
-
-    public void setPrecioUnitario(BigDecimal precioUnitario) {
-        this.precioUnitario = precioUnitario;
-    }
-
-    public BigDecimal getDescuentoPct() {
-        return descuentoPct;
-    }
-
-    public void setDescuentoPct(BigDecimal descuentoPct) {
-        this.descuentoPct = descuentoPct;
-    }
-
+    @Transient
     public BigDecimal getSubtotal() {
-        return subtotal;
+        return CalculadoraVenta.calcularSubtotal(
+                precioUnitario, costoUnitarioVenta, descuentoAplicado, cantidad);
+    }
+
+    @Transient
+    public BigDecimal getDescuentoPct() {
+        if (precioUnitario == null || precioUnitario.signum() == 0) {
+            return BigDecimal.ZERO;
+        }
+        return descuentoAplicado.multiply(BigDecimal.valueOf(100))
+                .divide(precioUnitario, 2, RoundingMode.HALF_UP);
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Venta getVenta() { return venta; }
+    public void setVenta(Venta venta) { this.venta = venta; }
+    public Pieza getPieza() { return pieza; }
+    public void setPieza(Pieza pieza) { this.pieza = pieza; }
+    public Integer getCantidad() { return cantidad; }
+    public void setCantidad(Integer cantidad) { this.cantidad = cantidad; }
+    public BigDecimal getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(BigDecimal precioUnitario) { this.precioUnitario = precioUnitario; }
+    public BigDecimal getCostoUnitarioVenta() { return costoUnitarioVenta; }
+    public void setCostoUnitarioVenta(BigDecimal costoUnitarioVenta) {
+        this.costoUnitarioVenta = costoUnitarioVenta;
+    }
+    public BigDecimal getDescuentoAplicado() { return descuentoAplicado; }
+    public void setDescuentoAplicado(BigDecimal descuentoAplicado) {
+        this.descuentoAplicado = descuentoAplicado;
+    }
+    public void setDescuentoPct(BigDecimal descuentoPct) {
+        this.descuentoAplicado = precioUnitario.multiply(descuentoPct)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 }

@@ -18,7 +18,7 @@ public class ReporteDAO {
             select new com.quilate.dto.PiezaMasVendida(
                        p.id, p.codigoBarras, p.nombre,
                        sum(d.cantidad),
-                       sum(d.cantidad * d.precioUnitario * (1 - d.descuentoPct / 100)))
+                       sum(d.cantidad * (d.precioUnitario - d.descuentoAplicado)))
             from DetalleVenta d
             join d.venta v
             join d.pieza p

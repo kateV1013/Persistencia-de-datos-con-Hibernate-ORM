@@ -9,7 +9,7 @@ import java.math.BigDecimal;
  * @param totalVendido    suma de cantidad x precio unitario, ya con el descuento aplicado
  */
 public record PiezaMasVendida(
-        Integer idPieza,
+        Long idPieza,
         String codigoBarras,
         String nombre,
         Long cantidadVendida,

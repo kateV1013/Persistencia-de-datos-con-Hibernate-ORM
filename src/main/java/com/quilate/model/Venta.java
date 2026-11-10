@@ -12,16 +12,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Venta (tabla venta de quilate_bd_inicial.sql + columna estado de 02_pedidos_y_estado_venta.sql).
- * Version base: el integrante responsable de Ventas agrega la logica de caja y validaciones.
- */
 @Entity
 @Table(name = "venta")
 public class Venta {
@@ -29,7 +29,7 @@ public class Venta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_venta")
-    private Integer id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_cliente", nullable = false)
@@ -38,20 +38,38 @@ public class Venta {
     @Column(name = "fecha_hora", nullable = false)
     private LocalDateTime fechaHora = LocalDateTime.now();
 
-    /** EFECTIVO, TARJETA o TRANSFERENCIA (CHECK en la base). */
     @Column(name = "metodo_pago", nullable = false, length = 20)
-    private String metodoPago;
+    private String metodoPago = "EFECTIVO";
+
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal total = BigDecimal.ZERO.setScale(2);
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false, length = 20)
-    private EstadoVenta estado = EstadoVenta.CONFIRMADA;
+    @Column(nullable = false, length = 20)
+    private EstadoVenta estado = EstadoVenta.PREPARACION;
+
+    @Column(name = "inventario_comprometido", nullable = false)
+    private boolean inventarioComprometido;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "apartado_origen_id", unique = true)
+    private Apartado apartadoOrigen;
+
+    @Version
+    private long version;
 
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<DetalleVenta> detalles = new ArrayList<>();
 
     public Venta() {
     }
 
+    public Venta(Cliente cliente) {
+        this.cliente = cliente;
+    }
+
+    /** Constructor conservado para los reportes y datos existentes. */
     public Venta(Cliente cliente, LocalDateTime fechaHora, String metodoPago, EstadoVenta estado) {
         this.cliente = cliente;
         this.fechaHora = fechaHora;
@@ -59,53 +77,36 @@ public class Venta {
         this.estado = estado;
     }
 
-    /** Agrega un detalle manteniendo sincronizados ambos lados de la relacion. */
     public void agregarDetalle(DetalleVenta detalle) {
         detalle.setVenta(this);
         detalles.add(detalle);
     }
 
-    public Integer getId() {
-        return id;
+    public void limpiarDetalles() {
+        detalles.forEach(detalle -> detalle.setVenta(null));
+        detalles.clear();
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
+    public LocalDateTime getFechaHora() { return fechaHora; }
+    public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+    public BigDecimal getTotal() { return total; }
+    public void setTotal(BigDecimal total) { this.total = total; }
+    public EstadoVenta getEstado() { return estado; }
+    public void setEstado(EstadoVenta estado) { this.estado = estado; }
+    public boolean isInventarioComprometido() { return inventarioComprometido; }
+    public void setInventarioComprometido(boolean inventarioComprometido) {
+        this.inventarioComprometido = inventarioComprometido;
     }
-
-    public Cliente getCliente() {
-        return cliente;
+    public Apartado getApartadoOrigen() { return apartadoOrigen; }
+    public void setApartadoOrigen(Apartado apartadoOrigen) { this.apartadoOrigen = apartadoOrigen; }
+    public Long getApartadoOrigenId() {
+        return apartadoOrigen == null ? null : apartadoOrigen.getId();
     }
-
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
-
-    public LocalDateTime getFechaHora() {
-        return fechaHora;
-    }
-
-    public void setFechaHora(LocalDateTime fechaHora) {
-        this.fechaHora = fechaHora;
-    }
-
-    public String getMetodoPago() {
-        return metodoPago;
-    }
-
-    public void setMetodoPago(String metodoPago) {
-        this.metodoPago = metodoPago;
-    }
-
-    public EstadoVenta getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoVenta estado) {
-        this.estado = estado;
-    }
-
-    public List<DetalleVenta> getDetalles() {
-        return detalles;
-    }
+    public List<DetalleVenta> getDetalles() { return detalles; }
 }

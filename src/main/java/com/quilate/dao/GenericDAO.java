@@ -9,15 +9,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * CRUD generico con Hibernate (JPA). Cada DAO de entidad hereda de esta clase:
- *
- * <pre>
- * public class PiezaDAO extends GenericDAO&lt;Pieza, Long&gt; {
- *     public PiezaDAO() { super(Pieza.class); }
- * }
- * </pre>
- */
 public abstract class GenericDAO<T, ID> {
 
     protected final Class<T> entityClass;
@@ -57,9 +48,8 @@ public abstract class GenericDAO<T, ID> {
                 .getResultList());
     }
 
-    // ---------- utilidades para las subclases ----------
 
-    /** Ejecuta una operacion de solo lectura (consultas HQL) y cierra el EntityManager. */
+
     protected <R> R enConsulta(Function<EntityManager, R> operacion) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
@@ -69,7 +59,6 @@ public abstract class GenericDAO<T, ID> {
         }
     }
 
-    /** Ejecuta una operacion dentro de una transaccion; si falla hace rollback. */
     protected <R> R enTransaccion(Function<EntityManager, R> operacion) {
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();

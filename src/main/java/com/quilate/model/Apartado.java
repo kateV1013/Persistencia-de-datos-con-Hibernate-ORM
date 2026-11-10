@@ -54,3 +54,12 @@ public class Apartado {
     public void setId(Long id) { this.id = id; }
     public Cliente getCliente() { return cliente; }
     public void setCliente(Cliente cliente) { this.cliente = cliente; }
+    public Pieza getPieza() { return pieza; }
+    public void setPieza(Pieza pieza) { this.pieza = pieza; }
+    public int getCantidad() { return cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
+    public LocalDateTime getFecha() { return fecha; }
+    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+    public EstadoApartado getEstado() { return estado; }
+    public void setEstado(EstadoApartado estado) { this.estado = estado; }
+}
