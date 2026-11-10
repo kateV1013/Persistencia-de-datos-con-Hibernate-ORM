@@ -20,6 +20,7 @@ public class ApartadoDAO {
 
     /** Crea el apartado y descuenta la cantidad de existencias (misma transacción). */
     public Apartado crear(Long clienteId, Long piezaId, int cantidad) {
+        if (cantidad <= 0) throw new ValidacionException("La cantidad debe ser positiva.");
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
@@ -50,11 +51,12 @@ public class ApartadoDAO {
 
     /** Cambia la cantidad ajustando la reserva según la diferencia. */
     public void modificarCantidad(Long apartadoId, int nuevaCantidad) {
+        if (nuevaCantidad <= 0) throw new ValidacionException("La cantidad debe ser positiva.");
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            Apartado apartado = em.find(Apartado.class, apartadoId);
+            Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (apartado == null) throw new ValidacionException("El apartado no existe.");
             if (apartado.getEstado() != EstadoApartado.ACTIVO) {
                 throw new ValidacionException("Solo se pueden modificar apartados activos.");
@@ -83,7 +85,7 @@ public class ApartadoDAO {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            Apartado apartado = em.find(Apartado.class, apartadoId);
+            Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (apartado == null) throw new ValidacionException("El apartado no existe.");
             if (apartado.getEstado() != EstadoApartado.ACTIVO) {
                 throw new ValidacionException("Solo se pueden cancelar apartados activos.");
@@ -106,7 +108,7 @@ public class ApartadoDAO {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            Apartado apartado = em.find(Apartado.class, apartadoId);
+            Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (apartado == null) throw new ValidacionException("El apartado no existe.");
             if (apartado.getEstado() != EstadoApartado.ACTIVO) {
                 throw new ValidacionException("Solo se pueden completar apartados activos.");
@@ -143,12 +145,12 @@ public class ApartadoDAO {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             List<Object[]> filas = em.createQuery(
-                            "SELECT a.fecha, p.nombre, a.cantidad, p.precioVenta "
-                                    + "FROM Apartado a JOIN a.pieza p "
-                                    + "WHERE a.cliente.id = :clienteId AND a.estado <> :cancelado "
-                                    + "ORDER BY a.fecha DESC", Object[].class)
+                            "SELECT v.fechaHora, p.nombre, d.cantidad, (d.precioUnitario - d.descuentoAplicado) "
+                                    + "FROM DetalleVenta d JOIN d.venta v JOIN d.pieza p "
+                                    + "WHERE v.cliente.id = :clienteId AND v.estado = :confirmada "
+                                    + "ORDER BY v.fechaHora DESC", Object[].class)
                     .setParameter("clienteId", clienteId)
-                    .setParameter("cancelado", EstadoApartado.CANCELADO)
+                    .setParameter("confirmada", com.quilate.model.EstadoVenta.CONFIRMADA)
                     .getResultList();
 
             return filas.stream()
