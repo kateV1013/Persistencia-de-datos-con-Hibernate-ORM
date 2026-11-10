@@ -17,7 +17,8 @@ public class ReporteDAO {
     private static final String HQL_PIEZAS_MAS_VENDIDAS = """
             select new com.quilate.dto.PiezaMasVendida(
                        p.id, p.codigoBarras, p.nombre,
-                       sum(d.cantidad), coalesce(sum(d.subtotal), 0))
+                       sum(d.cantidad),
+                       sum(d.cantidad * d.precioUnitario * (1 - d.descuentoPct / 100)))
             from DetalleVenta d
             join d.venta v
             join d.pieza p

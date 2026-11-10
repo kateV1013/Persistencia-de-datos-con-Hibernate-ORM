@@ -70,8 +70,10 @@ class ReporteDAOTest {
         assertEquals(2, top.size());
         assertEquals("Cadena cubana", top.get(0).nombre());
         assertEquals(5L, top.get(0).cantidadVendida());
+        assertEquals(0, new BigDecimal("10000").compareTo(top.get(0).totalVendido()));   // 5 x 2000
         assertEquals("Anillo solitario", top.get(1).nombre());
         assertEquals(1L, top.get(1).cantidadVendida());
+        assertEquals(0, new BigDecimal("6300").compareTo(top.get(1).totalVendido()));    // 7000 - 10 %
     }
 
     @Test
