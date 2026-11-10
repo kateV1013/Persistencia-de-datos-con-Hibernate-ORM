@@ -1,35 +1,44 @@
 # Credenciales locales
 db.properties
+**/db.properties
+!db.properties.example
 .env
+.env.*
+!.env.example
 *.env
+*.pgpass
+.pgpass
+
+# Respaldos y datos locales de base de datos
+*.backup
+*.dump
+*.sql.gz
+*.mv.db
+*.trace.db
 
 # Maven y Java
 target/
 *.class
 !.mvn/wrapper/maven-wrapper.jar
 
-# IntelliJ IDEA
+# IDE
 .idea/
+.run/
 *.iml
 *.iws
 *.ipr
 out/
-
-# Eclipse / VS Code
 .classpath
 .project
 .settings/
 .vscode/
 bin/
 
-# Sistema operativo
+# Sistema operativo, logs y temporales
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Logs, temporales y respaldos
 *.log
 *.tmp
 *.bak
-*.backup
 hs_err_pid*

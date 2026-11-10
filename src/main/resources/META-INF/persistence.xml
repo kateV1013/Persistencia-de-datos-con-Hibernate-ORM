@@ -1,103 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ┌─────────────────────────────────────────────────────────────────────────┐
-  │  persistence.xml – Unidad de persistencia JPA/Hibernate para Quilate   │
-  │                                                                         │
-  │  CREDENCIALES: Las propiedades javax.persistence.jdbc.user y           │
-  │  javax.persistence.jdbc.password se leen desde variables de entorno    │
-  │  mediante el mecanismo de sustitución de Hibernate 6:                  │
-  │    DB_USER  → usuario de PostgreSQL                                    │
-  │    DB_PASS  → contraseña de PostgreSQL                                 │
-  │    DB_HOST  → host (default localhost si se omite)                     │
-  │    DB_PORT  → puerto (default 5432 si se omite)                        │
-  │    DB_NAME  → nombre de la base de datos                               │
-  │                                                                         │
-  │  ESTRATEGIA DE ESQUEMA: hbm2ddl.auto = update                         │
-  │  → Hibernate crea/actualiza las tablas automáticamente.                │
-  │  → Solo necesitas crear la BD vacía en PostgreSQL (ver README).        │
-  └─────────────────────────────────────────────────────────────────────────┘
--->
-<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
-             https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
-             version="3.0">
-
-    <persistence-unit name="quilate-pu" transaction-type="RESOURCE_LOCAL">
-
-        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-
-        <!-- ── Entidades propias (Integrante 1) ───────────────────────── -->
-        <class>com.quilate.model.Categoria</class>
-        <class>com.quilate.model.Pieza</class>
-
-        <!--
-            TODO: Integrante 2 proporcionará:
-                  com.quilate.model.Cliente
-                  com.quilate.model.Apartado
-            Agregar aquí sus <class> cuando los entreguen.
-
-            TODO: Integrante 3 proporcionará:
-                  com.quilate.model.Venta
-                  com.quilate.model.DetalleVenta
-
-            TODO: Integrante 4 proporcionará:
-                  com.quilate.model.TipoServicio
-                  com.quilate.model.PedidoPersonalizado
 <persistence xmlns="https://jakarta.ee/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
-
     <persistence-unit name="quilatePU" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
-        <!--
-            Registrar aqui cada entidad nueva del paquete com.quilate.model, por ejemplo:
-            <class>com.quilate.model.Pieza</class>
-        -->
-
+        <class>com.quilate.model.Categoria</class>
+        <class>com.quilate.model.Pieza</class>
+        <class>com.quilate.model.Cliente</class>
+        <class>com.quilate.model.Apartado</class>
+        <class>com.quilate.model.Venta</class>
+        <class>com.quilate.model.DetalleVenta</class>
+        <class>com.quilate.model.TipoServicio</class>
+        <class>com.quilate.model.PedidoPersonalizado</class>
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
         <properties>
-            <!-- ── Conexión JDBC ──────────────────────────────────────── -->
-            <!--
-                Las variables de entorno se inyectan en JPAUtil.java
-                (ver clase util/JPAUtil) para mayor control y compatibilidad
-                cross-platform. El JDBC URL se construye en código.
-            -->
-
-            <!-- ── Dialecto ──────────────────────────────────────────── -->
-            <property name="hibernate.dialect"
-                      value="org.hibernate.dialect.PostgreSQLDialect"/>
-
-            <!-- ── Esquema automático ────────────────────────────────── -->
-            <!--
-                "update": crea tablas que no existen y agrega columnas
-                nuevas, pero NO elimina columnas/tablas existentes.
-                NUNCA uses "create-drop" en producción.
-            -->
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
-
-            <!-- ── Logging SQL (útil en desarrollo, quitar en prod) ──── -->
-            <property name="hibernate.show_sql" value="true"/>
-            <property name="hibernate.format_sql" value="true"/>
-
-            <!-- ── Pool de conexiones (C3P0 o HikariCP no incluidos aún)
-                 Hibernate usa un pool interno mínimo por defecto.
-                 En producción, agregar HikariCP. ────────────────────── -->
-            <property name="hibernate.connection.pool_size" value="5"/>
-
-            <!-- ── Zona horaria UTC para consistencia ────────────────── -->
-            <property name="hibernate.jdbc.time_zone" value="UTC"/>
-        </properties>
-
-    </persistence-unit>
-
-            <!-- La URL, usuario y contrasena NO van aqui: se leen de db.properties (ver JPAUtil) -->
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.jdbc.time_zone" value="UTC"/>
         </properties>
     </persistence-unit>
 </persistence>
