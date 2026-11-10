@@ -1,0 +1,15 @@
+# ── Credenciales (NUNCA subir) ────────────────────────────
+.env
+
+# ── Maven ─────────────────────────────────────────────────
+target/
+*.class
+
+# ── IntelliJ IDEA ─────────────────────────────────────────
+.idea/workspace.xml
+.idea/tasks.xml
+*.iml
+
+# ── macOS / Windows ───────────────────────────────────────
+.DS_Store
+Thumbs.db
