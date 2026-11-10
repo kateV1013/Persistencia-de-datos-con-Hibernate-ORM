@@ -5,9 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Cliente de la joyeria (tabla cliente de quilate_bd_inicial.sql).
@@ -37,6 +40,10 @@ public class Cliente {
 
     @Column(name = "fecha_registro", nullable = false)
     private LocalDate fechaRegistro = LocalDate.now();
+
+    /** Un cliente tiene muchos pedidos personalizados. */
+    @OneToMany(mappedBy = "cliente")
+    private List<PedidoPersonalizado> pedidos = new ArrayList<>();
 
     public Cliente() {
     }
@@ -98,6 +105,10 @@ public class Cliente {
 
     public void setFechaRegistro(LocalDate fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public List<PedidoPersonalizado> getPedidos() {
+        return pedidos;
     }
 
     @Override

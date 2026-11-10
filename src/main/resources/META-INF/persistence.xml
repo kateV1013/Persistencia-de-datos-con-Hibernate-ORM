@@ -12,6 +12,8 @@
         <class>com.quilate.model.Pieza</class>
         <class>com.quilate.model.Venta</class>
         <class>com.quilate.model.DetalleVenta</class>
+        <class>com.quilate.model.TipoServicio</class>
+        <class>com.quilate.model.PedidoPersonalizado</class>
 
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
