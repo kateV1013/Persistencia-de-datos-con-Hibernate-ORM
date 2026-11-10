@@ -1,0 +1,17 @@
+<configuration>
+    <!-- Consola -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Silenciar el SQL verbose de Hibernate en producción:
+         cambia el nivel a WARN para silenciar, DEBUG para ver todo. -->
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="com.quilate"   level="DEBUG"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
