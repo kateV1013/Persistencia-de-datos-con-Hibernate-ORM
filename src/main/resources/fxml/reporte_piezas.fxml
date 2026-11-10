@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.quilate.controller.ReportePiezasController">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+    <top>
+        <HBox spacing="10" styleClass="barra-filtros">
+            <BorderPane.margin><Insets bottom="8"/></BorderPane.margin>
+            <Label text="Piezas más vendidas" styleClass="titulo-seccion"/>
+            <Label text="Mostrar las"/>
+            <Spinner fx:id="spnLimite" editable="true" prefWidth="80"/>
+            <Label text="primeras"/>
+            <Button text="Generar reporte" onAction="#onGenerar"/>
+            <Label fx:id="lblMensaje" styleClass="mensaje"/>
+        </HBox>
+    </top>
+
+    <center>
+        <SplitPane orientation="VERTICAL" dividerPositions="0.55">
+            <BarChart fx:id="grafico" legendVisible="false" animated="false"
+                      title="Unidades vendidas (solo ventas confirmadas)">
+                <xAxis><CategoryAxis label="Pieza"/></xAxis>
+                <yAxis><NumberAxis label="Unidades" minorTickVisible="false"/></yAxis>
+            </BarChart>
+            <TableView fx:id="tabla">
+                <columns>
+                    <TableColumn fx:id="colPosicion" text="#" prefWidth="40"/>
+                    <TableColumn fx:id="colCodigo" text="Código de barras" prefWidth="140"/>
+                    <TableColumn fx:id="colNombre" text="Pieza" prefWidth="240"/>
+                    <TableColumn fx:id="colCantidad" text="Unidades" prefWidth="90"/>
+                    <TableColumn fx:id="colTotal" text="Total vendido" prefWidth="140"/>
+                </columns>
+            </TableView>
+        </SplitPane>
+    </center>
+</BorderPane>
