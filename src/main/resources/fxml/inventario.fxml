@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.quilate.controller.InventarioController" spacing="10">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+    <HBox spacing="8">
+        <TextField fx:id="txtCodigoBarrasBuscar" promptText="Escanear código y pulsar Enter" prefWidth="300"/>
+        <Button text="Buscar" onAction="#onCodigoBarrasBuscar"/>
+        <Button text="Actualizar todo" onAction="#onRecargar"/>
+    </HBox>
+    <TableView fx:id="tablaPiezas" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID"/>
+            <TableColumn fx:id="colCodigo" text="Código" prefWidth="140"/>
+            <TableColumn fx:id="colNombre" text="Pieza" prefWidth="200"/>
+            <TableColumn fx:id="colCosto" text="Costo"/>
+            <TableColumn fx:id="colPrecio" text="Precio"/>
+            <TableColumn fx:id="colExistencias" text="Existencias"/>
+            <TableColumn fx:id="colCategoria" text="Categoría" prefWidth="140"/>
+        </columns>
+    </TableView>
+    <FlowPane hgap="8" vgap="8">
+        <TextField fx:id="txtCodigoBarras" promptText="Código de barras"/>
+        <TextField fx:id="txtNombrePieza" promptText="Nombre de pieza"/>
+        <TextField fx:id="txtCosto" promptText="Costo"/>
+        <TextField fx:id="txtPrecioVenta" promptText="Precio de venta"/>
+        <TextField fx:id="txtExistencias" promptText="Existencias"/>
+        <ComboBox fx:id="cmbCategoria" promptText="Categoría" prefWidth="200"/>
+    </FlowPane>
+    <HBox spacing="8">
+        <Button text="Nueva pieza" onAction="#onNuevaPieza"/>
+        <Button text="Guardar pieza" onAction="#onGuardarPieza"/>
+        <Button text="Eliminar pieza" onAction="#onEliminarPieza"/>
+    </HBox>
+    <Separator/>
+    <Label text="Categorías: selecciona una categoría para editarla o eliminarla"/>
+    <FlowPane hgap="8" vgap="8">
+        <TextField fx:id="txtNombreCategoria" promptText="Nombre de categoría"/>
+        <TextField fx:id="txtDescripcionCategoria" promptText="Descripción"/>
+        <Button text="Crear categoría" onAction="#onGuardarCategoria"/>
+        <Button text="Actualizar categoría" onAction="#onActualizarCategoria"/>
+        <Button text="Eliminar categoría" onAction="#onEliminarCategoria"/>
+    </FlowPane>
+    <Label fx:id="lblEstado" wrapText="true"/>
+</VBox>

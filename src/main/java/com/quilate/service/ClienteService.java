@@ -29,10 +29,18 @@ public class ClienteService {
     }
 
     private void validar(Cliente c) {
+        if (c == null) throw new ValidacionException("Ingrese los datos del cliente.");
         if (c.getNombre() == null || c.getNombre().isBlank()) {
             throw new ValidacionException("El nombre es obligatorio.");
         }
         c.setNombre(c.getNombre().trim());
+        if (c.getApellido() != null) c.setApellido(c.getApellido().trim());
+        if (c.getTelefono() != null) c.setTelefono(c.getTelefono().trim());
+        if (c.getCorreo() != null) c.setCorreo(c.getCorreo().trim());
+        if (c.getApellido() != null && c.getApellido().length() > 60)
+            throw new ValidacionException("Apellido: máximo 60 caracteres.");
+        if (c.getCorreo() != null && c.getCorreo().length() > 100)
+            throw new ValidacionException("Correo: máximo 100 caracteres.");
         if (c.getNombre().length() > 60) throw new ValidacionException("Nombre: máximo 60 caracteres.");
         if (c.getCorreo() != null && c.getCorreo().isBlank()) c.setCorreo(null);
         if (c.getTelefono() != null && !c.getTelefono().isBlank()
