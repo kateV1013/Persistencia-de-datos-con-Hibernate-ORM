@@ -137,6 +137,17 @@ Las pruebas usan una base H2 en memoria, así que **no necesitan PostgreSQL**:
 
 En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 
+## Inventario, clientes y apartados
+
+- **Inventario**: alta, consulta, edición y eliminación de piezas, búsqueda por lector de código
+  de barras y administración de categorías (crear, editar y eliminar). Las piezas usadas en
+  ventas o apartados y las categorías con piezas no se pueden eliminar.
+- **Clientes**: registro, edición, eliminación de clientes sin movimientos e historial de
+  compras confirmadas. El total neto considera la cantidad y el descuento de cada venta.
+- **Apartados**: reservar piezas, ajustar cantidades, cancelar devolviendo existencias y
+  convertir la reserva en una venta sin descontar el inventario nuevamente.
+- Cada pantalla incluye una acción **Actualizar** para consultar cambios de otros módulos.
+
 ## Funcionalidades — Integrante 3: ventas y descuentos
 
 - **Ventas** (pestaña *Ventas*): permite seleccionar cliente y método de pago, agregar piezas,

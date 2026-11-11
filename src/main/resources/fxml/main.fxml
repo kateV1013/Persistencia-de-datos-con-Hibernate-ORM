@@ -24,8 +24,9 @@
             <Tab text="Piezas" closable="false"><fx:include source="piezas.fxml"/></Tab>
         -->
         <TabPane tabClosingPolicy="UNAVAILABLE">
-            <Tab text="Piezas"><StackPane><Label text="Integrante 1: Categorias, Piezas y Clientes"/></StackPane></Tab>
-            <Tab text="Clientes"><StackPane><Label text="Integrante 1"/></StackPane></Tab>
+            <Tab text="Inventario"><fx:include source="inventario.fxml"/></Tab>
+            <Tab text="Clientes"><fx:include source="clientes.fxml"/></Tab>
+            <Tab text="Apartados"><fx:include source="apartados.fxml"/></Tab>
             <Tab text="Ventas"><fx:include source="ventas.fxml"/></Tab>
             <!-- Integrante 4: pedidos personalizados y reportes -->
             <Tab text="Pedidos personalizados"><fx:include source="pedidos.fxml"/></Tab>

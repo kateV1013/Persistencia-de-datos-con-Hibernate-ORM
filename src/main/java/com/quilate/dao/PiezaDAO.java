@@ -320,9 +320,8 @@ public class PiezaDAO {
      * referenciada en otras tablas (p. ej. DetalleVenta, Apartado).
      * La violación de FK se convierte en {@link EntidadConDependenciasException}.</p>
      *
-     * <p>⚠️ La verificación explícita de dependencias la harán
-     * los Integrantes 2 y 3 cuando integren sus entidades.
-     * Por ahora, dependemos de la FK de la BD como segunda línea de defensa.</p>
+     * <p>Se verifican ventas y apartados antes del borrado; las claves foráneas
+     * de la base de datos actúan como segunda línea de defensa.</p>
      *
      * @param id ID de la pieza a eliminar
      * @throws EntidadConDependenciasException si la pieza tiene registros dependientes
@@ -340,27 +339,22 @@ public class PiezaDAO {
                 throw new IllegalArgumentException("No se encontró la pieza con ID: " + id);
             }
 
-            /*
-             * TODO: Integrante 2 (Apartado) y Integrante 3 (DetalleVenta)
-             * deberán agregar aquí las consultas de verificación cuando sus
-             * entidades estén disponibles. Ejemplo:
-             *
-             *   long enApartados = (long) em.createQuery(
-             *       "SELECT COUNT(a) FROM Apartado a JOIN a.piezas p WHERE p.id = :id")
-             *       .setParameter("id", id).getSingleResult();
-             *   if (enApartados > 0) { lanzar EntidadConDependenciasException }
-             *
-             *   long enVentas = (long) em.createQuery(
-             *       "SELECT COUNT(dv) FROM DetalleVenta dv WHERE dv.pieza.id = :id")
-             *       .setParameter("id", id).getSingleResult();
-             *   if (enVentas > 0) { lanzar EntidadConDependenciasException }
-             */
+            long apartados = em.createQuery(
+                    "select count(a) from Apartado a where a.pieza.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult();
+            long detalles = em.createQuery(
+                    "select count(d) from DetalleVenta d where d.pieza.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult();
+            if (apartados + detalles > 0) {
+                throw new EntidadConDependenciasException(
+                        "No se puede eliminar la pieza porque tiene ventas o apartados asociados.");
+            }
 
             em.remove(pieza);
             tx.commit();
             LOG.info("Pieza eliminada: ID=" + id + ", código=" + pieza.getCodigoBarras());
 
-        } catch (IllegalArgumentException e) {
+        } catch (EntidadConDependenciasException | IllegalArgumentException e) {
             if (tx.isActive()) tx.rollback();
             throw e;
 
@@ -391,10 +385,10 @@ public class PiezaDAO {
         if (pieza.getNombre() == null || pieza.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre de la pieza es obligatorio.");
         }
-        if (pieza.getCosto() == null || pieza.getCosto() < 0) {
+        if (pieza.getCosto() == null || !Double.isFinite(pieza.getCosto()) || pieza.getCosto() < 0) {
             throw new IllegalArgumentException("El costo debe ser un valor no negativo.");
         }
-        if (pieza.getPrecioVenta() == null || pieza.getPrecioVenta() < 0) {
+        if (pieza.getPrecioVenta() == null || !Double.isFinite(pieza.getPrecioVenta()) || pieza.getPrecioVenta() < 0) {
             throw new IllegalArgumentException("El precio de venta debe ser un valor no negativo.");
         }
         if (pieza.getExistencias() == null || pieza.getExistencias() < 0) {
