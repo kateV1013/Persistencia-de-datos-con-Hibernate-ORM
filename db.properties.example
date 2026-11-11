@@ -4,7 +4,7 @@
 # Si tambien hay variables de entorno, estas tienen prioridad.
 
 jakarta.persistence.jdbc.url=jdbc:postgresql://localhost:5432/quilate
-jakarta.persistence.jdbc.user=postgres
+jakarta.persistence.jdbc.user=quilate_app
 jakarta.persistence.jdbc.password=CAMBIAR
 
 # validate = comprueba que las entidades coincidan con las tablas existentes (no modifica la BD)

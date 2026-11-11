@@ -31,10 +31,7 @@ import java.util.ResourceBundle;
  * </ul>
  * </p>
  *
- * <p><b>⚠️ FXML pendiente:</b> El archivo
- * {@code /fxml/inventario.fxml} debe crearse (puede hacerlo cualquier integrante
- * o acordarse en conjunto). Los {@code @FXML} aquí declarados deben coincidir
- * con los {@code fx:id} de ese archivo.</p>
+ * <p>Vista: {@code /fxml/inventario.fxml}, integrada en la ventana principal.</p>
  */
 public class InventarioController implements Initializable {
 
@@ -104,8 +101,38 @@ public class InventarioController implements Initializable {
         configurarColumnas();
         configurarSeleccionTabla();
         configurarLectorBarras();
-        cargarCategorias();
-        cargarTodas();
+        cmbCategoria.valueProperty().addListener((obs, anterior, categoria) -> {
+            txtNombreCategoria.setText(categoria == null ? "" : categoria.getNombre());
+            txtDescripcionCategoria.setText(categoria == null || categoria.getDescripcion() == null
+                    ? "" : categoria.getDescripcion());
+        });
+        onRecargar();
+    }
+
+    @FXML
+    public void onRecargar() {
+        com.quilate.util.Tareas.ejecutar(categoriaDAO::listarTodas,
+                categorias -> cmbCategoria.getItems().setAll(categorias),
+                e -> mostrarEstado(com.quilate.util.Tareas.mensajeCorto(e), true));
+        com.quilate.util.Tareas.ejecutar(piezaDAO::listarTodas,
+                piezas -> {
+                    listaPiezas.setAll(piezas);
+                    mostrarEstado("Inventario cargado: " + piezas.size() + " pieza(s).", false);
+                }, e -> mostrarEstado(com.quilate.util.Tareas.mensajeCorto(e), true));
+    }
+
+    @FXML
+    public void onActualizarCategoria() {
+        Categoria actual = cmbCategoria.getValue();
+        if (actual == null) {
+            mostrarError("Selecciona una categoría para actualizar.");
+            return;
+        }
+        Categoria editada = new Categoria(txtNombreCategoria.getText().trim(),
+                txtDescripcionCategoria.getText().trim());
+        editada.setId(actual.getId());
+        com.quilate.util.Tareas.ejecutar(() -> categoriaDAO.actualizar(editada),
+                resultado -> onRecargar());
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -252,6 +279,9 @@ public class InventarioController implements Initializable {
             } else {
                 // Edición
                 pieza.setId(piezaEnEdicion.getId());
+                pieza.setMaterial(piezaEnEdicion.getMaterial());
+                pieza.setQuilates(piezaEnEdicion.getQuilates());
+                pieza.setPesoGramos(piezaEnEdicion.getPesoGramos());
                 if (piezaDAO.existeCodigoBarras(pieza.getCodigoBarras(), pieza.getId())) {
                     mostrarError("El código de barras ya lo usa otra pieza.");
                     return;
@@ -403,7 +433,7 @@ public class InventarioController implements Initializable {
         // Costo: decimal no negativo
         try {
             double costo = Double.parseDouble(txtCosto.getText().trim());
-            if (costo < 0) errores.append("• El costo no puede ser negativo.\n");
+            if (!Double.isFinite(costo) || costo < 0) errores.append("• El costo debe ser finito y no negativo.\n");
         } catch (NumberFormatException e) {
             errores.append("• El costo debe ser un número válido (ej. 150.00).\n");
         }
@@ -411,7 +441,7 @@ public class InventarioController implements Initializable {
         // Precio de venta: decimal no negativo
         try {
             double precio = Double.parseDouble(txtPrecioVenta.getText().trim());
-            if (precio < 0) errores.append("• El precio de venta no puede ser negativo.\n");
+            if (!Double.isFinite(precio) || precio < 0) errores.append("• El precio debe ser finito y no negativo.\n");
         } catch (NumberFormatException e) {
             errores.append("• El precio de venta debe ser un número válido (ej. 299.99).\n");
         }
@@ -460,7 +490,8 @@ public class InventarioController implements Initializable {
         txtExistencias.setText(String.valueOf(pieza.getExistencias()));
 
         // Seleccionar la categoría correspondiente en el ComboBox
-        cmbCategoria.getItems().stream()
+        cmbCategoria.setValue(null);
+        if (pieza.getCategoria() != null) cmbCategoria.getItems().stream()
                 .filter(c -> c.getId().equals(pieza.getCategoria().getId()))
                 .findFirst()
                 .ifPresent(cmbCategoria::setValue);

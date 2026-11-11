@@ -138,8 +138,8 @@ public class ApartadoDAO {
     }
 
     /**
-     * HQL: historial de compras de un cliente (excluye cancelados).
-     * Une Apartado con Pieza; el total se calcula como cantidad * precioVenta.
+     * HQL: compras confirmadas del cliente, con el precio y descuento históricos.
+     * El total de cada fila es cantidad * (precioUnitario - descuentoAplicado).
      */
     public List<HistorialCompra> historialPorCliente(Long clienteId) {
         EntityManager em = JPAUtil.getEntityManager();

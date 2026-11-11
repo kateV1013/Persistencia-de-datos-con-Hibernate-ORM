@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.quilate.controller.ClientesController" spacing="10">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+    <Label text="Clientes e historial de compras"/>
+    <TableView fx:id="tabla" VBox.vgrow="ALWAYS"/>
+    <FlowPane hgap="8" vgap="8">
+        <TextField fx:id="nombre" promptText="Nombre"/>
+        <TextField fx:id="apellido" promptText="Apellido"/>
+        <TextField fx:id="telefono" promptText="Teléfono"/>
+        <TextField fx:id="correo" promptText="Correo electrónico"/>
+    </FlowPane>
+    <HBox spacing="8">
+        <Button text="Nuevo" onAction="#nuevo"/>
+        <Button text="Guardar" onAction="#guardar"/>
+        <Button text="Eliminar" onAction="#eliminar"/>
+        <Button text="Actualizar" onAction="#recargar"/>
+    </HBox>
+    <Label text="Compras confirmadas del cliente seleccionado"/>
+    <TableView fx:id="historial" VBox.vgrow="ALWAYS"/>
+    <Label fx:id="mensaje" wrapText="true"/>
+</VBox>
