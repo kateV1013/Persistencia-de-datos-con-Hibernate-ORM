@@ -35,6 +35,7 @@ public final class AlertUtil {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, mensaje, ButtonType.YES, ButtonType.NO);
         alert.setTitle("Confirmar");
         alert.setHeaderText(null);
+        aplicarEstilos(alert);
         Optional<ButtonType> r = alert.showAndWait();
         return r.isPresent() && r.get() == ButtonType.YES;
     }
@@ -43,6 +44,15 @@ public final class AlertUtil {
         Alert alert = new Alert(tipo, mensaje, ButtonType.OK);
         alert.setTitle(titulo);
         alert.setHeaderText(null);
+        aplicarEstilos(alert);
         alert.showAndWait();
+    }
+
+    /** Los dialogos usan la misma paleta que el resto de la aplicacion. */
+    private static void aplicarEstilos(Alert alert) {
+        var css = AlertUtil.class.getResource("/css/styles.css");
+        if (css != null) {
+            alert.getDialogPane().getStylesheets().add(css.toExternalForm());
+        }
     }
 }

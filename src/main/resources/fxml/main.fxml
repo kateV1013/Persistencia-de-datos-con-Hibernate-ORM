@@ -1,43 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Tab?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
+<!--
+    Menu principal. Las tarjetas de los modulos se generan desde el enum
+    com.quilate.ui.Modulo y cada una abre su modulo en una ventana nueva.
+-->
 <BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.quilate.controller.MainController">
+            fx:controller="com.quilate.controller.MainController" styleClass="menu-principal">
 
     <top>
-        <HBox styleClass="header">
-            <Label text="Quilate" styleClass="titulo"/>
-            <Label text="Sistema de Ventas y Analisis de Clientes" styleClass="subtitulo"/>
+        <HBox styleClass="encabezado">
+            <StackPane fx:id="logo" styleClass="logo"/>
+            <VBox spacing="2">
+                <Label text="Quilate" styleClass="titulo"/>
+                <Label text="Sistema de ventas y análisis de clientes para joyería" styleClass="subtitulo"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblFecha" styleClass="fecha"/>
         </HBox>
     </top>
 
     <center>
-        <!--
-            Cada integrante reemplaza el contenido de su pestana por su FXML, por ejemplo:
-            <Tab text="Piezas" closable="false"><fx:include source="piezas.fxml"/></Tab>
-        -->
-        <TabPane tabClosingPolicy="UNAVAILABLE">
-            <Tab text="Inventario"><fx:include source="inventario.fxml"/></Tab>
-            <Tab text="Clientes"><fx:include source="clientes.fxml"/></Tab>
-            <Tab text="Apartados"><fx:include source="apartados.fxml"/></Tab>
-            <Tab text="Ventas"><fx:include source="ventas.fxml"/></Tab>
-            <!-- Integrante 4: pedidos personalizados y reportes -->
-            <Tab text="Pedidos personalizados"><fx:include source="pedidos.fxml"/></Tab>
-            <Tab text="Tipos de servicio"><fx:include source="servicios.fxml"/></Tab>
-            <Tab text="Piezas más vendidas"><fx:include source="reporte_piezas.fxml"/></Tab>
-        </TabPane>
+        <ScrollPane fitToWidth="true" styleClass="menu-scroll">
+            <VBox fx:id="contenedorSecciones" styleClass="menu-contenido">
+                <Label text="¿Qué deseas hacer hoy?" styleClass="saludo"/>
+                <Label text="Elige un módulo; cada uno se abre en su propia ventana."
+                       styleClass="saludo-detalle"/>
+            </VBox>
+        </ScrollPane>
     </center>
 
     <bottom>
         <HBox styleClass="barra-estado">
-            <padding><Insets top="4" right="10" bottom="4" left="10"/></padding>
+            <Circle fx:id="indicadorConexion" radius="5" styleClass="indicador"/>
             <Label fx:id="lblEstado"/>
         </HBox>
     </bottom>

@@ -150,7 +150,7 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 
 ## Funcionalidades — Integrante 3: ventas y descuentos
 
-- **Ventas** (pestaña *Ventas*): permite seleccionar cliente y método de pago, agregar piezas,
+- **Ventas** (ventana *Ventas*): permite seleccionar cliente y método de pago, agregar piezas,
   cambiar cantidades, aplicar descuentos monetarios por unidad y guardar ventas en preparación.
 - El descuento máximo se calcula como `precio de venta - costo`; no se permite vender bajo costo.
 - Al confirmar, la venta, sus detalles y la reducción de existencias se guardan en una sola
@@ -161,16 +161,16 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 
 ## Funcionalidades — Integrante 4: pedidos personalizados y reportes
 
-- **Tipos de servicio** (pestaña *Tipos de servicio*): CRUD completo. No se permiten nombres repetidos
+- **Tipos de servicio** (ventana *Tipos de servicio*): CRUD completo. No se permiten nombres repetidos
   ni precios negativos, y no se puede eliminar un servicio que ya se usó en pedidos.
-- **Pedidos personalizados** (pestaña *Pedidos personalizados*): registrar, consultar, modificar y cancelar
+- **Pedidos personalizados** (ventana *Pedidos personalizados*): registrar, consultar, modificar y cancelar
   grabados, reparaciones y otros trabajos.
   - Relaciones: un **cliente** tiene muchos pedidos y un **tipo de servicio** se usa en muchos pedidos (`@ManyToOne` / `@OneToMany`).
   - **Límite: 20 pedidos activos por semana (lunes a domingo).** Si la semana está llena, el pedido se rechaza
     y se avisa. El cupo se vuelve a revisar cuando se **cambia la fecha** de un pedido.
     Al elegir una fecha se muestra cuántos pedidos hay en esa semana.
   - Cancelar no borra el pedido: lo marca como `CANCELADO` y libera su espacio.
-- **Consulta HQL — piezas más vendidas** (pestaña *Piezas más vendidas*): une `DetalleVenta`, `Venta` y `Pieza`
+- **Consulta HQL — piezas más vendidas** (ventana *Piezas más vendidas*): une `DetalleVenta`, `Venta` y `Pieza`
   y suma las cantidades vendidas **solo de ventas confirmadas**; se muestra en un gráfico de barras y una tabla.
   Está en `ReporteDAO.piezasMasVendidas`.
 

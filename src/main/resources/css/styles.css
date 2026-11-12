@@ -1,53 +1,360 @@
+/* =====================================================================
+   Quilate - hoja de estilos
+   Paleta: azul medianoche + dorado sobre marfil; cada modulo tiene un
+   color de acento propio (-q-acento) definido en com.quilate.ui.Modulo.
+   ===================================================================== */
+
 .root {
+    /* Paleta */
+    -q-tinta: #1B2436;          /* azul medianoche: encabezados, botones */
+    -q-tinta-clara: #2C3A57;
+    -q-oro: #D4AF37;            /* dorado: marca y foco */
+    -q-oro-oscuro: #B08F22;
+    -q-fondo: #F5F2EB;          /* marfil */
+    -q-superficie: #FFFFFF;
+    -q-superficie-alt: #FAF8F3;
+    -q-borde: #E3DDD0;
+    -q-texto: #23262D;
+    -q-texto-suave: #6B6F78;
+    -q-exito: #2E7D5B;
+    -q-peligro: #B23A3A;
+    -q-acento: #1B2436;
+
+    /* Integracion con el tema Modena */
+    -fx-accent: -q-tinta-clara;
+    -fx-focus-color: -q-oro;
+    -fx-faint-focus-color: #D4AF3733;
+    -fx-selection-bar: -q-tinta-clara;
+    -fx-selection-bar-non-focused: #D8D2C4;
+
     -fx-font-family: "Segoe UI", sans-serif;
     -fx-font-size: 13px;
-    -fx-background-color: #faf8f3;
+    -fx-background-color: -q-fondo;
+    -fx-text-fill: -q-texto;
 }
 
-.header {
-    -fx-background-color: #1f1b16;
-    -fx-padding: 14 20;
-    -fx-spacing: 14;
+/* ---------------------------------------------------------------------
+   Menu principal
+   --------------------------------------------------------------------- */
+.encabezado {
+    -fx-background-color: linear-gradient(to right, #1B2436, #2C3A57);
+    -fx-padding: 18 28;
+    -fx-spacing: 16;
     -fx-alignment: center-left;
 }
 
+.logo {
+    -fx-background-color: #FFFFFF14;
+    -fx-background-radius: 14;
+    -fx-border-color: #D4AF3766;
+    -fx-border-radius: 14;
+    -fx-min-width: 52;
+    -fx-min-height: 52;
+    -fx-max-width: 52;
+    -fx-max-height: 52;
+}
+
 .titulo {
-    -fx-text-fill: #d4af37;
-    -fx-font-size: 22px;
+    -fx-text-fill: -q-oro;
+    -fx-font-size: 26px;
     -fx-font-weight: bold;
 }
 
 .subtitulo {
-    -fx-text-fill: #e8e2d4;
+    -fx-text-fill: #E6E1D6;
+    -fx-font-size: 13px;
+}
+
+.fecha {
+    -fx-text-fill: #C9C3B5;
+    -fx-font-size: 12px;
+}
+
+.menu-scroll,
+.menu-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.menu-contenido {
+    -fx-padding: 26 32 32 32;
+    -fx-spacing: 6;
+}
+
+.saludo {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -q-tinta;
+}
+
+.saludo-detalle {
+    -fx-text-fill: -q-texto-suave;
+    -fx-padding: 0 0 6 0;
+}
+
+.titulo-seccion-menu {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -q-oro-oscuro;
+    -fx-padding: 16 0 4 2;
+}
+
+.tarjetas {
+    -fx-hgap: 18;
+    -fx-vgap: 18;
+    -fx-pref-columns: 4;
+    -fx-padding: 4 0;
+}
+
+.tarjeta-modulo {
+    -fx-background-color: -q-superficie;
+    -fx-background-radius: 16;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 16;
+    -fx-padding: 20;
+    -fx-pref-width: 210;
+    -fx-pref-height: 196;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(27, 36, 54, 0.10), 14, 0, 0, 3);
+}
+
+.tarjeta-modulo:hover {
+    -fx-border-color: -q-acento;
+    -fx-effect: dropshadow(gaussian, rgba(27, 36, 54, 0.22), 22, 0, 0, 7);
+}
+
+.tarjeta-modulo:pressed {
+    -fx-background-color: -q-superficie-alt;
+}
+
+.tarjeta-modulo:focused {
+    -fx-border-color: -q-oro;
+}
+
+.icono-circulo {
+    -fx-background-color: -q-acento;
+    -fx-background-radius: 100;
+}
+
+.tarjeta-titulo {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -q-texto;
+}
+
+.tarjeta-descripcion {
+    -fx-font-size: 12px;
+    -fx-text-fill: -q-texto-suave;
 }
 
 .barra-estado {
-    -fx-background-color: #ece6d8;
+    -fx-background-color: -q-superficie;
+    -fx-border-color: -q-borde transparent transparent transparent;
+    -fx-padding: 6 16;
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
 }
 
+.barra-estado .label {
+    -fx-text-fill: -q-texto-suave;
+    -fx-font-size: 12px;
+}
+
+.indicador { -fx-fill: #B8B2A5; }
+.indicador-pendiente { -fx-fill: -q-oro; }
+.indicador-ok { -fx-fill: -q-exito; }
+.indicador-error { -fx-fill: -q-peligro; }
+
+/* ---------------------------------------------------------------------
+   Ventanas de modulo
+   --------------------------------------------------------------------- */
+.encabezado-modulo {
+    -fx-background-color: -q-superficie;
+    -fx-border-color: transparent transparent -q-acento transparent;
+    -fx-border-width: 0 0 3 0;
+    -fx-padding: 12 20;
+}
+
+.encabezado-modulo-titulo {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -q-tinta;
+}
+
+.encabezado-modulo-descripcion {
+    -fx-text-fill: -q-texto-suave;
+    -fx-font-size: 12px;
+}
+
+.contenido-modulo {
+    -fx-background-color: -q-fondo;
+}
+
+/* ---------------------------------------------------------------------
+   Controles generales
+   --------------------------------------------------------------------- */
 .button {
-    -fx-background-color: #d4af37;
-    -fx-text-fill: #1f1b16;
-    -fx-background-radius: 4;
+    -fx-background-color: -q-tinta;
+    -fx-text-fill: white;
+    -fx-background-radius: 7;
+    -fx-background-insets: 0;
+    -fx-padding: 6 12;
+    -fx-cursor: hand;
 }
 
 .button:hover {
-    -fx-background-color: #c39b26;
+    -fx-background-color: -q-tinta-clara;
 }
 
-/* --- Formularios (pedidos, servicios, reportes) --- */
-.formulario {
-    -fx-background-color: #ffffff;
-    -fx-padding: 12;
+.button:pressed {
+    -fx-background-color: #10172A;
+}
+
+.button:focused {
+    -fx-effect: dropshadow(gaussian, rgba(212, 175, 55, 0.75), 6, 0.5, 0, 0);
+}
+
+.button:disabled {
+    -fx-opacity: 0.45;
+}
+
+.button.confirmar {
+    -fx-background-color: -q-exito;
+}
+
+.button.confirmar:hover {
+    -fx-background-color: #246549;
+}
+
+.button.peligro {
+    -fx-background-color: -q-peligro;
+}
+
+.button.peligro:hover {
+    -fx-background-color: #8F2D2D;
+}
+
+/* Las flechas del calendario no deben verse como botones oscuros */
+.date-picker-popup .button {
+    -fx-background-color: transparent;
+    -fx-effect: null;
+}
+
+.text-field,
+.text-area,
+.combo-box-base {
+    -fx-background-color: -q-borde, -q-superficie;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 7, 6;
+}
+
+.text-field:focused,
+.text-area:focused,
+.combo-box-base:focused {
+    -fx-background-color: -q-oro, -q-superficie;
+    -fx-background-insets: 0, 2;
+}
+
+.text-field {
+    -fx-padding: 6 9;
+}
+
+.text-area .content {
+    -fx-background-color: -q-superficie;
     -fx-background-radius: 6;
-    -fx-border-color: #e3dccb;
-    -fx-border-radius: 6;
+}
+
+/* Editores internos de DatePicker, ComboBox editable y Spinner */
+.date-picker > .text-field,
+.combo-box > .text-field {
+    -fx-background-color: transparent;
+}
+
+.check-box:selected > .box {
+    -fx-background-color: -q-tinta;
+}
+
+.check-box:selected > .box > .mark {
+    -fx-background-color: white;
+}
+
+.separator .line {
+    -fx-border-color: -q-borde;
+}
+
+/* ---------------------------------------------------------------------
+   Tablas
+   --------------------------------------------------------------------- */
+.table-view {
+    -fx-background-color: -q-borde, -q-superficie;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 9;
+    -fx-padding: 1;
+    -fx-control-inner-background-alt: -q-superficie-alt;
+    -fx-table-cell-border-color: #EFEBE2;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: -q-tinta;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-size: 34;
+    -fx-border-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+    -fx-padding: 0 6;
+}
+
+.table-view .column-header .arrow {
+    -fx-background-color: -q-oro;
+}
+
+.table-view .table-row-cell {
+    -fx-cell-size: 30;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -q-texto-suave;
+}
+
+.table-view .corner {
+    -fx-background-color: -q-tinta;
+}
+
+.split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-padding: 0 4;
+}
+
+/* ---------------------------------------------------------------------
+   Formularios y mensajes (pedidos, servicios, ventas, reportes)
+   --------------------------------------------------------------------- */
+.formulario {
+    -fx-background-color: -q-superficie;
+    -fx-padding: 14;
+    -fx-background-radius: 10;
+    -fx-border-color: -q-borde;
+    -fx-border-radius: 10;
 }
 
 .titulo-seccion {
     -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1f1b16;
+    -fx-text-fill: -q-tinta;
 }
 
 .barra-filtros {
@@ -55,43 +362,50 @@
 }
 
 .mensaje {
-    -fx-text-fill: #6b6355;
+    -fx-text-fill: -q-texto-suave;
 }
 
 .cupo {
-    -fx-text-fill: #3d6b35;
+    -fx-text-fill: -q-exito;
     -fx-font-size: 12px;
 }
 
 .cupo-lleno {
-    -fx-text-fill: #b3261e;
+    -fx-text-fill: -q-peligro;
     -fx-font-weight: bold;
-}
-
-.button.peligro {
-    -fx-background-color: #b3261e;
-    -fx-text-fill: #ffffff;
-}
-
-.button.peligro:hover {
-    -fx-background-color: #8c1d18;
-}
-
-.chart-bar {
-    -fx-bar-fill: #d4af37;
 }
 
 .total-venta {
-    -fx-font-size: 17px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #1f1b16;
+    -fx-text-fill: -q-tinta;
 }
 
-.button.confirmar {
-    -fx-background-color: #3d6b35;
-    -fx-text-fill: white;
+/* ---------------------------------------------------------------------
+   Grafica
+   --------------------------------------------------------------------- */
+.chart-plot-background {
+    -fx-background-color: -q-superficie;
 }
 
-.button.confirmar:hover {
-    -fx-background-color: #2f5429;
+.chart-bar {
+    -fx-bar-fill: linear-gradient(to top, #B08F22, #E2C45A);
+    -fx-background-radius: 4 4 0 0;
+}
+
+.chart-title {
+    -fx-text-fill: -q-tinta;
+    -fx-font-weight: bold;
+}
+
+/* ---------------------------------------------------------------------
+   Dialogos (AlertUtil)
+   --------------------------------------------------------------------- */
+.dialog-pane {
+    -fx-background-color: -q-superficie;
+}
+
+.dialog-pane > .content.label {
+    -fx-font-size: 13px;
+    -fx-padding: 16 18 8 18;
 }
