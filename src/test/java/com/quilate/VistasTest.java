@@ -1,33 +1,44 @@
 package com.quilate;
 
+import com.quilate.ui.Modulo;
 import com.quilate.util.JPAUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.ScrollPane;
 import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class VistasTest {
-    @Test void cargaVentanaPrincipalConTodosLosModulos() throws Exception {
+    @Test void cargaMenuPrincipalYTodasLasVentanasDeModulos() throws Exception {
         BaseDatosPrueba.iniciar("vistas_" + System.nanoTime());
-        CompletableFuture<Parent> cargada = new CompletableFuture<>();
+        CompletableFuture<List<Parent>> cargadas = new CompletableFuture<>();
         Runnable cargar = () -> {
             try {
-                cargada.complete(FXMLLoader.load(getClass().getResource("/fxml/main.fxml")));
-            } catch (Throwable e) { cargada.completeExceptionally(e); }
+                List<Parent> vistas = new ArrayList<>();
+                vistas.add(FXMLLoader.load(getClass().getResource("/fxml/main.fxml")));
+                for (Modulo modulo : Modulo.values()) {
+                    vistas.add(FXMLLoader.load(getClass().getResource(modulo.fxml())));
+                }
+                cargadas.complete(vistas);
+            } catch (Throwable e) { cargadas.completeExceptionally(e); }
         };
         try {
             Platform.startup(() -> { Platform.setImplicitExit(false); cargar.run(); });
         } catch (IllegalStateException iniciada) { Platform.runLater(cargar); }
         try {
-            Parent raiz = cargada.get(30, TimeUnit.SECONDS);
-            assertNotNull(raiz);
-            CompletableFuture<Integer> pestanas = new CompletableFuture<>();
-            Platform.runLater(() -> pestanas.complete(((TabPane) raiz.lookup(".tab-pane")).getTabs().size()));
-            assertEquals(7, pestanas.get(10, TimeUnit.SECONDS));
+            List<Parent> vistas = cargadas.get(30, TimeUnit.SECONDS);
+            assertEquals(Modulo.values().length + 1, vistas.size());
+            Parent menu = vistas.get(0);
+            CompletableFuture<Integer> tarjetas = new CompletableFuture<>();
+            // Sin escena, lookupAll no entra al contenido de un ScrollPane: se busca desde su contenido.
+            Platform.runLater(() -> tarjetas.complete(((ScrollPane) menu.lookup(".menu-scroll"))
+                    .getContent().lookupAll(".tarjeta-modulo").size()));
+            assertEquals(Modulo.values().length, tarjetas.get(10, TimeUnit.SECONDS));
         } finally {
             for (Thread hilo : Thread.getAllStackTraces().keySet()) {
                 if (hilo.getName().equals("quilate-bd") || hilo.getName().equals("conexion-bd")) {

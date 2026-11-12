@@ -29,6 +29,7 @@
 
     <center>
         <TableView fx:id="tabla">
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
             <columns>
                 <TableColumn fx:id="colId" text="N.º" prefWidth="50"/>
                 <TableColumn fx:id="colCliente" text="Cliente" prefWidth="150"/>
@@ -42,7 +43,7 @@
     </center>
 
     <right>
-        <VBox spacing="6" prefWidth="310" styleClass="formulario">
+        <VBox spacing="6" prefWidth="340" styleClass="formulario">
             <BorderPane.margin><Insets left="12"/></BorderPane.margin>
             <Label fx:id="lblModo" text="Nuevo pedido" styleClass="titulo-seccion"/>
 
