@@ -17,10 +17,10 @@ public class MainApp extends Application {
 
         stage.setTitle("Quilate · Menú principal");
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
-        double alto = Math.min(770, pantalla.getHeight() - 40);
-        stage.setScene(Ventanas.crearEscena(loader.load(), 1000, alto));
-        stage.setMinWidth(560);
-        stage.setMinHeight(480);
+        double alto = Math.min(880, pantalla.getHeight() - 40);
+        stage.setScene(Ventanas.crearEscena(loader.load(), Math.min(1360, pantalla.getWidth() - 40), alto));
+        stage.setMinWidth(900);
+        stage.setMinHeight(650);
         Ventanas.prepararVentana(stage);
         // Al cerrar el menu principal se cierran tambien las ventanas de los modulos.
         stage.setOnHidden(e -> {

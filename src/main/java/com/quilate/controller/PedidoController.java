@@ -57,6 +57,10 @@ public class PedidoController {
     @FXML private Button btnGuardar;
     @FXML private Button btnCancelarPedido;
     @FXML private Label lblMensaje;
+    @FXML private com.quilate.ui.LienzoGrabado vistaGrabado;
+    @FXML private Label lblDiseno;
+    @FXML private Button btnDisenar, btnQuitarDiseno;
+    private com.quilate.model.DisenoPieza disenoActual;
 
     private final PedidoService pedidoService = new PedidoService();
     private final TipoServicioService tipoServicioService = new TipoServicioService();
@@ -114,6 +118,7 @@ public class PedidoController {
             }
         });
 
+        btnDisenar.disableProperty().bind(btnGuardar.disableProperty());
         limpiar();
         cargar();
     }
@@ -178,10 +183,12 @@ public class PedidoController {
         btnCancelarPedido.setDisable(cancelado || p.getEstado() == EstadoPedido.ENTREGADO);
         lblModo.setText("Pedido N.º " + p.getId());
         lblMensaje.setText(cancelado ? "Este pedido está cancelado (solo lectura)." : "");
+        disenoActual=p.getDiseno()==null?null:p.getDiseno().copia(); actualizarVista();
     }
 
     private void limpiar() {
         idEditando = null;
+        disenoActual=null;
         tabla.getSelectionModel().clearSelection();
         cmbCliente.setValue(null);
         cmbServicio.setValue(null);
@@ -193,6 +200,7 @@ public class PedidoController {
         btnGuardar.setDisable(false);
         btnCancelarPedido.setDisable(true);
         lblModo.setText("Nuevo pedido");
+        actualizarVista();
         lblMensaje.setText("");
     }
 
@@ -205,7 +213,25 @@ public class PedidoController {
         p.setFechaProgramada(dpFecha.getValue());
         p.setPrecio(Formatos.leerDinero(txtPrecio.getText(), "precio"));
         p.setEstado(cmbEstado.getValue());
+        p.setDiseno(disenoActual==null?null:disenoActual.copia());
         return p;
+    }
+
+    private void actualizarVista() {
+        vistaGrabado.setDiseno(disenoActual);
+        btnQuitarDiseno.setDisable(disenoActual==null || btnGuardar.isDisabled());
+        lblDiseno.setText(disenoActual==null ? "Aún no has definido un diseño. Abre el editor para probar un grabado y sus medidas."
+                : disenoActual.getForma()+" · "+disenoActual.getAcabado()+"\n"+disenoActual.getMedida()+" × "+disenoActual.getAncho()+" mm\nGrabado: "+(disenoActual.getTexto().isBlank()?"Sin texto":disenoActual.getTexto()));
+    }
+    @FXML private void onDisenar() {
+        if(btnGuardar.isDisabled()) return;
+        com.quilate.ui.EditorGrabado.abrir(tabla.getScene().getWindow(),disenoActual).ifPresent(d -> {
+            disenoActual=d; actualizarVista(); lblMensaje.setText("Diseño aplicado. Pulsa Guardar para conservarlo en el pedido.");
+        });
+    }
+    @FXML private void onQuitarDiseno() {
+        if(btnGuardar.isDisabled()) return;
+        disenoActual=null;actualizarVista();lblMensaje.setText("Vista previa retirada. Pulsa Guardar para conservar el cambio.");
     }
 
     // ---------- acciones ----------

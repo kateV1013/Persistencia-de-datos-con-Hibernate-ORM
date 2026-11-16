@@ -39,6 +39,9 @@ public class VentaController {
     @FXML private Label lblDescuentoMaximo;
     @FXML private Label lblTotal;
     @FXML private Label lblMensaje;
+    @FXML private TextField txtCodigoVenta;
+    @FXML private Label lblGanancia, lblMargen, lblAhorro;
+    private boolean ventaHistorica;
 
     @FXML private TableView<LineaCarrito> tablaDetalles;
     @FXML private TableColumn<LineaCarrito, String> colPieza;
@@ -93,7 +96,27 @@ public class VentaController {
     }
 
     @FXML
+    private void escanearPieza() {
+        try {
+            if (ventaHistorica) throw new ReglaNegocioException("Esta venta es histórica. Pulsa Nueva venta para registrar otra.");
+            Pieza pieza = new com.quilate.service.EscaneoService().buscar(txtCodigoVenta.getText());
+            LineaCarrito anterior = carrito.stream().filter(l -> l.pieza().getId().equals(pieza.getId())).findFirst().orElse(null);
+            int cantidad = com.quilate.service.EscaneoService.cantidadTrasLectura(anterior==null?0:anterior.cantidad(), pieza.getExistencias());
+            BigDecimal precio=BigDecimal.valueOf(pieza.getPrecioVenta()), costo=BigDecimal.valueOf(pieza.getCosto());
+            BigDecimal descuento=anterior==null?BigDecimal.ZERO:anterior.descuento();
+            BigDecimal subtotal=CalculadoraVenta.calcularSubtotal(precio,costo,descuento,cantidad);
+            LineaCarrito nueva = new LineaCarrito(pieza,cantidad,precio,costo,descuento,subtotal);
+            if (anterior==null) carrito.add(nueva); else carrito.set(carrito.indexOf(anterior),nueva);
+            cmbPieza.setValue(pieza); actualizarTotal();
+            mensaje("Lectura correcta · " + pieza.getNombre() + " · " + cantidad + " unidad(es) en la venta.");
+            txtCodigoVenta.clear();
+        } catch (RuntimeException e) { mensaje(e.getMessage()); txtCodigoVenta.selectAll(); }
+        txtCodigoVenta.requestFocus();
+    }
+
+    @FXML
     private void agregarDetalle() {
+        if (ventaHistorica) { mensaje("Pulsa Nueva venta para registrar otra; la venta histórica no se modifica."); return; }
         try {
             Pieza pieza = cmbPieza.getValue();
             if (pieza == null) {
@@ -112,7 +135,7 @@ public class VentaController {
             BigDecimal subtotal = CalculadoraVenta.calcularSubtotal(
                     precio, costo, descuento, cantidad);
             carrito.removeIf(linea -> linea.pieza().getId().equals(pieza.getId()));
-            carrito.add(new LineaCarrito(pieza, cantidad, precio, descuento, subtotal));
+            carrito.add(new LineaCarrito(pieza, cantidad, precio, costo, descuento, subtotal));
             actualizarTotal();
             txtCantidad.setText("1");
             txtDescuento.setText("0.00");
@@ -126,6 +149,7 @@ public class VentaController {
 
     @FXML
     private void quitarDetalle() {
+        if (ventaHistorica) { mensaje("Las piezas de una venta histórica no se pueden quitar."); return; }
         LineaCarrito seleccionada = tablaDetalles.getSelectionModel().getSelectedItem();
         if (seleccionada != null) {
             carrito.remove(seleccionada);
@@ -182,6 +206,8 @@ public class VentaController {
 
     @FXML
     private void nuevaVenta() {
+        ventaHistorica = false;
+        txtCodigoVenta.clear();
         ventaEnEdicionId = null;
         carrito.clear();
         cmbCliente.setValue(null);
@@ -228,6 +254,7 @@ public class VentaController {
         try {
             Venta venta = ventaService.buscarConDetalles(resumen.getId());
             ventaEnEdicionId = venta.getId();
+            ventaHistorica = venta.getEstado() != EstadoVenta.PREPARACION;
             cmbCliente.getItems().stream()
                     .filter(c -> c.getId().equals(venta.getCliente().getId()))
                     .findFirst().ifPresent(cmbCliente::setValue);
@@ -244,7 +271,7 @@ public class VentaController {
 
     private LineaCarrito aLinea(DetalleVenta detalle) {
         return new LineaCarrito(
-                detalle.getPieza(), detalle.getCantidad(), detalle.getPrecioUnitario(),
+                detalle.getPieza(), detalle.getCantidad(), detalle.getPrecioUnitario(), detalle.getCostoUnitarioVenta(),
                 detalle.getDescuentoAplicado(), detalle.getSubtotal());
     }
 
@@ -254,13 +281,13 @@ public class VentaController {
 
     private void mostrarDescuentoMaximo(Pieza pieza) {
         if (pieza == null) {
-            lblDescuentoMaximo.setText("Descuento maximo: --");
+            lblDescuentoMaximo.setText("Descuento máximo: --");
             return;
         }
         try {
             BigDecimal maximo = CalculadoraVenta.calcularDescuentoMaximo(
                     BigDecimal.valueOf(pieza.getPrecioVenta()), BigDecimal.valueOf(pieza.getCosto()));
-            lblDescuentoMaximo.setText("Descuento maximo por unidad: C$ " + maximo);
+            lblDescuentoMaximo.setText("Descuento máximo por unidad: C$ " + maximo);
         } catch (RuntimeException e) {
             lblDescuentoMaximo.setText(e.getMessage());
         }
@@ -269,7 +296,17 @@ public class VentaController {
     private void actualizarTotal() {
         BigDecimal total = CalculadoraVenta.calcularTotal(
                 carrito.stream().map(LineaCarrito::subtotal).toList());
-        lblTotal.setText("Total: C$ " + total);
+        lblTotal.setText("Total: " + com.quilate.util.Formatos.dinero(total));
+        BigDecimal costo = carrito.stream().map(l -> l.costo().multiply(BigDecimal.valueOf(l.cantidad())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal descuentos = carrito.stream().map(l -> l.descuento().multiply(BigDecimal.valueOf(l.cantidad())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal ganancia = total.subtract(costo);
+        lblGanancia.setText("Ganancia bruta: " + com.quilate.util.Formatos.dinero(ganancia));
+        lblMargen.setText(carrito.isEmpty() ? "Agrega piezas para calcular el margen."
+                : ganancia.signum()==0 ? "Punto de equilibrio · sin ganancia bruta"
+                : "Margen: " + com.quilate.service.AnalisisService.margen(ganancia,total) + " % · antes de gastos operativos");
+        lblAhorro.setText("Descuentos: " + com.quilate.util.Formatos.dinero(descuentos));
     }
 
     private BigDecimal decimalOZero(String texto) {
@@ -288,7 +325,7 @@ public class VentaController {
         return actual.getMessage() == null ? actual.getClass().getSimpleName() : actual.getMessage();
     }
 
-    private record LineaCarrito(Pieza pieza, int cantidad, BigDecimal precio,
+    private record LineaCarrito(Pieza pieza, int cantidad, BigDecimal precio, BigDecimal costo,
                                 BigDecimal descuento, BigDecimal subtotal) {
     }
 }

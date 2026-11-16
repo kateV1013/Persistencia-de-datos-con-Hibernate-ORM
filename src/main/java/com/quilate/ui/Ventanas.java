@@ -61,22 +61,24 @@ public final class Ventanas {
         raiz.setStyle(modulo.estiloAcento());
 
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
-        double ancho = Math.min(1120, pantalla.getWidth() - 40);
-        double alto = Math.min(760, pantalla.getHeight() - 40);
+        double ancho = Math.min(1340, pantalla.getWidth() - 40);
+        double alto = Math.min(860, pantalla.getHeight() - 40);
 
         Stage ventana = new Stage();
         ventana.setTitle(modulo.titulo() + " · Quilate");
         ventana.setScene(crearEscena(raiz, ancho, alto));
-        ventana.setMinWidth(760);
-        ventana.setMinHeight(520);
+        ventana.setMinWidth(1040);
+        ventana.setMinHeight(680);
         prepararVentana(ventana);
         ventana.setOnHidden(e -> ABIERTAS.remove(modulo));
 
         int yaAbiertas = ABIERTAS.size();
         ABIERTAS.put(modulo, ventana);
         ventana.show();
-        ventana.setX(ventana.getX() + DESPLAZAMIENTO_CASCADA * yaAbiertas);
-        ventana.setY(ventana.getY() + DESPLAZAMIENTO_CASCADA * yaAbiertas);
+        ventana.setX(Math.min(ventana.getX() + DESPLAZAMIENTO_CASCADA * yaAbiertas,
+                pantalla.getMaxX() - ventana.getWidth()));
+        ventana.setY(Math.min(ventana.getY() + DESPLAZAMIENTO_CASCADA * yaAbiertas,
+                pantalla.getMaxY() - ventana.getHeight()));
 
         Animaciones.entrada(contenido, Duration.millis(60));
     }
@@ -89,9 +91,25 @@ public final class Ventanas {
     }
 
     public static Scene crearEscena(Parent raiz, double ancho, double alto) {
+        cargarFuentes();
+        PresentacionTablas.aplicar(raiz);
+        FormulariosVisuales.aplicar(raiz);
         Scene escena = new Scene(raiz, ancho, alto);
         escena.getStylesheets().add(hojaEstilos());
         return escena;
+    }
+
+    private static boolean fuentesCargadas;
+    private static void cargarFuentes() {
+        if (fuentesCargadas) return;
+        for (String fuente : List.of("OpenSans-Regular.ttf", "OpenSans-Bold.ttf")) {
+            try (var archivo = Ventanas.class.getResourceAsStream("/fonts/" + fuente)) {
+                if (archivo != null) javafx.scene.text.Font.loadFont(archivo, 12);
+            } catch (java.io.IOException e) {
+                // JavaFX conserva su fuente de sistema si el recurso no está disponible.
+            }
+        }
+        fuentesCargadas = true;
     }
 
     public static String hojaEstilos() {
@@ -120,6 +138,11 @@ public final class Ventanas {
         descripcion.getStyleClass().add("encabezado-modulo-descripcion");
 
         HBox encabezado = new HBox(14, Iconos.enCirculo(modulo.icono(), 44), new VBox(2, titulo, descripcion));
+        javafx.scene.layout.Region espacio = new javafx.scene.layout.Region();
+        HBox.setHgrow(espacio, javafx.scene.layout.Priority.ALWAYS);
+        Label marca = new Label("QUILATE");
+        marca.getStyleClass().add("modulo-marca");
+        encabezado.getChildren().addAll(espacio, marca);
         encabezado.setAlignment(Pos.CENTER_LEFT);
         encabezado.getStyleClass().add("encabezado-modulo");
         return encabezado;

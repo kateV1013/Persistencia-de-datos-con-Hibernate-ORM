@@ -188,6 +188,7 @@ public class VentaService {
             }
             venta.setInventarioComprometido(true);
             venta.setEstado(PoliticaEstadoVenta.confirmar(venta.getEstado()));
+            venta.setFechaHora(LocalDateTime.now());
             return venta;
         });
     }

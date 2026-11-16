@@ -1,0 +1,10 @@
+Quilate · Verificación del rediseño
+
+Java 21 / JavaFX 21.0.5
+Pruebas: 40
+Fallos y errores: 0
+
+Suite completa aprobada; pruebas visuales repetidas tras los ajustes finales.
+Capturas reales de JavaFX con datos ficticios en H2 en memoria.
+Ocho vistas revisadas, con capturas adicionales en tamaño compacto.
+Actualización 15/11/2026: conexión PostgreSQL y esquema Hibernate verificados con SELECT 1, sin modificar datos.

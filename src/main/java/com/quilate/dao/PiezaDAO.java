@@ -104,7 +104,7 @@ public class PiezaDAO {
         try {
             // JOIN FETCH para cargar la categoría en la misma consulta
             TypedQuery<Pieza> q = em.createQuery(
-                    "SELECT p FROM Pieza p JOIN FETCH p.categoria WHERE p.id = :id",
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria WHERE p.id = :id",
                     Pieza.class);
             q.setParameter("id", id);
             Pieza pieza = q.getSingleResult();
@@ -131,7 +131,7 @@ public class PiezaDAO {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<Pieza> q = em.createQuery(
-                    "SELECT p FROM Pieza p JOIN FETCH p.categoria " +
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria " +
                     "WHERE p.codigoBarras = :codigo",
                     Pieza.class);
             q.setParameter("codigo", codigoBarras.trim());
@@ -153,7 +153,7 @@ public class PiezaDAO {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             return em.createQuery(
-                    "SELECT p FROM Pieza p JOIN FETCH p.categoria ORDER BY p.nombre",
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria ORDER BY p.nombre",
                     Pieza.class).getResultList();
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error al listar piezas", e);
@@ -173,7 +173,7 @@ public class PiezaDAO {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<Pieza> q = em.createQuery(
-                    "SELECT p FROM Pieza p JOIN FETCH p.categoria c " +
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria c " +
                     "WHERE c.id = :catId ORDER BY p.nombre",
                     Pieza.class);
             q.setParameter("catId", categoriaId);
@@ -199,7 +199,7 @@ public class PiezaDAO {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<Pieza> q = em.createQuery(
-                    "SELECT p FROM Pieza p JOIN FETCH p.categoria " +
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria " +
                     "WHERE LOWER(p.nombre) LIKE LOWER(:texto) ORDER BY p.nombre",
                     Pieza.class);
             q.setParameter("texto", "%" + textoBusqueda.trim() + "%");

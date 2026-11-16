@@ -98,6 +98,7 @@ public class PedidoService {
             actual.setFechaProgramada(datos.getFechaProgramada());
             actual.setPrecio(datos.getPrecio());
             actual.setEstado(datos.getEstado());
+            actual.setDiseno(datos.getDiseno()==null ? null : datos.getDiseno().copia());
             return actual;
         });
     }
@@ -134,6 +135,7 @@ public class PedidoService {
     }
 
     private void validarCampos(PedidoPersonalizado p) {
+        DisenoService.validar(p.getDiseno());
         if (p.getCliente() == null || p.getCliente().getId() == null) {
             throw new ReglaNegocioException("Selecciona el cliente.");
         }
