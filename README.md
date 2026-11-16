@@ -1,3 +1,5 @@
+> **Versión con reportes completos y Atelier de grabados:** antes de abrir sobre una base existente, ejecuta `database/03_diseno_personalizado.sql` en pgAdmin. Lee `LEEME_PRIMERO.md` para el recorrido de las funciones nuevas y `DISENO_QUILATE.md` para el diseño y la validación.
+
 # Quilate — Sistema de Ventas y Análisis de Clientes para Joyería
 
 Aplicación de escritorio en **JavaFX** con persistencia mediante **Hibernate ORM (JPA)** y **PostgreSQL**.
@@ -48,6 +50,7 @@ database/
 2. Conectarse a la base `quilate` y ejecutar **en este orden** los scripts de la carpeta `database/`:
    1. `01_quilate_bd_inicial.sql`
    2. `02_pedidos_y_estado_venta.sql`
+   3. `03_diseno_personalizado.sql`
 
    En pgAdmin: clic derecho sobre `quilate` → **Query Tool** → abrir el archivo → **Execute (F5)**.
    Con `psql`:

@@ -52,10 +52,10 @@ public final class Iconos {
 
     /** Icono de la aplicacion para la barra de tareas: diamante dorado sobre azul medianoche. */
     public static Image imagenAplicacion(int tamano) {
-        Rectangle fondo = new Rectangle(tamano, tamano, Color.web("#1B2436"));
+        Rectangle fondo = new Rectangle(tamano, tamano, Color.web("#153D34"));
         fondo.setArcWidth(tamano * 0.4);
         fondo.setArcHeight(tamano * 0.4);
-        StackPane icono = new StackPane(fondo, crear(DIAMANTE, tamano * 0.7, Color.web("#D4AF37")));
+        StackPane icono = new StackPane(fondo, crear(DIAMANTE, tamano * 0.7, Color.web("#D4B778")));
         SnapshotParameters parametros = new SnapshotParameters();
         parametros.setFill(Color.TRANSPARENT);
         return icono.snapshot(parametros, null);

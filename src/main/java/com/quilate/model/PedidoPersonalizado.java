@@ -51,6 +51,11 @@ public class PedidoPersonalizado {
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
 
+    @jakarta.persistence.Embedded
+    private DisenoPieza diseno;
+    public DisenoPieza getDiseno() { return diseno; }
+    public void setDiseno(DisenoPieza diseno) { this.diseno = diseno; }
+
     public PedidoPersonalizado() {
     }
 

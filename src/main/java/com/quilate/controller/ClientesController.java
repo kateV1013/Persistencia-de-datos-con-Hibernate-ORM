@@ -10,8 +10,14 @@ public class ClientesController {
     @FXML private TableView<Cliente> tabla;
     @FXML private TableView<HistorialCompra> historial;
     @FXML private TextField nombre, apellido, telefono, correo;
-    @FXML private Label mensaje;
+    @FXML private Label mensaje, lblPerfilCompras, lblPerfilMonto, lblPerfilDia, lblPerfilHora;
+    private long revisionPerfil;
+    private record DatosPerfil(java.util.List<HistorialCompra> historial, AnalisisService.Resumen analisis) { }
     private Cliente seleccionado;
+    private void limpiarPerfil() {
+        lblPerfilCompras.setText("—"); lblPerfilMonto.setText("—");
+        lblPerfilDia.setText("Selecciona un cliente"); lblPerfilHora.setText("Selecciona un cliente");
+    }
     private final ClienteService servicio = new ClienteService();
     @FXML private void initialize() {
         Tablas.columna(tabla, "Cliente", Cliente::getNombreCompleto);
@@ -26,7 +32,17 @@ public class ClientesController {
             seleccionado=c;
             nombre.setText(c.getNombre()); apellido.setText(c.getApellido());
             telefono.setText(c.getTelefono()); correo.setText(c.getCorreo());
-            Tareas.ejecutar(() -> new ApartadoService().historial(c.getId()), filas -> historial.getItems().setAll(filas));
+            long revision=++revisionPerfil;
+            historial.getItems().clear(); lblPerfilCompras.setText("—"); lblPerfilMonto.setText("—");
+            lblPerfilDia.setText("Calculando…"); lblPerfilHora.setText("Calculando…");
+            Tareas.ejecutar(() -> new DatosPerfil(new ApartadoService().historial(c.getId()), new AnalisisService().perfil(c.getId())), datos -> {
+                if(revision!=revisionPerfil) return;
+                historial.getItems().setAll(datos.historial());
+                lblPerfilCompras.setText(Long.toString(datos.analisis().total().ventas()));
+                lblPerfilMonto.setText(Formatos.dinero(datos.analisis().total().ingreso()));
+                lblPerfilDia.setText(datos.analisis().diaHabitual());
+                lblPerfilHora.setText(datos.analisis().horaHabitual());
+            }, error -> { if(revision==revisionPerfil) { limpiarPerfil(); mensaje.setText(Tareas.mensajeCorto(error)); } });
         });
         recargar();
     }
@@ -35,6 +51,7 @@ public class ClientesController {
             e -> mensaje.setText(Tareas.mensajeCorto(e)));
     }
     @FXML private void nuevo() {
+        revisionPerfil++; limpiarPerfil();
         seleccionado=null; tabla.getSelectionModel().clearSelection();
         nombre.clear(); apellido.clear(); telefono.clear(); correo.clear(); historial.getItems().clear();
     }
