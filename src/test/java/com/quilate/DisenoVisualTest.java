@@ -73,6 +73,20 @@ class DisenoVisualTest {
                 }
                 if (modulo == Modulo.VENTAS) fx(() -> { probarEscaneo(ventana); return null; });
                 if (modulo == Modulo.PEDIDOS) probarEditor(ventana, capturar);
+                if(modulo==Modulo.INVENTARIO) {
+                    esperar(() -> !((TableView<?>)ventana.getScene().lookup("#tablaPiezas")).getItems().isEmpty());
+                    fx(() -> { ((TableView<?>)ventana.getScene().lookup("#tablaPiezas")).getSelectionModel().selectFirst(); return null; });
+                    Platform.runLater(() -> ventana.getScene().getRoot().lookupAll(".button").stream()
+                        .filter(n -> n instanceof Button b && b.getText().equals("Ver código / etiqueta"))
+                        .map(n -> (Button)n).findFirst().orElseThrow().fire());
+                    esperar(() -> Window.getWindows().stream().anyMatch(w -> w instanceof Stage st && String.valueOf(st.getTitle()).startsWith("Código de barras")));
+                    fx(() -> {
+                        Stage etiqueta=(Stage)Window.getWindows().stream().filter(w -> w instanceof Stage st && String.valueOf(st.getTitle()).startsWith("Código de barras")).findFirst().orElseThrow();
+                        if(capturar) captura(etiqueta,"13-etiqueta-barras");
+                        etiqueta.close();return null;
+                    });
+                }
+
                 if (capturar) {
                     String nombre = String.format("%02d-%s", numero++, modulo.name().toLowerCase(Locale.ROOT));
                     fx(() -> { captura(ventana, nombre); return null; });
