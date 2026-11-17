@@ -79,6 +79,12 @@
                     <Button fx:id="btnGuardar" text="Guardar" onAction="#onGuardar"/>
                     <Button fx:id="btnCancelarPedido" text="Cancelar pedido" onAction="#onCancelarPedido" styleClass="peligro"/>
                 </FlowPane>
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Agenda semanal" onAction="#onReporteAgenda" styleClass="secundario"/>
+                    <Button text="Orden de trabajo" onAction="#onReporteOrden" styleClass="secundario"/>
+                    <Button text="Por estado" onAction="#onReportePorEstado" styleClass="secundario"/>
+                </FlowPane>
                 <Label fx:id="lblMensaje" wrapText="true" styleClass="mensaje"/>
             </VBox>
         </ScrollPane>

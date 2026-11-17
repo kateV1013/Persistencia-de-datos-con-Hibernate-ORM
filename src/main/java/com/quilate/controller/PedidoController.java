@@ -8,6 +8,7 @@ import com.quilate.model.TipoServicio;
 import com.quilate.service.PedidoService;
 import com.quilate.service.TipoServicioService;
 import com.quilate.util.AlertUtil;
+import com.quilate.util.ReporteUtil;
 import com.quilate.util.Formatos;
 import com.quilate.util.Tareas;
 import javafx.beans.property.SimpleStringProperty;
@@ -304,5 +305,31 @@ public class PedidoController {
             limpiar();
             cargar();
         });
+    }
+
+    // ---------- reportes ----------
+
+    /** Agenda de la semana de la fecha elegida en el formulario, o de la semana actual. */
+    @FXML
+    private void onReporteAgenda() {
+        LocalDate fecha = dpFecha.getValue() == null ? LocalDate.now() : dpFecha.getValue();
+        ReporteUtil.mostrarReporte("/reportes/pedidos_agenda_semanal.jrxml",
+                ReporteUtil.rangoFecha(PedidoService.lunesDe(fecha), PedidoService.domingoDe(fecha)),
+                "Agenda semanal");
+    }
+
+    @FXML
+    private void onReporteOrden() {
+        if (idEditando == null) {
+            AlertUtil.advertencia("Selecciona un pedido en la tabla para imprimir su orden de trabajo.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/pedidos_orden_trabajo.jrxml",
+                java.util.Map.of("p_pedido_id", idEditando), "Orden de trabajo " + idEditando);
+    }
+
+    @FXML
+    private void onReportePorEstado() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/pedidos_por_estado.jrxml", "Pedidos por estado", false);
     }
 }
