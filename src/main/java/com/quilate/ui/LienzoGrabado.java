@@ -1,112 +1,150 @@
 package com.quilate.ui;
 
 import com.quilate.model.DisenoPieza;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.scene.*;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.*;
+import javafx.scene.shape.*;
 import javafx.scene.text.*;
+import javafx.scene.transform.Rotate;
 
-/** Ilustración paramétrica local. No pretende sustituir un plano de fabricación. */
+/** Visor 3D local con mallas cerradas, iluminación y controles de cámara. */
 public final class LienzoGrabado extends Region {
-    private final Canvas canvas=new Canvas();
+    private final Group modelo=new Group();
+    private final Rotate giroX=new Rotate(-20,Rotate.X_AXIS),giroY=new Rotate(-25,Rotate.Y_AXIS);
+    private final Label mensaje=new Label();
+    private final SubScene escena;
+    private final PerspectiveCamera camara=new PerspectiveCamera(true);
+    private final VistaPlanaGrabado alternativa;
+    private double ultimoX,ultimoY,zoom=1;
     private DisenoPieza diseno;
-    public LienzoGrabado() { getChildren().add(canvas); setMinSize(220,150); setPrefSize(540,330); }
+
+    public LienzoGrabado() {
+        setMinSize(220,150);setPrefSize(540,330);
+        if(Platform.isSupported(ConditionalFeature.SCENE3D)) {
+            alternativa=null;
+            modelo.getTransforms().addAll(giroX,giroY);
+            PointLight luz=new PointLight(Color.WHITE);luz.setTranslateX(-150);luz.setTranslateY(-180);luz.setTranslateZ(-250);
+            Group mundo=new Group(modelo,new AmbientLight(Color.color(.55,.55,.55)),luz);
+            escena=new SubScene(mundo,540,300,true,SceneAntialiasing.BALANCED);
+            escena.setFill(Color.web("#F7F0EA"));camara.setNearClip(.1);camara.setFarClip(5000);camara.setFieldOfView(35);
+            escena.setCamera(camara);getChildren().add(escena);
+            escena.setOnMousePressed(e->{ultimoX=e.getSceneX();ultimoY=e.getSceneY();});
+            escena.setOnMouseDragged(e->{
+                giroY.setAngle(giroY.getAngle()+(e.getSceneX()-ultimoX)*.6);
+                giroX.setAngle(Math.max(-85,Math.min(85,giroX.getAngle()-(e.getSceneY()-ultimoY)*.6)));
+                ultimoX=e.getSceneX();ultimoY=e.getSceneY();
+            });
+            escena.setOnScroll(e->{zoom=Math.max(.55,Math.min(2.5,zoom*Math.exp(e.getDeltaY()*.002)));requestLayout();e.consume();});
+            escena.setOnMouseClicked(e->{if(e.getClickCount()==2){giroX.setAngle(-20);giroY.setAngle(-25);zoom=1;requestLayout();}});
+        } else {
+            escena=null;alternativa=new VistaPlanaGrabado();getChildren().add(alternativa);
+        }
+        mensaje.setStyle("-fx-text-fill: #7B6255; -fx-font-size: 10px;");mensaje.setWrapText(true);
+        mensaje.setMouseTransparent(true);getChildren().add(mensaje);setDiseno(null);
+    }
     public void setDiseno(DisenoPieza d) {
         diseno=d==null?null:d.copia();
-        setAccessibleText(d==null ? "Sin diseño guardado" : d.getForma()+" · "+d.getAcabado()+" · "+d.getTexto());
+        setAccessibleText(d==null?"Sin diseño guardado":d.getForma()+" · "+d.getAcabado()+" · "+d.getTexto());
+        if(alternativa!=null) {
+            alternativa.setDiseno(d);
+            mensaje.setText(d==null?"":"Vista 2D: el equipo no dispone de aceleración 3D.");
+        } else {
+            modelo.getChildren().clear();
+            mensaje.setText(d==null?"Sin diseño guardado":"3D · Arrastra para girar · Rueda para zoom · Doble clic para restablecer");
+            if(d!=null) construir();
+        }
         requestLayout();
     }
-    @Override protected void layoutChildren() { canvas.setWidth(getWidth()); canvas.setHeight(getHeight()); dibujar(); }
-    private void dibujar() {
-        GraphicsContext g=canvas.getGraphicsContext2D();
-        double w=getWidth(),h=getHeight(),s=Math.min(w/540,h/330);
-        g.setFill(Color.web("#F7F0EA"));g.fillRoundRect(0,0,w,h,22,22);
-        if(diseno==null) {
-            g.setFill(Color.web("#7B6255"));g.setFont(Font.font("Open Sans",14));
-            g.setTextAlign(TextAlignment.CENTER);g.fillText("Sin diseño guardado",w/2,h/2);
-            return;
-        }
-        g.save();g.translate(w/2,h/2);g.scale(s,s);
-        DisenoPieza d=diseno;
-        Color oscuro,medio,claro;
-        switch(d.getAcabado()) {
-            case "Plata" -> { oscuro=Color.web("#707D83");medio=Color.web("#BAC5C7");claro=Color.web("#F4F8F7"); }
-            case "Oro rosa" -> { oscuro=Color.web("#8F5447");medio=Color.web("#CF9585");claro=Color.web("#F9D7C4"); }
-            default -> { oscuro=Color.web("#8A6029");medio=Color.web("#CBA35B");claro=Color.web("#F7E4A7"); }
-        }
-        Paint metal=new LinearGradient(0,0,1,.8,true,CycleMethod.NO_CYCLE,new Stop(0,oscuro),new Stop(.22,claro),new Stop(.48,medio),new Stop(.73,claro),new Stop(1,oscuro));
-        double medida=d.getMedida().doubleValue(),banda=d.getAncho().doubleValue();
-        g.setFill(Color.web("#45342C",.11));g.fillOval(-190,65,380,40);
-        String texto=d.getTexto();
-        Font font=Font.font("Moderna".equals(d.getFuente())?"Open Sans":"Serif",FontWeight.NORMAL,"Cursiva".equals(d.getFuente())?FontPosture.ITALIC:FontPosture.REGULAR,d.getLetra().doubleValue()*8);
-        g.setFont(font);g.setTextAlign(TextAlignment.CENTER);g.setTextBaseline(javafx.geometry.VPos.CENTER);
-        double anchoVisible;
-        if(!"Anillo".equals(d.getForma())) {
-            double escala=Math.min(320/medida,180/banda);
-            double a=medida*escala,alto=banda*escala;
-            anchoVisible=a;
-            g.save();g.translate(0,-12);
-            g.setFill(oscuro);g.translate(0,5);trazarPlaca(g,d.getForma(),a,alto);g.fill();g.translate(0,-5);
-            trazarPlaca(g,d.getForma(),a,alto);g.setFill(metal);g.fill();
-            g.setStroke(claro);g.setLineWidth(1.4);g.stroke();
-            g.save();trazarPlaca(g,d.getForma(),a,alto);g.clip();
-            g.setFill(oscuro.darker());g.fillText(texto,0,0,a*("Placa corazón".equals(d.getForma())?.62:.72));
-            g.restore();g.restore();
-        } else {
-            double rx=125+medida*2,ry=rx*.39,espesor=8+banda*2;
-            anchoVisible=(rx-espesor)*2;
-            g.setFill(oscuro);g.fillOval(-rx,-ry-20+espesor,rx*2,ry*2);
-            g.setFill(metal);g.fillOval(-rx,-ry-20,rx*2,ry*2);
-            g.setStroke(claro);g.setLineWidth(1.2);g.strokeOval(-rx+2,-ry-18,rx*2-4,ry*2-4);
-            double interior=rx-espesor*1.3;
-            g.setFill(new LinearGradient(0,0,0,1,true,CycleMethod.NO_CYCLE,new Stop(0,oscuro.darker()),new Stop(.6,medio),new Stop(1,oscuro)));
-            g.fillOval(-interior,-ry-11,interior*2,ry*1.35);
-            g.setFill(Color.web("#F7F0EA"));g.fillOval(-interior+3,-ry+2,interior*2-6,ry*.95);
-            int[] caracteres=texto.codePoints().toArray();
-            double amplitud=Math.min(2.05,caracteres.length*font.getSize()*.65/(rx*.82));
-            if(caracteres.length>0) {
-                double size=Math.min(font.getSize(),rx*1.65/Math.max(1,caracteres.length)*1.45);
-                g.setFont(Font.font(font.getFamily(),"Cursiva".equals(d.getFuente())?FontPosture.ITALIC:FontPosture.REGULAR,size));
-                for(int i=0;i<caracteres.length;i++) {
-                    double a=caracteres.length==1?0:-amplitud/2+amplitud*i/(caracteres.length-1);
-                    double x=rx*.82*Math.sin(a),y=-12+ry*.77*Math.cos(a)+espesor*.3;
-                    g.save();g.translate(x,y);g.rotate(Math.toDegrees(Math.atan2(-ry*.77*Math.sin(a),rx*.82*Math.cos(a))));
-                    g.setFill(claro);g.fillText(new String(Character.toChars(caracteres[i])),.4,.6);
-                    g.setFill(oscuro.darker());g.fillText(new String(Character.toChars(caracteres[i])),0,0);g.restore();
+    @Override protected void layoutChildren() {
+        double h=Math.max(1,getHeight()-32),w=Math.max(1,getWidth());
+        if(escena!=null) {
+            escena.setWidth(w);escena.setHeight(h);
+            camara.setTranslateZ(-500*Math.max(1,h/w)/zoom);
+        } else alternativa.resizeRelocate(0,0,w,h);
+        mensaje.resizeRelocate(10,diseno==null?h/2:h+4,Math.max(1,w-20),28);
+    }
+    private void construir() {
+        double medida=diseno.getMedida().doubleValue(),ancho=diseno.getAncho().doubleValue();
+        Color color=switch(diseno.getAcabado()) {
+            case "Plata" -> Color.web("#BFC7CC");
+            case "Oro rosa" -> Color.web("#CF9585");
+            default -> Color.web("#D0AA60");
+        };
+        PhongMaterial metal=new PhongMaterial(color);metal.setSpecularColor(Color.web("#FFF4E6"));metal.setSpecularPower(64);
+        boolean anillo="Anillo".equals(diseno.getForma());
+        TriangleMesh m=anillo?anillo(medida/2,medida/2+1.5,ancho):placa(diseno.getForma(),medida,ancho,1.2);
+        MeshView pieza=new MeshView(m);pieza.setCullFace(CullFace.NONE);pieza.setMaterial(metal);
+        modelo.getChildren().add(pieza);
+        // Texto sobre la superficie frontal, transformado junto a la geometría.
+        if(!diseno.getTexto().isBlank()) {
+            if(anillo) {
+                int[] letras=diseno.getTexto().codePoints().toArray();
+                double radio=medida/2+.75;
+                double paso=Math.min(.14,2.3/Math.max(1,letras.length));
+                for(int i=0;i<letras.length;i++) {
+                    double angulo=(i-(letras.length-1)/2.0)*paso;
+                    Text texto=texto(new String(Character.toChars(letras[i])),Math.min(1.1,diseno.getLetra().doubleValue()));
+                    texto.setTranslateX(radio*Math.sin(angulo));texto.setTranslateY(radio*Math.cos(angulo));
+                    texto.setTranslateZ(-ancho/2-.04);texto.setRotate(-Math.toDegrees(angulo));
+                    modelo.getChildren().add(texto);
                 }
+            } else {
+                Text texto=texto(diseno.getTexto(),diseno.getLetra().doubleValue());
+                double disponible=medida*("Placa corazón".equals(diseno.getForma())?.55:.72);
+                double factor=Math.min(1,disponible/Math.max(.1,texto.getLayoutBounds().getWidth()));
+                texto.setScaleX(factor);texto.setScaleY(factor);
+                texto.setTranslateZ(-.64);modelo.getChildren().add(texto);
             }
         }
-        double y=112;
-        g.setStroke(Color.web("#A38B7E"));g.setLineWidth(1);g.setLineDashes(3,4);
-        g.strokeLine(-anchoVisible/2,y,anchoVisible/2,y);g.setLineDashes();
-        g.strokeLine(-anchoVisible/2,y-6,-anchoVisible/2,y+6);g.strokeLine(anchoVisible/2,y-6,anchoVisible/2,y+6);
-        g.setFill(Color.web("#7B6255"));g.setFont(Font.font("Open Sans",11));
-        g.fillText(("Anillo".equals(d.getForma())?"Diámetro interior: ":"Ancho de placa: ")+d.getMedida().stripTrailingZeros().toPlainString()+" mm",0,133);
-        g.restore();
+        double escala=220/Math.max(anillo?medida+3:medida,ancho);
+        modelo.setScaleX(escala);modelo.setScaleY(escala);modelo.setScaleZ(escala);
     }
-
-    private static void trazarPlaca(GraphicsContext g,String forma,double ancho,double alto) {
-        g.beginPath();
-        if("Placa corazón".equals(forma)) {
-            g.moveTo(0,-alto*.28);
-            g.bezierCurveTo(-ancho*.28,-alto*.72,-ancho*.72,-alto*.22,-ancho*.36,alto*.12);
-            g.bezierCurveTo(-ancho*.22,alto*.27,-ancho*.08,alto*.42,0,alto*.5);
-            g.bezierCurveTo(ancho*.08,alto*.42,ancho*.22,alto*.27,ancho*.36,alto*.12);
-            g.bezierCurveTo(ancho*.72,-alto*.22,ancho*.28,-alto*.72,0,-alto*.28);
-        } else if("Placa ovalada".equals(forma)||"Placa circular".equals(forma)) {
-            double x=ancho/2,y=alto/2,k=.55228475;
-            g.moveTo(x,0);g.bezierCurveTo(x,k*y,k*x,y,0,y);
-            g.bezierCurveTo(-k*x,y,-x,k*y,-x,0);
-            g.bezierCurveTo(-x,-k*y,-k*x,-y,0,-y);
-            g.bezierCurveTo(k*x,-y,x,-k*y,x,0);
-        } else {
-            double x=ancho/2,y=alto/2,r=Math.min(12,alto/6);
-            g.moveTo(-x+r,-y);g.lineTo(x-r,-y);g.quadraticCurveTo(x,-y,x,-y+r);
-            g.lineTo(x,y-r);g.quadraticCurveTo(x,y,x-r,y);
-            g.lineTo(-x+r,y);g.quadraticCurveTo(-x,y,-x,y-r);
-            g.lineTo(-x,-y+r);g.quadraticCurveTo(-x,-y,-x+r,-y);
+    private Text texto(String valor,double tamano) {
+        Text t=new Text(valor);
+        t.setFont(Font.font("Moderna".equals(diseno.getFuente())?"Open Sans":"Serif",
+                "Cursiva".equals(diseno.getFuente())?FontPosture.ITALIC:FontPosture.REGULAR,tamano));
+        t.setFill(Color.web("#594238"));t.setX(-t.getLayoutBounds().getWidth()/2);t.setY(tamano*.3);
+        return t;
+    }
+    static TriangleMesh anillo(double interior,double exterior,double alto) {
+        TriangleMesh m=new TriangleMesh();m.getTexCoords().addAll(0,0);
+        int n=128;
+        for(int i=0;i<n;i++) {
+            double a=2*Math.PI*i/n;
+            for(double[] punto:new double[][]{{interior,-alto/2},{exterior,-alto/2},{exterior,alto/2},{interior,alto/2}})
+                m.getPoints().addAll((float)(punto[0]*Math.cos(a)),(float)(punto[0]*Math.sin(a)),(float)punto[1]);
         }
-        g.closePath();
+        for(int i=0;i<n;i++) for(int j=0;j<4;j++) {
+            int a=i*4+j,b=((i+1)%n)*4+j,c=((i+1)%n)*4+(j+1)%4,d=i*4+(j+1)%4;
+            cara(m,a,b,c);cara(m,a,c,d);m.getFaceSmoothingGroups().addAll(1<<j,1<<j);
+        }
+        return m;
     }
+    static TriangleMesh placa(String forma,double ancho,double alto,double grosor) {
+        TriangleMesh m=new TriangleMesh();m.getTexCoords().addAll(0,0);
+        int n=128;
+        m.getPoints().addAll(0,0,(float)(-grosor/2),0,0,(float)(grosor/2));
+        for(int i=0;i<n;i++) {
+            double t=2*Math.PI*i/n,x,y;
+            if("Placa corazón".equals(forma)) {
+                x=Math.pow(Math.sin(t),3)*ancho/2;
+                y=-(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t)+2.5)*alto/29;
+            } else if("Placa".equals(forma)) {
+                x=Math.copySign(Math.pow(Math.abs(Math.cos(t)),.25),Math.cos(t))*ancho/2;
+                y=Math.copySign(Math.pow(Math.abs(Math.sin(t)),.25),Math.sin(t))*alto/2;
+            } else {x=Math.cos(t)*ancho/2;y=Math.sin(t)*alto/2;}
+            m.getPoints().addAll((float)x,(float)y,(float)(-grosor/2),(float)x,(float)y,(float)(grosor/2));
+        }
+        for(int i=0;i<n;i++) {
+            int a=2+i*2,b=2+((i+1)%n)*2;
+            cara(m,0,b,a);cara(m,1,a+1,b+1);cara(m,a,b,b+1);cara(m,a,b+1,a+1);
+            m.getFaceSmoothingGroups().addAll(1,2,4,4);
+        }
+        return m;
+    }
+    private static void cara(TriangleMesh m,int a,int b,int c) {m.getFaces().addAll(a,0,b,0,c,0);}
 }
