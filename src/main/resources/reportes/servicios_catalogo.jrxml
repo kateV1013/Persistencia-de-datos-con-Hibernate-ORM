@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="servicios_catalogo" pageWidth="595" pageHeight="842" orientation="Portrait" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" whenNoDataType="NoPages">
+	<style name="Base" isDefault="true" fontName="Open Sans" fontSize="9" forecolor="#3E2C2A"/>
+	<style name="Marca" fontName="Open Sans" fontSize="10" isBold="true" forecolor="#8C6A60"/>
+	<style name="Titulo" fontName="Open Sans" fontSize="15" isBold="true" forecolor="#3E2C2A"/>
+	<style name="Subtitulo" fontName="Open Sans" fontSize="9" forecolor="#7A6A66"/>
+	<style name="Columna" mode="Opaque" backcolor="#4A3B38" forecolor="#FFFFFF" fontName="Open Sans" fontSize="8" isBold="true" vTextAlign="Middle"/>
+	<style name="Grupo" mode="Opaque" backcolor="#EFE7E2" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9" isBold="true" vTextAlign="Middle"/>
+	<style name="Total" fontName="Open Sans" fontSize="9" isBold="true" forecolor="#3E2C2A" vTextAlign="Middle"/>
+	<style name="Etiqueta" fontName="Open Sans" fontSize="8" isBold="true" forecolor="#8C6A60" vTextAlign="Middle"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT ts.nombre, ts.descripcion, ts.precio_base FROM tipo_servicio ts ORDER BY ts.nombre]]>
+	</queryString>
+	<field name="nombre" class="java.lang.String"/>
+	<field name="descripcion" class="java.lang.String"/>
+	<field name="precio_base" class="java.math.BigDecimal"/>
+	<title>
+		<band height="66" splitType="Stretch">
+			<staticText>
+				<reportElement style="Marca" x="0" y="0" width="535" height="16"/>
+				<text><![CDATA[JOYERÍA QUILATE - MANAGUA]]></text>
+			</staticText>
+			<textField>
+				<reportElement style="Titulo" x="0" y="18" width="535" height="22"/>
+				<textFieldExpression><![CDATA["Catálogo de servicios del taller"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Subtitulo" x="0" y="40" width="535" height="14"/>
+				<textFieldExpression><![CDATA["Emitido el " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="60" width="535" height="1" forecolor="#BA9A90"/>
+			</line>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement style="Columna" x="0" y="0" width="150" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[Servicio]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Columna" x="150" y="0" width="285" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[Descripción]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Columna" x="435" y="0" width="100" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Precio base]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="535" height="18" backcolor="#F8F4F1">
+					<printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
+				</reportElement>
+			</frame>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="150" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{nombre}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="150" y="0" width="285" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{descripcion}]]></textFieldExpression>
+			</textField>
+			<textField pattern="C$ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="435" y="0" width="100" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{precio_base}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER} + " de "]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement style="Subtitulo" x="495" y="4" width="40" height="14"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="26" splitType="Stretch">
+			<textField>
+				<reportElement style="Total" x="0" y="0" width="535" height="26"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + " servicio(s)"]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

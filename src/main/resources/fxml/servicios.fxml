@@ -42,6 +42,12 @@
                     <Button text="Guardar" onAction="#onGuardar"/>
                     <Button fx:id="btnEliminar" text="Eliminar" onAction="#onEliminar" styleClass="peligro"/>
                 </FlowPane>
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Catálogo" onAction="#onReporteCatalogo" styleClass="secundario"/>
+                    <Button text="Ingresos por servicio" onAction="#onReporteIngresos" styleClass="secundario"/>
+                    <Button text="Pedidos del servicio" onAction="#onReportePedidos" styleClass="secundario"/>
+                </FlowPane>
                 <Label fx:id="lblMensaje" wrapText="true" styleClass="mensaje"/>
             </VBox>
         </ScrollPane>

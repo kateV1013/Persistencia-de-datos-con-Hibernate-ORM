@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="servicios_pedidos" pageWidth="595" pageHeight="842" orientation="Portrait" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" whenNoDataType="NoPages">
+	<style name="Base" isDefault="true" fontName="Open Sans" fontSize="9" forecolor="#3E2C2A"/>
+	<style name="Marca" fontName="Open Sans" fontSize="10" isBold="true" forecolor="#8C6A60"/>
+	<style name="Titulo" fontName="Open Sans" fontSize="15" isBold="true" forecolor="#3E2C2A"/>
+	<style name="Subtitulo" fontName="Open Sans" fontSize="9" forecolor="#7A6A66"/>
+	<style name="Columna" mode="Opaque" backcolor="#4A3B38" forecolor="#FFFFFF" fontName="Open Sans" fontSize="8" isBold="true" vTextAlign="Middle"/>
+	<style name="Grupo" mode="Opaque" backcolor="#EFE7E2" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9" isBold="true" vTextAlign="Middle"/>
+	<style name="Total" fontName="Open Sans" fontSize="9" isBold="true" forecolor="#3E2C2A" vTextAlign="Middle"/>
+	<style name="Etiqueta" fontName="Open Sans" fontSize="8" isBold="true" forecolor="#8C6A60" vTextAlign="Middle"/>
+	<parameter name="p_servicio_id" class="java.lang.Integer"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT ts.nombre AS servicio, pe.id_pedido, pe.fecha_programada, TRIM(CONCAT(c.nombre, ' ', COALESCE(c.apellido, ''))) AS cliente, pe.estado, pe.precio
+FROM pedido_personalizado pe
+JOIN cliente c ON c.id_cliente = pe.id_cliente
+JOIN tipo_servicio ts ON ts.id_tipo_servicio = pe.id_tipo_servicio
+WHERE ts.id_tipo_servicio = $P{p_servicio_id}
+ORDER BY pe.fecha_programada DESC, pe.id_pedido DESC]]>
+	</queryString>
+	<field name="servicio" class="java.lang.String"/>
+	<field name="id_pedido" class="java.lang.Integer"/>
+	<field name="fecha_programada" class="java.sql.Date"/>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="estado" class="java.lang.String"/>
+	<field name="precio" class="java.math.BigDecimal"/>
+	<variable name="suma_precio" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{precio}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="66" splitType="Stretch">
+			<staticText>
+				<reportElement style="Marca" x="0" y="0" width="535" height="16"/>
+				<text><![CDATA[JOYERÍA QUILATE - MANAGUA]]></text>
+			</staticText>
+			<textField>
+				<reportElement style="Titulo" x="0" y="18" width="535" height="22"/>
+				<textFieldExpression><![CDATA["Pedidos del servicio " + $F{servicio}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Subtitulo" x="0" y="40" width="535" height="14"/>
+				<textFieldExpression><![CDATA["Emitido el " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="60" width="535" height="1" forecolor="#BA9A90"/>
+			</line>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement style="Columna" x="0" y="0" width="45" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[N.º]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Columna" x="45" y="0" width="85" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Columna" x="130" y="0" width="200" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[Cliente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Columna" x="330" y="0" width="100" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[Estado]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Columna" x="430" y="0" width="105" height="20"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Precio]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="0" y="0" width="535" height="18" backcolor="#F8F4F1">
+					<printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
+				</reportElement>
+			</frame>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="45" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{id_pedido}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="45" y="0" width="85" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{fecha_programada}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="130" y="0" width="200" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="330" y="0" width="100" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[($F{estado} == null ? null : $F{estado}.substring(0, 1) + $F{estado}.substring(1).toLowerCase().replace("_", " "))]]></textFieldExpression>
+			</textField>
+			<textField pattern="C$ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="430" y="0" width="105" height="18"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{precio}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER} + " de "]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement style="Subtitulo" x="495" y="4" width="40" height="14"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="26" splitType="Stretch">
+			<textField>
+				<reportElement style="Total" x="0" y="0" width="430" height="26"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + " pedido(s)"]]></textFieldExpression>
+			</textField>
+			<textField pattern="C$ #,##0.00">
+				<reportElement style="Total" x="430" y="0" width="105" height="26"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$V{suma_precio}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

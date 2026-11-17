@@ -3,6 +3,7 @@ package com.quilate.controller;
 import com.quilate.model.TipoServicio;
 import com.quilate.service.TipoServicioService;
 import com.quilate.util.AlertUtil;
+import com.quilate.util.ReporteUtil;
 import com.quilate.util.Formatos;
 import com.quilate.util.Tareas;
 import javafx.beans.property.SimpleStringProperty;
@@ -117,5 +118,28 @@ public class TipoServicioController {
             limpiar();
             cargar();
         });
+    }
+
+    // ---------- reportes ----------
+
+    @FXML
+    private void onReporteCatalogo() {
+        ReporteUtil.mostrarReporte("/reportes/servicios_catalogo.jrxml", java.util.Map.of(), "Catálogo de servicios");
+    }
+
+    @FXML
+    private void onReporteIngresos() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/servicios_ingresos.jrxml", "Ingresos por servicio", false);
+    }
+
+    @FXML
+    private void onReportePedidos() {
+        TipoServicio seleccionado = tabla.getSelectionModel().getSelectedItem();
+        if (seleccionado == null) {
+            AlertUtil.advertencia("Selecciona un servicio en la tabla para ver sus pedidos.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/servicios_pedidos.jrxml",
+                java.util.Map.of("p_servicio_id", seleccionado.getId()), "Pedidos de " + seleccionado.getNombre());
     }
 }
