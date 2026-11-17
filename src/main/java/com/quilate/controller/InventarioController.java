@@ -672,4 +672,11 @@ public class InventarioController implements Initializable {
         alert.setHeaderText(null);
         alert.showAndWait();
     }
+
+    @FXML private void onEtiqueta() {
+        Pieza pieza=tablaPiezas.getSelectionModel().getSelectedItem();
+        if(pieza==null) { mostrarError("Selecciona una pieza guardada para ver su etiqueta."); return; }
+        try { com.quilate.ui.EtiquetaBarras.abrir(tablaPiezas.getScene().getWindow(),pieza); }
+        catch(RuntimeException e) { mostrarError(e.getMessage()); }
+    }
 }
