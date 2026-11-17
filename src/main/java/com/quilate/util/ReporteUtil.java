@@ -13,6 +13,9 @@ import org.hibernate.Session;
 import javax.swing.SwingUtilities;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -77,6 +80,48 @@ public final class ReporteUtil {
         } finally {
             em.close();
         }
+    }
+
+    /**
+     * Parámetros de un rango para columnas fecha-hora (ventas, apartados):
+     * {@code p_desde} incluido, {@code p_hasta} excluido (el día siguiente al último)
+     * y {@code p_periodo} con el texto que se imprime. Sin fechas = todo el historial.
+     */
+    public static Map<String, Object> rangoFechaHora(LocalDate desde, LocalDate hasta) {
+        LocalDate inicio = desde == null ? LocalDate.of(1900, 1, 1) : desde;
+        LocalDate fin = hasta == null ? LocalDate.of(2999, 12, 31) : hasta;
+        validarRango(inicio, fin);
+        Map<String, Object> valores = new HashMap<>();
+        valores.put("p_desde", Timestamp.valueOf(inicio.atStartOfDay()));
+        valores.put("p_hasta", Timestamp.valueOf(fin.plusDays(1).atStartOfDay()));
+        valores.put("p_periodo", textoPeriodo(desde, hasta));
+        return valores;
+    }
+
+    /** Igual que {@link #rangoFechaHora}, para columnas DATE (pedidos): ambos extremos incluidos. */
+    public static Map<String, Object> rangoFecha(LocalDate desde, LocalDate hasta) {
+        LocalDate inicio = desde == null ? LocalDate.of(1900, 1, 1) : desde;
+        LocalDate fin = hasta == null ? LocalDate.of(2999, 12, 31) : hasta;
+        validarRango(inicio, fin);
+        Map<String, Object> valores = new HashMap<>();
+        valores.put("p_fecha_desde", Date.valueOf(inicio));
+        valores.put("p_fecha_hasta", Date.valueOf(fin));
+        valores.put("p_periodo", textoPeriodo(desde, hasta));
+        return valores;
+    }
+
+    private static void validarRango(LocalDate inicio, LocalDate fin) {
+        if (inicio.isAfter(fin)) {
+            throw new com.quilate.exception.ReglaNegocioException(
+                    "La fecha inicial no puede ser posterior a la final.");
+        }
+    }
+
+    private static String textoPeriodo(LocalDate desde, LocalDate hasta) {
+        if (desde == null && hasta == null) return "Todo el historial";
+        if (desde == null) return "Hasta el " + Formatos.fecha(hasta);
+        if (hasta == null) return "Desde el " + Formatos.fecha(desde);
+        return "Del " + Formatos.fecha(desde) + " al " + Formatos.fecha(hasta);
     }
 
     /** Compila el .jrxml una sola vez por ejecución y reutiliza el resultado. */
