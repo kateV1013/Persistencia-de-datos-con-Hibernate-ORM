@@ -37,6 +37,42 @@ class InventarioDAOTest {
         assertTrue(categorias.buscarPorId(categoria.getId()).isEmpty());
     }
 
+    /** Formulario abierto con 5 unidades mientras otra ventana vende 2. */
+    private Pieza formularioDesfasado(Pieza guardada, int existenciasEscritas) {
+        Pieza formulario = new Pieza("INV-1", "Anillo", 60.0, 120.0, existenciasEscritas, categoria);
+        formulario.setId(guardada.getId());
+        return formulario;
+    }
+
+    @Test void editarPiezaNoPisaExistenciasCambiadasPorOtraVentana() {
+        Pieza p = piezas.guardar(pieza());
+        piezas.actualizarExistencias(p.getId(), 3);
+
+        piezas.actualizarDatos(formularioDesfasado(p, 5), 5);
+
+        Pieza enBd = piezas.buscarPorId(p.getId()).orElseThrow();
+        assertEquals(120.0, enBd.getPrecioVenta());
+        assertEquals(3, enBd.getExistencias());
+    }
+
+    @Test void editarPiezaAplicaSoloElAjusteDeExistenciasDelUsuario() {
+        Pieza p = piezas.guardar(pieza());
+        piezas.actualizarExistencias(p.getId(), 3);
+
+        piezas.actualizarDatos(formularioDesfasado(p, 9), 5);
+
+        assertEquals(7, piezas.buscarPorId(p.getId()).orElseThrow().getExistencias());
+    }
+
+    @Test void editarPiezaRechazaUnAjusteQueDejariaExistenciasNegativas() {
+        Pieza p = piezas.guardar(pieza());
+        piezas.actualizarExistencias(p.getId(), 3);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> piezas.actualizarDatos(formularioDesfasado(p, 1), 5));
+        assertEquals(3, piezas.buscarPorId(p.getId()).orElseThrow().getExistencias());
+    }
+
     @Test void impideEliminarCategoriaConPiezasYPiezaConApartados() {
         Pieza p = piezas.guardar(pieza());
         assertThrows(EntidadConDependenciasException.class, () -> categorias.eliminar(categoria.getId()));
