@@ -22,6 +22,14 @@
                     <TableColumn fx:id="colCategoria" text="Categoría" prefWidth="110"/>
                 </columns>
             </TableView>
+            <FlowPane hgap="8" vgap="8" alignment="CENTER_LEFT">
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <Button text="Inventario general" onAction="#onReporteGeneral" styleClass="secundario"/>
+                <ComboBox fx:id="cmbFiltroCategoria" promptText="Categoría a reportar" prefWidth="170"/>
+                <Button text="Por categoría" onAction="#onReportePorCategoria" styleClass="secundario"/>
+                <Button text="Stock bajo" onAction="#onReporteStockBajo" styleClass="secundario"/>
+                <Button text="Ficha de la pieza" onAction="#onReporteFicha" styleClass="secundario"/>
+            </FlowPane>
             <Label fx:id="lblEstado" wrapText="true" styleClass="mensaje"/>
         </VBox>
     </center>
