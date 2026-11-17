@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.quilate.controller.VentaController" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" fx:id="scrollVenta">
+<content><BorderPane minHeight="780">
+    <top>
+        <VBox spacing="12" styleClass="formulario">
+            <BorderPane.margin>
+                <Insets bottom="16"/>
+            </BorderPane.margin>
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <Label text="01 / Preparar la venta" styleClass="titulo-seccion"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Nueva venta" onAction="#nuevaVenta" styleClass="secundario"/>
+                <Button text="Actualizar" onAction="#recargar" styleClass="secundario"/>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" styleClass="scan-bar">
+ <Label text="LECTOR DE BARRAS" styleClass="campo-label"/>
+ <TextField fx:id="txtCodigoVenta" promptText="Escanea aquí y pulsa Enter · una unidad por lectura" onAction="#escanearPieza" HBox.hgrow="ALWAYS"/>
+ <Button text="Añadir por código" onAction="#escanearPieza"/>
+</HBox>
+<FlowPane hgap="14" vgap="12">
+                <VBox spacing="5" prefWidth="245">
+                    <Label text="CLIENTE *" styleClass="campo-label"/>
+                    <ComboBox fx:id="cmbCliente" maxWidth="Infinity" promptText="Selecciona un cliente"/>
+                </VBox>
+                <VBox spacing="5" prefWidth="165">
+                    <Label text="MÉTODO DE PAGO" styleClass="campo-label"/>
+                    <ComboBox fx:id="cmbMetodoPago" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5" prefWidth="240">
+                    <Label text="PIEZA *" styleClass="campo-label"/>
+                    <ComboBox fx:id="cmbPieza" maxWidth="Infinity" promptText="Selecciona una pieza"/>
+                </VBox>
+                <VBox spacing="5" prefWidth="72">
+                    <Label text="CANTIDAD" styleClass="campo-label"/>
+                    <TextField fx:id="txtCantidad"/>
+                </VBox>
+                <VBox spacing="5" prefWidth="145">
+                    <Label text="DESCUENTO / UNIDAD (C$)" styleClass="campo-label"/>
+                    <TextField fx:id="txtDescuento"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text=" " styleClass="campo-label"/>
+                    <Button text="Agregar pieza" onAction="#agregarDetalle"/>
+                </VBox>
+            </FlowPane>
+            <Label fx:id="lblDescuentoMaximo" styleClass="mensaje"/>
+        </VBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.52">
+            <VBox spacing="12" styleClass="panel">
+                <padding>
+                    <Insets top="8" right="5" bottom="8" left="8"/>
+                </padding>
+                <Label text="02 / Detalle y confirmación" styleClass="titulo-seccion"/>
+                <TableView fx:id="tablaDetalles" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colPieza" text="Pieza" prefWidth="190"/>
+                        <TableColumn fx:id="colCantidad" text="Cant." prefWidth="55"/>
+                        <TableColumn fx:id="colPrecio" text="Precio" prefWidth="75"/>
+                        <TableColumn fx:id="colDescuento" text="Descuento" prefWidth="85"/>
+                        <TableColumn fx:id="colSubtotal" text="Subtotal" prefWidth="90"/>
+                    </columns>
+                </TableView>
+                <FlowPane hgap="8" vgap="8" alignment="CENTER_RIGHT">
+                    <Button text="Quitar pieza" onAction="#quitarDetalle" styleClass="peligro"/>
+                    <Label fx:id="lblTotal" text="Total: C$ 0.00" styleClass="total-venta"/>
+                </FlowPane>
+                <VBox spacing="4" styleClass="profit-box"><Label fx:id="lblGanancia" styleClass="titulo-seccion"/><Label fx:id="lblAhorro" styleClass="ayuda"/><Label fx:id="lblMargen" styleClass="ayuda" wrapText="true"/></VBox>
+<FlowPane hgap="8" vgap="8" alignment="CENTER_RIGHT">
+                    <Button text="Eliminar borrador" onAction="#eliminarBorrador" styleClass="peligro"/>
+                    <Button text="Guardar borrador" onAction="#guardarPreparacion" styleClass="secundario"/>
+                    <Button text="Confirmar venta" onAction="#confirmarVenta" styleClass="confirmar"/>
+                </FlowPane>
+            </VBox>
+            <VBox spacing="12" styleClass="panel">
+                <padding>
+                    <Insets top="8" right="8" bottom="8" left="5"/>
+                </padding>
+                <Label text="Ventas registradas" styleClass="titulo-seccion"/>
+                <TableView fx:id="tablaVentas" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colVentaId" text="#" prefWidth="45"/>
+                        <TableColumn fx:id="colCliente" text="Cliente" prefWidth="125"/>
+                        <TableColumn fx:id="colFecha" text="Fecha" prefWidth="132"/>
+                        <TableColumn fx:id="colTotalVenta" text="Total" prefWidth="75"/>
+                        <TableColumn fx:id="colEstado" text="Estado" prefWidth="95"/>
+                    </columns>
+                </TableView>
+                <Button text="Anular venta y devolver existencias" onAction="#anularVenta" styleClass="peligro" maxWidth="Infinity"/>
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Ventas por fechas" onAction="#reporteVentasPorFechas" styleClass="secundario"/>
+                    <Button text="Comprobante" onAction="#reporteComprobante" styleClass="secundario"/>
+                    <Button text="Por estado y pago" onAction="#reporteVentasPorEstado" styleClass="secundario"/>
+                </FlowPane>
+            </VBox>
+        </SplitPane>
+    </center>
+    <bottom>
+        <Label fx:id="lblMensaje" styleClass="mensaje">
+            <padding>
+                <Insets top="5" right="10" bottom="5" left="10"/>
+            </padding>
+        </Label>
+    </bottom>
+</BorderPane></content>
+</ScrollPane>

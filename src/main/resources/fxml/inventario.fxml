@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.quilate.controller.InventarioController">
+    <center>
+        <VBox spacing="12">
+            <Label text="Colección de piezas" styleClass="titulo-seccion"/>
+            <HBox spacing="8">
+                <TextField fx:id="txtCodigoBarrasBuscar" promptText="Escanea o escribe un código de barras" HBox.hgrow="ALWAYS"/>
+                <Button text="Buscar" onAction="#onCodigoBarrasBuscar"/>
+                <Button text="Actualizar" onAction="#onRecargar" styleClass="secundario"/>
+                <Button text="Ver código / etiqueta" onAction="#onEtiqueta" styleClass="secundario"/>
+            </HBox>
+            <TableView fx:id="tablaPiezas" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="45"/>
+                    <TableColumn fx:id="colCodigo" text="Código" prefWidth="115"/>
+                    <TableColumn fx:id="colNombre" text="Pieza" prefWidth="180"/>
+                    <TableColumn fx:id="colCosto" text="Costo (C$)" prefWidth="100"/>
+                    <TableColumn fx:id="colPrecio" text="Precio (C$)" prefWidth="100"/>
+                    <TableColumn fx:id="colExistencias" text="Stock" prefWidth="65"/>
+                    <TableColumn fx:id="colCategoria" text="Categoría" prefWidth="110"/>
+                </columns>
+            </TableView>
+            <FlowPane hgap="8" vgap="8" alignment="CENTER_LEFT">
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <Button text="Inventario general" onAction="#onReporteGeneral" styleClass="secundario"/>
+                <ComboBox fx:id="cmbFiltroCategoria" promptText="Categoría a reportar" prefWidth="170"/>
+                <Button text="Por categoría" onAction="#onReportePorCategoria" styleClass="secundario"/>
+                <Button text="Stock bajo" onAction="#onReporteStockBajo" styleClass="secundario"/>
+                <Button text="Ficha de la pieza" onAction="#onReporteFicha" styleClass="secundario"/>
+            </FlowPane>
+            <Label fx:id="lblEstado" wrapText="true" styleClass="mensaje"/>
+        </VBox>
+    </center>
+    <right>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefWidth="320" minWidth="320">
+            <BorderPane.margin>
+                <Insets left="18"/>
+            </BorderPane.margin>
+            <VBox styleClass="formulario" spacing="12">
+                <Label text="Detalle de la pieza" styleClass="titulo-seccion"/>
+                <Label text="Selecciona una fila para editarla o crea una nueva pieza." styleClass="ayuda" wrapText="true"/>
+                <VBox spacing="5">
+                    <Label text="CÓDIGO DE BARRAS *" styleClass="campo-label"/>
+                    <TextField fx:id="txtCodigoBarras" promptText="Identificador único" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text="NOMBRE DE LA PIEZA *" styleClass="campo-label"/>
+                    <TextField fx:id="txtNombrePieza" promptText="Ej. Anillo de oro" maxWidth="Infinity"/>
+                </VBox>
+                <HBox spacing="10">
+                    <VBox HBox.hgrow="ALWAYS">
+                        <VBox spacing="5">
+                            <Label text="COSTO (C$) *" styleClass="campo-label"/>
+                            <TextField fx:id="txtCosto" promptText="0.00" maxWidth="Infinity"/>
+                        </VBox>
+                    </VBox>
+                    <VBox HBox.hgrow="ALWAYS">
+                        <VBox spacing="5">
+                            <Label text="PRECIO (C$) *" styleClass="campo-label"/>
+                            <TextField fx:id="txtPrecioVenta" promptText="0.00" maxWidth="Infinity"/>
+                        </VBox>
+                    </VBox>
+                </HBox>
+                <VBox spacing="5">
+                    <Label text="EXISTENCIAS *" styleClass="campo-label"/>
+                    <TextField fx:id="txtExistencias" promptText="0" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text="MATERIAL" styleClass="campo-label"/>
+                    <TextField fx:id="txtMaterial" promptText="Ej. Oro, Plata 925" maxWidth="Infinity"/>
+                </VBox>
+                <HBox spacing="10">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="QUILATES" styleClass="campo-label"/>
+                        <TextField fx:id="txtQuilates" promptText="Ej. 18" maxWidth="Infinity"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="PESO (g)" styleClass="campo-label"/>
+                        <TextField fx:id="txtPeso" promptText="Ej. 3.50" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+                <VBox spacing="5">
+                    <Label text="CATEGORÍA *" styleClass="campo-label"/>
+                    <ComboBox fx:id="cmbCategoria" promptText="Selecciona una categoría" maxWidth="Infinity"/>
+                </VBox>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Guardar pieza" onAction="#onGuardarPieza"/>
+                    <Button text="Nueva" onAction="#onNuevaPieza" styleClass="secundario"/>
+                    <Button text="Eliminar pieza" onAction="#onEliminarPieza" styleClass="peligro"/>
+                </FlowPane>
+                <TitledPane text="Administrar categorías" expanded="false">
+                    <VBox spacing="10" styleClass="formulario">
+                        <Label text="Para editar o eliminar, selecciona la categoría en el campo superior." wrapText="true" styleClass="ayuda"/>
+                        <VBox spacing="5">
+                            <Label text="NOMBRE *" styleClass="campo-label"/>
+                            <TextField fx:id="txtNombreCategoria" promptText="Ej. Anillos" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text="DESCRIPCIÓN" styleClass="campo-label"/>
+                            <TextField fx:id="txtDescripcionCategoria" promptText="Descripción de la categoría" maxWidth="Infinity"/>
+                        </VBox>
+                        <FlowPane hgap="8" vgap="8">
+                            <Button text="Crear" onAction="#onGuardarCategoria"/>
+                            <Button text="Actualizar" onAction="#onActualizarCategoria" styleClass="secundario"/>
+                            <Button text="Eliminar" onAction="#onEliminarCategoria" styleClass="peligro"/>
+                        </FlowPane>
+                    </VBox>
+                </TitledPane>
+            </VBox>
+        </ScrollPane>
+    </right>
+</BorderPane>
