@@ -39,7 +39,7 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        logo.getChildren().add(Iconos.crear(Iconos.DIAMANTE, 30, Color.web("#D4B778")));
+        logo.getChildren().add(com.quilate.ui.MarcaBelle.crear(38));
         String fecha = LocalDate.now().format(FORMATO_FECHA);
         lblFecha.setText(Character.toUpperCase(fecha.charAt(0)) + fecha.substring(1));
 
@@ -57,7 +57,7 @@ public class MainController {
     private final java.util.Map<Modulo.Seccion, VBox> secciones = new java.util.EnumMap<>(Modulo.Seccion.class);
 
     private void construirMenu() {
-        gema.getChildren().add(com.quilate.ui.DiamanteEditorial.crear());
+        gema.getChildren().add(com.quilate.ui.MarcaBelle.crear(138));
         for (Modulo.Seccion seccion : Modulo.Seccion.values()) {
             Label navTitulo = new Label(seccion.titulo().toUpperCase(Locale.forLanguageTag("es")));
             navTitulo.getStyleClass().add("nav-seccion");
@@ -80,7 +80,7 @@ public class MainController {
                 tarjeta.setMaxWidth(Double.MAX_VALUE);
                 tarjetas.getChildren().add(tarjeta);
                 tarjetasModulo.put(modulo, tarjeta);
-                Button enlace = new Button(modulo.titulo(), Iconos.crear(modulo.icono(), 17, Color.web("#C5D6D0")));
+                Button enlace = new Button(modulo.titulo(), Iconos.crear(modulo.icono(), 17, Color.web("#DDCCC3")));
                 enlace.getStyleClass().add("nav-boton");
                 enlace.setMaxWidth(Double.MAX_VALUE);
                 enlace.setOnAction(e -> Ventanas.abrir(modulo));

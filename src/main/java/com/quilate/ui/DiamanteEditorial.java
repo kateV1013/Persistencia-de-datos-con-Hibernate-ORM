@@ -14,17 +14,17 @@ public final class DiamanteEditorial {
         for (int radio : new int[]{68, 88}) {
             Circle aro = new Circle(100, 85, radio);
             aro.setFill(Color.TRANSPARENT);
-            aro.setStroke(Color.web("#D4B778", .18));
+            aro.setStroke(Color.web("#BA9A90", .18));
             grupo.getChildren().add(aro);
         }
         SVGPath gema = new SVGPath();
         gema.setContent("M45 52 L70 27 L130 27 L155 52 L100 143 Z M45 52 L155 52 M70 27 L78 52 L100 143 L122 52 L130 27 M78 52 L100 27 L122 52");
-        gema.setFill(Color.web("#D4B778", .07));
-        gema.setStroke(Color.web("#D4B778"));
+        gema.setFill(Color.web("#BA9A90", .07));
+        gema.setStroke(Color.web("#BA9A90"));
         gema.setStrokeWidth(1.6);
         grupo.getChildren().add(gema);
         for (double[] punto : new double[][]{{26,41},{165,122},{142,13}}) {
-            Circle brillo = new Circle(punto[0], punto[1], 2.5, Color.web("#D4B778"));
+            Circle brillo = new Circle(punto[0], punto[1], 2.5, Color.web("#BA9A90"));
             grupo.getChildren().add(brillo);
         }
         return grupo;

@@ -65,7 +65,7 @@ public final class Ventanas {
         double alto = Math.min(860, pantalla.getHeight() - 40);
 
         Stage ventana = new Stage();
-        ventana.setTitle(modulo.titulo() + " · Quilate");
+        ventana.setTitle(modulo.titulo() + " · Joyeria Belle");
         ventana.setScene(crearEscena(raiz, ancho, alto));
         ventana.setMinWidth(1040);
         ventana.setMinHeight(680);
@@ -125,8 +125,8 @@ public final class Ventanas {
 
     private static List<Image> iconosAplicacion() {
         if (iconos == null) {
-            iconos = List.of(Iconos.imagenAplicacion(16), Iconos.imagenAplicacion(32),
-                    Iconos.imagenAplicacion(64));
+            iconos = List.of(MarcaBelle.imagen(16), MarcaBelle.imagen(32),
+                    MarcaBelle.imagen(64));
         }
         return iconos;
     }
@@ -140,9 +140,9 @@ public final class Ventanas {
         HBox encabezado = new HBox(14, Iconos.enCirculo(modulo.icono(), 44), new VBox(2, titulo, descripcion));
         javafx.scene.layout.Region espacio = new javafx.scene.layout.Region();
         HBox.setHgrow(espacio, javafx.scene.layout.Priority.ALWAYS);
-        Label marca = new Label("QUILATE");
+        Label marca = new Label("JOYERIA BELLE");
         marca.getStyleClass().add("modulo-marca");
-        encabezado.getChildren().addAll(espacio, marca);
+        encabezado.getChildren().addAll(espacio, MarcaBelle.crear(36), marca);
         encabezado.setAlignment(Pos.CENTER_LEFT);
         encabezado.getStyleClass().add("encabezado-modulo");
         return encabezado;

@@ -15,7 +15,7 @@ public final class EditorGrabado {
     public static Optional<DisenoPieza> abrir(Window owner,DisenoPieza previo) {
         DisenoPieza d=previo==null?new DisenoPieza():previo.copia();
         Dialog<DisenoPieza> dialogo=new Dialog<>();dialogo.initOwner(owner);
-        dialogo.setTitle("Atelier Quilate · Diseño de la pieza");
+        dialogo.setTitle("Atelier Joyeria Belle · Diseño de la pieza");
         dialogo.setResizable(true);
         ButtonType aplicar=new ButtonType("Aplicar al pedido",ButtonBar.ButtonData.OK_DONE);
         dialogo.getDialogPane().getButtonTypes().addAll(aplicar,ButtonType.CANCEL);
@@ -27,14 +27,14 @@ public final class EditorGrabado {
         Label medidas=new Label();medidas.getStyleClass().add("preview-caption");medidas.setWrapText(true);
         Label nota=new Label("Vista orientativa, sin escala real. El taller debe validar el ajuste y el espacio disponible para grabar.");nota.setWrapText(true);nota.getStyleClass().add("ayuda");
         VBox izquierda=new VBox(14,titulo,subtitulo,lienzo,medidas,nota);izquierda.setPrefWidth(520);VBox.setVgrow(lienzo,Priority.ALWAYS);izquierda.getStyleClass().add("atelier-preview");
-        ComboBox<String> forma=combo("Anillo","Placa"),acabado=combo("Oro","Plata","Oro rosa"),fuente=combo("Clásica","Moderna","Cursiva");
+        ComboBox<String> forma=combo(DisenoPieza.FORMAS.toArray(String[]::new)),acabado=combo("Oro","Plata","Oro rosa"),fuente=combo("Clásica","Moderna","Cursiva");
         forma.setId("formaGrabado");acabado.setId("acabadoGrabado");fuente.setId("fuenteGrabado");
         forma.setValue(d.getForma());acabado.setValue(d.getAcabado());fuente.setValue(d.getFuente());
         TextField texto=new TextField(d.getTexto());texto.setPromptText("Ej. M & J · 15.11.2026");
         texto.setId("textoGrabado");
         texto.setTextFormatter(new TextFormatter<String>(c -> c.getControlNewText().codePointCount(0,c.getControlNewText().length())<=40?c:null));
         Spinner<Double> medida=new Spinner<>(),ancho=new Spinner<>(),letra=new Spinner<>(1.0,4.0,d.getLetra().doubleValue(),.1);
-        medida.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory("Anillo".equals(d.getForma())?12:15,"Anillo".equals(d.getForma())?28:60,d.getMedida().doubleValue(),.1));
+        medida.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory("Anillo".equals(d.getForma())?12:15,"Anillo".equals(d.getForma())?28:"Placa circular".equals(d.getForma())?35:60,d.getMedida().doubleValue(),.1));
         ancho.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory("Anillo".equals(d.getForma())?2:8,"Anillo".equals(d.getForma())?12:35,d.getAncho().doubleValue(),.1));
         medida.setId("medidaGrabado");ancho.setId("anchoGrabado");letra.setId("letraGrabado");
         for(var sp:java.util.List.of(medida,ancho,letra)){sp.setMaxWidth(Double.MAX_VALUE);sp.setEditable(false);}
@@ -43,11 +43,15 @@ public final class EditorGrabado {
         VBox controles=new VBox(9,tituloForm,campo("TIPO DE PIEZA",forma),campo("ACABADO VISUAL",acabado),campo("TEXTO DEL GRABADO · MÁX. 40",texto),campo("TIPOGRAFÍA",fuente),nombreMedida,medida,nombreAncho,ancho,campo("ALTURA DE LETRA (MM)",letra),error);
         controles.getStyleClass().add("formulario");controles.setPrefWidth(300);
         Runnable actualizar=() -> {
+            boolean circular="Placa circular".equals(forma.getValue());
+            ancho.setDisable(circular);
+            if(circular && !ancho.getValue().equals(medida.getValue())) ancho.getValueFactory().setValue(medida.getValue());
             d.setForma(forma.getValue());d.setAcabado(acabado.getValue());d.setFuente(fuente.getValue());d.setTexto(texto.getText());
             d.setMedida(BigDecimal.valueOf(medida.getValue()).setScale(2,java.math.RoundingMode.HALF_UP));
             d.setAncho(BigDecimal.valueOf(ancho.getValue()).setScale(2,java.math.RoundingMode.HALF_UP));
             d.setLetra(BigDecimal.valueOf(letra.getValue()).setScale(2,java.math.RoundingMode.HALF_UP));
             boolean anillo="Anillo".equals(d.getForma());nombreMedida.setText(anillo?"DIÁMETRO INTERIOR · 12–28 MM":"ANCHO DE PLACA · 15–60 MM");nombreAncho.setText(anillo?"ANCHO DE BANDA · 2–12 MM":"ALTO DE PLACA · 8–35 MM");
+            if(circular) { nombreMedida.setText("DIÁMETRO · 15–35 MM"); nombreAncho.setText("ALTO IGUAL AL DIÁMETRO"); }
             nombreMedida.getStyleClass().setAll("campo-label");nombreAncho.getStyleClass().setAll("campo-label");
             lienzo.setDiseno(d);medidas.setText(d.getForma()+" · "+d.getAcabado()+" · "+d.getMedida()+" × "+d.getAncho()+" mm · letra "+d.getLetra()+" mm");
             try {DisenoService.validar(d);error.setText("");dialogo.getDialogPane().lookupButton(aplicar).setDisable(false);}
@@ -55,7 +59,8 @@ public final class EditorGrabado {
         };
         forma.valueProperty().addListener((o,a,b)-> {
             boolean anillo="Anillo".equals(b);
-            medida.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(anillo?12:15,anillo?28:60,Math.max(anillo?12:15,Math.min(anillo?28:60,medida.getValue())),.1));
+            double maximo=anillo?28:"Placa circular".equals(b)?35:60;
+            medida.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(anillo?12:15,maximo,Math.max(anillo?12:15,Math.min(maximo,medida.getValue())),.1));
             ancho.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(anillo?2:8,anillo?12:35,Math.max(anillo?2:8,Math.min(anillo?12:35,ancho.getValue())),.1));
         });
         for(var cb:java.util.List.of(forma,acabado,fuente))cb.valueProperty().addListener((o,a,b)->actualizar.run());

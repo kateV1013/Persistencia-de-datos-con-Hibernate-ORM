@@ -57,7 +57,7 @@ class DisenoVisualTest {
                 Stage ventana = fx(() -> {
                     Ventanas.abrir(modulo);
                     Stage abierta = Window.getWindows().stream().filter(w -> w instanceof Stage)
-                            .map(w -> (Stage) w).filter(w -> (modulo.titulo() + " · Quilate").equals(w.getTitle()))
+                            .map(w -> (Stage) w).filter(w -> (modulo.titulo() + " · Joyeria Belle").equals(w.getTitle()))
                             .findFirst().orElseThrow();
                     assertNotNull(abierta.getScene().getRoot());
                     // Abrir el mismo módulo no crea otra ventana.
@@ -136,10 +136,21 @@ class DisenoVisualTest {
         esperar(() -> !((TableView<?>)ventana.getScene().lookup("#tabla")).getItems().isEmpty());
         fx(() -> { ((TableView<?>)ventana.getScene().lookup("#tabla")).getSelectionModel().selectFirst(); return null; });
         esperar(() -> !ventana.getScene().lookup("#btnDisenar").isDisabled());
-        Platform.runLater(() -> ((Button)ventana.getScene().lookup("#btnDisenar")).fire());
-        esperar(() -> Window.getWindows().stream().anyMatch(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Quilate")));
+        fx(() -> { assertEquals("Sin diseño guardado",ventana.getScene().lookup("#vistaGrabado").getAccessibleText()); return null; });
         fx(() -> {
-            Stage modal=(Stage)Window.getWindows().stream().filter(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Quilate")).findFirst().orElseThrow();
+            ((TableView<?>)ventana.getScene().lookup("#tabla")).getSelectionModel().select(1);
+            assertTrue(ventana.getScene().lookup("#vistaGrabado").getAccessibleText().contains("D.S."));
+            assertTrue(((Label)ventana.getScene().lookup("#lblDiseno")).getText().contains("Pedido N.º 2"));
+            ((TableView<?>)ventana.getScene().lookup("#tabla")).getSelectionModel().selectFirst();
+            assertEquals("Sin diseño guardado",ventana.getScene().lookup("#vistaGrabado").getAccessibleText());
+            return null;
+        });
+
+
+        Platform.runLater(() -> ((Button)ventana.getScene().lookup("#btnDisenar")).fire());
+        esperar(() -> Window.getWindows().stream().anyMatch(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Joyeria Belle")));
+        fx(() -> {
+            Stage modal=(Stage)Window.getWindows().stream().filter(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Joyeria Belle")).findFirst().orElseThrow();
             DialogPane pane=(DialogPane)modal.getScene().getRoot();
             try {
                 ((TextField)pane.lookup("#textoGrabado")).setText("M & L · Siempre");
@@ -147,6 +158,16 @@ class DisenoVisualTest {
                 ((ComboBox<String>)pane.lookup("#formaGrabado")).setValue("Placa");
                 assertTrue(((Spinner<Double>)pane.lookup("#anchoGrabado")).getValue()>=8);
                 if(capturar) captura(modal,"11-atelier-placa");
+                for(String variante:List.of("Placa ovalada","Placa circular","Placa corazón")) {
+                    ((ComboBox<String>)pane.lookup("#formaGrabado")).setValue(variante);
+                    assertFalse(pane.lookupButton(pane.getButtonTypes().stream().filter(b -> b.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow()).isDisabled());
+                    if("Placa circular".equals(variante)) {
+                        assertEquals(((Spinner<Double>)pane.lookup("#medidaGrabado")).getValue(),((Spinner<Double>)pane.lookup("#anchoGrabado")).getValue());
+                        assertTrue(pane.lookup("#anchoGrabado").isDisabled());
+                    }
+                    if(capturar) captura(modal,"11-"+variante.replace(' ','-'));
+                }
+
                 ((ComboBox<String>)pane.lookup("#formaGrabado")).setValue("Anillo");
                 ((Spinner<Double>)pane.lookup("#anchoGrabado")).getValueFactory().setValue(5.0);
                 ((Spinner<Double>)pane.lookup("#letraGrabado")).getValueFactory().setValue(2.5);
@@ -195,5 +216,10 @@ class DisenoVisualTest {
         Cliente cliente = new com.quilate.dao.ClienteDAO().listar().get(0);
         TipoServicio servicio = new TipoServicioService().listar().stream().filter(t -> t.getNombre().contains("Grabado")).findFirst().orElseThrow();
         new PedidoService().registrar(new PedidoPersonalizado(cliente, servicio, "Grabar iniciales M & L", LocalDate.now().plusDays(3), new BigDecimal("300")));
+        Cliente otroCliente=new com.quilate.dao.ClienteDAO().listar().stream().filter(c -> !c.getId().equals(cliente.getId())).findFirst().orElseThrow();
+        PedidoPersonalizado otro=new PedidoPersonalizado(otroCliente,servicio,"Grabar D.S. en placa ovalada",LocalDate.now().plusDays(2),new BigDecimal("300"));
+        DisenoPieza ovalada=new DisenoPieza();ovalada.setForma("Placa ovalada");ovalada.setAcabado("Plata");ovalada.setTexto("D.S.");ovalada.setMedida(new BigDecimal("30"));ovalada.setAncho(new BigDecimal("18"));
+        otro.setDiseno(ovalada);new PedidoService().registrar(otro);
+
     }
 }

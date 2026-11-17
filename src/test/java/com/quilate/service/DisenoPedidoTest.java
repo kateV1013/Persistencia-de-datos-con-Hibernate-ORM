@@ -30,4 +30,23 @@ class DisenoPedidoTest {
         PedidoPersonalizado p=new PedidoPersonalizado(cliente,tipo,"Pulido",LocalDate.now().plusDays(4),new BigDecimal("300"));
         new PedidoService().registrar(p);assertNull(new PedidoService().listar(false).getFirst().getDiseno());
     }
+    @Test void conservaCadaFormaEnSuPedidoSinCompartirDisenos() {
+        PedidoService servicio=new PedidoService();
+        for(String forma:DisenoPieza.FORMAS) {
+            DisenoPieza d=new DisenoPieza();d.setForma(forma);d.setTexto("Grabado "+forma);
+            if(!"Anillo".equals(forma)) {d.setMedida(new BigDecimal("25"));d.setAncho(new BigDecimal("25"));}
+            PedidoPersonalizado p=new PedidoPersonalizado(cliente,tipo,"Pieza de prueba",LocalDate.now().plusDays(2),new BigDecimal("400"));
+            p.setDiseno(d);servicio.registrar(p);
+        }
+        var pedidos=servicio.listar(false);
+        assertEquals(5,pedidos.size());
+        for(var p:pedidos) {
+            assertEquals("Grabado "+p.getDiseno().getForma(),p.getDiseno().getTexto());
+            assertDoesNotThrow(()->DisenoService.validar(p.getDiseno()));
+        }
+        var primero=pedidos.getFirst();primero.getDiseno().setTexto("Solo este pedido");servicio.modificar(primero);
+        assertEquals(1,servicio.listar(false).stream().filter(p->"Solo este pedido".equals(p.getDiseno().getTexto())).count());
+        DisenoPieza ovalo=new DisenoPieza();ovalo.setForma("Placa circular");ovalo.setMedida(new BigDecimal("25"));ovalo.setAncho(new BigDecimal("20"));
+        assertThrows(RuntimeException.class,()->DisenoService.validar(ovalo));
+    }
 }
