@@ -16,6 +16,9 @@ public class ClienteService {
 
     public Cliente guardar(Cliente cliente) {
         validar(cliente);
+        if (cliente.getCorreo() != null && dao.existeCorreo(cliente.getCorreo(), cliente.getId())) {
+            throw new ValidacionException("Ya existe un cliente con el correo " + cliente.getCorreo() + ".");
+        }
         return cliente.getId() == null ? dao.crear(cliente) : dao.modificar(cliente);
     }
 

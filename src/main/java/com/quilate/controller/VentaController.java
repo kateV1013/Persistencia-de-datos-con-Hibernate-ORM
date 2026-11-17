@@ -12,6 +12,7 @@ import com.quilate.service.CalculadoraVenta;
 import com.quilate.service.SolicitudDetalleVenta;
 import com.quilate.service.VentaService;
 import com.quilate.util.AlertUtil;
+import com.quilate.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
@@ -62,6 +63,17 @@ public class VentaController {
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final PiezaDAO piezaDAO = new PiezaDAO();
     private Long ventaEnEdicionId;
+    /** Evita lanzar dos guardados o confirmaciones a la vez con un doble clic. */
+    private boolean ocupado;
+
+    /** Datos que la pantalla necesita de la BD; se cargan fuera del hilo de JavaFX. */
+    private record Datos(List<Cliente> clientes, List<Pieza> piezas, List<Venta> ventas) {
+    }
+
+    /** Lo que hay que guardar, leído del formulario antes de ir a la BD. */
+    private record Solicitud(Long ventaId, Long clienteId, String metodoPago,
+                             List<SolicitudDetalleVenta> detalles) {
+    }
 
     @FXML
     private void initialize() {
@@ -97,21 +109,30 @@ public class VentaController {
 
     @FXML
     private void escanearPieza() {
-        try {
-            if (ventaHistorica) throw new ReglaNegocioException("Esta venta es histórica. Pulsa Nueva venta para registrar otra.");
-            Pieza pieza = new com.quilate.service.EscaneoService().buscar(txtCodigoVenta.getText());
-            LineaCarrito anterior = carrito.stream().filter(l -> l.pieza().getId().equals(pieza.getId())).findFirst().orElse(null);
-            int cantidad = com.quilate.service.EscaneoService.cantidadTrasLectura(anterior==null?0:anterior.cantidad(), pieza.getExistencias());
-            BigDecimal precio=BigDecimal.valueOf(pieza.getPrecioVenta()), costo=BigDecimal.valueOf(pieza.getCosto());
-            BigDecimal descuento=anterior==null?BigDecimal.ZERO:anterior.descuento();
-            BigDecimal subtotal=CalculadoraVenta.calcularSubtotal(precio,costo,descuento,cantidad);
-            LineaCarrito nueva = new LineaCarrito(pieza,cantidad,precio,costo,descuento,subtotal);
-            if (anterior==null) carrito.add(nueva); else carrito.set(carrito.indexOf(anterior),nueva);
-            cmbPieza.setValue(pieza); actualizarTotal();
-            mensaje("Lectura correcta · " + pieza.getNombre() + " · " + cantidad + " unidad(es) en la venta.");
-            txtCodigoVenta.clear();
-        } catch (RuntimeException e) { mensaje(e.getMessage()); txtCodigoVenta.selectAll(); }
-        txtCodigoVenta.requestFocus();
+        if (ventaHistorica) {
+            mensaje("Esta venta es histórica. Pulsa Nueva venta para registrar otra.");
+            return;
+        }
+        String codigo = txtCodigoVenta.getText();
+        Tareas.ejecutar(() -> new com.quilate.service.EscaneoService().buscar(codigo), pieza -> {
+            try {
+                LineaCarrito anterior = carrito.stream().filter(l -> l.pieza().getId().equals(pieza.getId())).findFirst().orElse(null);
+                int cantidad = com.quilate.service.EscaneoService.cantidadTrasLectura(anterior==null?0:anterior.cantidad(), pieza.getExistencias());
+                BigDecimal precio=BigDecimal.valueOf(pieza.getPrecioVenta()), costo=BigDecimal.valueOf(pieza.getCosto());
+                BigDecimal descuento=anterior==null?BigDecimal.ZERO:anterior.descuento();
+                BigDecimal subtotal=CalculadoraVenta.calcularSubtotal(precio,costo,descuento,cantidad);
+                LineaCarrito nueva = new LineaCarrito(pieza,cantidad,precio,costo,descuento,subtotal);
+                if (anterior==null) carrito.add(nueva); else carrito.set(carrito.indexOf(anterior),nueva);
+                cmbPieza.setValue(pieza); actualizarTotal();
+                mensaje("Lectura correcta · " + pieza.getNombre() + " · " + cantidad + " unidad(es) en la venta.");
+                txtCodigoVenta.clear();
+            } catch (RuntimeException e) { mensaje(e.getMessage()); txtCodigoVenta.selectAll(); }
+            txtCodigoVenta.requestFocus();
+        }, error -> {
+            mensaje(Tareas.mensajeCorto(error));
+            txtCodigoVenta.selectAll();
+            txtCodigoVenta.requestFocus();
+        });
     }
 
     @FXML
@@ -122,7 +143,12 @@ public class VentaController {
             if (pieza == null) {
                 throw new ReglaNegocioException("Debe seleccionar una pieza.");
             }
-            int cantidad = Integer.parseInt(txtCantidad.getText().trim());
+            int cantidad;
+            try {
+                cantidad = Integer.parseInt(txtCantidad.getText().trim());
+            } catch (NumberFormatException e) {
+                throw new ReglaNegocioException("La cantidad debe ser un número entero.");
+            }
             BigDecimal descuento = decimalOZero(txtDescuento.getText());
             if (cantidad > pieza.getExistencias()) {
                 throw new ReglaNegocioException(
@@ -140,10 +166,8 @@ public class VentaController {
             txtCantidad.setText("1");
             txtDescuento.setText("0.00");
             mensaje("Pieza agregada.");
-        } catch (NumberFormatException e) {
-            AlertUtil.advertencia("La cantidad debe ser un numero entero.");
         } catch (RuntimeException e) {
-            AlertUtil.error(e);
+            Tareas.mostrarError(e);
         }
     }
 
@@ -159,28 +183,46 @@ public class VentaController {
 
     @FXML
     private void guardarPreparacion() {
-        try {
-            Venta venta = guardar();
+        Solicitud solicitud = leerSolicitud();
+        if (solicitud == null) return;
+        ejecutarOcupado(() -> guardar(solicitud), venta -> {
             ventaEnEdicionId = venta.getId();
             recargarVentas();
             mensaje("Venta " + venta.getId() + " guardada en preparacion.");
-        } catch (RuntimeException e) {
-            AlertUtil.error(e);
+        });
+    }
+
+    @FXML
+    private void eliminarBorrador() {
+        if (ventaEnEdicionId == null || ventaHistorica) {
+            AlertUtil.advertencia("Selecciona una venta en preparación para eliminarla.");
+            return;
         }
+        Long id = ventaEnEdicionId;
+        if (!AlertUtil.confirmar("¿Eliminar el borrador de la venta " + id + "? No afecta las existencias.")) {
+            return;
+        }
+        ejecutarOcupado(() -> { ventaService.eliminarBorrador(id); return id; }, eliminado -> {
+            nuevaVenta();
+            recargarVentas();
+            mensaje("Borrador de la venta " + eliminado + " eliminado.");
+        });
     }
 
     @FXML
     private void confirmarVenta() {
-        try {
-            Venta guardada = guardar();
+        Solicitud solicitud = leerSolicitud();
+        if (solicitud == null) return;
+        // Primero se guarda el borrador: si la confirmación falla, el siguiente intento
+        // reutiliza esa misma venta en lugar de crear otra.
+        ejecutarOcupado(() -> guardar(solicitud), guardada -> {
             ventaEnEdicionId = guardada.getId();
-            Venta confirmada = ventaService.confirmar(guardada.getId());
-            AlertUtil.info("Venta " + confirmada.getId() + " confirmada. Inventario actualizado.");
-            recargar();
-            nuevaVenta();
-        } catch (RuntimeException e) {
-            AlertUtil.error(e);
-        }
+            ejecutarOcupado(() -> ventaService.confirmar(guardada.getId()), confirmada -> {
+                AlertUtil.info("Venta " + confirmada.getId() + " confirmada. Inventario actualizado.");
+                recargar();
+                nuevaVenta();
+            });
+        });
     }
 
     @FXML
@@ -194,14 +236,12 @@ public class VentaController {
                 + " y devolver sus existencias?")) {
             return;
         }
-        try {
-            ventaService.anular(seleccionada.getId());
+        Long id = seleccionada.getId();
+        ejecutarOcupado(() -> ventaService.anular(id), anulada -> {
             recargar();
             nuevaVenta();
             AlertUtil.info("Venta anulada. Las existencias fueron reintegradas una sola vez.");
-        } catch (RuntimeException e) {
-            AlertUtil.error(e);
-        }
+        });
     }
 
     @FXML
@@ -222,51 +262,82 @@ public class VentaController {
 
     @FXML
     private void recargar() {
-        try {
-            cmbCliente.setItems(FXCollections.observableArrayList(clienteDAO.listar()));
-            cmbPieza.setItems(FXCollections.observableArrayList(piezaDAO.listarTodas()));
-            recargarVentas();
-        } catch (RuntimeException e) {
-            mensaje("No se pudieron cargar los datos: " + mensajeRaiz(e));
-        }
+        Tareas.ejecutar(() -> new Datos(clienteDAO.listar(), piezaDAO.listarTodas(), ventaService.listar()),
+                datos -> {
+                    Cliente cliente = cmbCliente.getValue();
+                    Pieza pieza = cmbPieza.getValue();
+                    cmbCliente.setItems(FXCollections.observableArrayList(datos.clientes()));
+                    cmbPieza.setItems(FXCollections.observableArrayList(datos.piezas()));
+                    if (cliente != null) seleccionarPorId(cmbCliente, cliente.getId(), Cliente::getId);
+                    if (pieza != null) seleccionarPorId(cmbPieza, pieza.getId(), Pieza::getId);
+                    tablaVentas.setItems(FXCollections.observableArrayList(datos.ventas()));
+                },
+                error -> mensaje("No se pudieron cargar los datos: " + Tareas.mensajeCorto(error)));
     }
 
-    private Venta guardar() {
+    private static <T> void seleccionarPorId(ComboBox<T> combo, Long id,
+                                             java.util.function.Function<T, Long> idDe) {
+        combo.getItems().stream().filter(item -> id.equals(idDe.apply(item)))
+                .findFirst().ifPresentOrElse(combo::setValue, () -> combo.setValue(null));
+    }
+
+    /** Ejecuta una operación de escritura en segundo plano, una a la vez. */
+    private <T> void ejecutarOcupado(java.util.function.Supplier<T> trabajo,
+                                     java.util.function.Consumer<T> alTerminar) {
+        if (ocupado) {
+            mensaje("Espera a que termine la operación anterior.");
+            return;
+        }
+        ocupado = true;
+        Tareas.ejecutar(trabajo, resultado -> {
+            ocupado = false;
+            alTerminar.accept(resultado);
+        }, error -> {
+            ocupado = false;
+            Tareas.mostrarError(error);
+        });
+    }
+
+    /** Lee el formulario en el hilo de JavaFX; null si falta el cliente. */
+    private Solicitud leerSolicitud() {
         Cliente cliente = cmbCliente.getValue();
         if (cliente == null) {
-            throw new ReglaNegocioException("Debe seleccionar un cliente.");
+            AlertUtil.advertencia("Debe seleccionar un cliente.");
+            return null;
         }
-        List<SolicitudDetalleVenta> solicitudes = carrito.stream()
+        List<SolicitudDetalleVenta> detalles = carrito.stream()
                 .map(linea -> new SolicitudDetalleVenta(
                         linea.pieza().getId(), linea.cantidad(), linea.descuento()))
                 .toList();
-        return ventaEnEdicionId == null
-                ? ventaService.crearEnPreparacion(
-                        cliente.getId(), cmbMetodoPago.getValue(), solicitudes)
-                : ventaService.modificarEnPreparacion(
-                        ventaEnEdicionId, cliente.getId(), cmbMetodoPago.getValue(), solicitudes);
+        return new Solicitud(ventaEnEdicionId, cliente.getId(), cmbMetodoPago.getValue(), detalles);
+    }
+
+    private Venta guardar(Solicitud s) {
+        return s.ventaId() == null
+                ? ventaService.crearEnPreparacion(s.clienteId(), s.metodoPago(), s.detalles())
+                : ventaService.modificarEnPreparacion(s.ventaId(), s.clienteId(), s.metodoPago(), s.detalles());
     }
 
     private void cargarVenta(Venta resumen) {
         if (resumen == null) {
             return;
         }
-        try {
-            Venta venta = ventaService.buscarConDetalles(resumen.getId());
+        Long id = resumen.getId();
+        Tareas.ejecutar(() -> ventaService.buscarConDetalles(id), venta -> {
+            Venta seleccionada = tablaVentas.getSelectionModel().getSelectedItem();
+            if (seleccionada == null || !id.equals(seleccionada.getId())) {
+                return; // el usuario ya eligió otra venta
+            }
             ventaEnEdicionId = venta.getId();
             ventaHistorica = venta.getEstado() != EstadoVenta.PREPARACION;
-            cmbCliente.getItems().stream()
-                    .filter(c -> c.getId().equals(venta.getCliente().getId()))
-                    .findFirst().ifPresent(cmbCliente::setValue);
+            seleccionarPorId(cmbCliente, venta.getCliente().getId(), Cliente::getId);
             cmbMetodoPago.setValue(venta.getMetodoPago());
             carrito.setAll(venta.getDetalles().stream().map(this::aLinea).toList());
             actualizarTotal();
             mensaje(venta.getEstado() == EstadoVenta.PREPARACION
                     ? "Venta en preparacion cargada para editar."
                     : "Venta historica: " + venta.getEstado() + ".");
-        } catch (RuntimeException e) {
-            AlertUtil.error(e);
-        }
+        });
     }
 
     private LineaCarrito aLinea(DetalleVenta detalle) {
@@ -276,7 +347,9 @@ public class VentaController {
     }
 
     private void recargarVentas() {
-        tablaVentas.setItems(FXCollections.observableArrayList(ventaService.listar()));
+        Tareas.ejecutar(ventaService::listar,
+                ventas -> tablaVentas.setItems(FXCollections.observableArrayList(ventas)),
+                error -> mensaje("No se pudieron cargar las ventas: " + Tareas.mensajeCorto(error)));
     }
 
     private void mostrarDescuentoMaximo(Pieza pieza) {
@@ -310,20 +383,20 @@ public class VentaController {
     }
 
     private BigDecimal decimalOZero(String texto) {
-        return texto == null || texto.isBlank() ? BigDecimal.ZERO : new BigDecimal(texto.trim());
+        if (texto == null || texto.isBlank()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(texto.trim().replace("C$", "").replace(",", "").trim());
+        } catch (NumberFormatException e) {
+            throw new ReglaNegocioException("El descuento debe ser un número, por ejemplo 50.00.");
+        }
     }
 
     private void mensaje(String texto) {
         lblMensaje.setText(texto);
     }
 
-    private String mensajeRaiz(Throwable error) {
-        Throwable actual = error;
-        while (actual.getCause() != null && actual.getCause() != actual) {
-            actual = actual.getCause();
-        }
-        return actual.getMessage() == null ? actual.getClass().getSimpleName() : actual.getMessage();
-    }
 
     private record LineaCarrito(Pieza pieza, int cantidad, BigDecimal precio, BigDecimal costo,
                                 BigDecimal descuento, BigDecimal subtotal) {

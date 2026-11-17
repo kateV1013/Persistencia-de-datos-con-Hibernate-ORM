@@ -1,6 +1,6 @@
 package com.quilate.controller;
 
-import com.quilate.dao.GenericDAO;
+import com.quilate.dao.ClienteDAO;
 import com.quilate.model.Cliente;
 import com.quilate.model.EstadoPedido;
 import com.quilate.model.PedidoPersonalizado;
@@ -66,7 +66,7 @@ public class PedidoController {
     private final PedidoService pedidoService = new PedidoService();
     private final TipoServicioService tipoServicioService = new TipoServicioService();
     /** Lectura de clientes con el CRUD generico (el CRUD completo es de la pantalla de Clientes). */
-    private final GenericDAO<Cliente, Integer> clienteDAO = new GenericDAO<>(Cliente.class) { };
+    private final ClienteDAO clienteDAO = new ClienteDAO();
 
     /** Id del pedido que se esta editando, o null si es nuevo. */
     private Integer idEditando;
@@ -138,7 +138,7 @@ public class PedidoController {
     private void cargar() {
         boolean incluirCancelados = chkCancelados.isSelected();
         Tareas.ejecutar(() -> new Datos(
-                        clienteDAO.listarTodos().stream()
+                        clienteDAO.listar().stream()
                                 .sorted(Comparator.comparing(Cliente::getNombreCompleto, String.CASE_INSENSITIVE_ORDER))
                                 .toList(),
                         tipoServicioService.listar(),
@@ -188,12 +188,14 @@ public class PedidoController {
         txtPrecio.setText(Formatos.dineroEditable(p.getPrecio()));
 
         boolean cancelado = p.getEstado() == EstadoPedido.CANCELADO;
+        boolean entregado = p.getEstado() == EstadoPedido.ENTREGADO;
         cmbEstado.setValue(cancelado ? null : p.getEstado());
-        cmbEstado.setDisable(cancelado);
-        btnGuardar.setDisable(cancelado);
+        cmbEstado.setDisable(cancelado || entregado);
+        btnGuardar.setDisable(cancelado || entregado);
         btnCancelarPedido.setDisable(cancelado || p.getEstado() == EstadoPedido.ENTREGADO);
         lblModo.setText("Pedido N.º " + p.getId());
-        lblMensaje.setText(cancelado ? "Este pedido está cancelado (solo lectura)." : "");
+        lblMensaje.setText(cancelado ? "Este pedido está cancelado (solo lectura)."
+                : entregado ? "Este pedido ya fue entregado (solo lectura)." : "");
         disenoActual=p.getDiseno()==null?null:p.getDiseno().copia();
         mostrandoPedido=false;
         actualizarVista();

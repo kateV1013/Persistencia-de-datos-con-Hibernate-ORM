@@ -39,7 +39,7 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        logo.getChildren().add(com.quilate.ui.MarcaBelle.crear(38));
+        logo.getChildren().add(com.quilate.ui.MarcaQuilate.crear(38));
         String fecha = LocalDate.now().format(FORMATO_FECHA);
         lblFecha.setText(Character.toUpperCase(fecha.charAt(0)) + fecha.substring(1));
 
@@ -57,7 +57,7 @@ public class MainController {
     private final java.util.Map<Modulo.Seccion, VBox> secciones = new java.util.EnumMap<>(Modulo.Seccion.class);
 
     private void construirMenu() {
-        gema.getChildren().add(com.quilate.ui.MarcaBelle.crear(138));
+        gema.getChildren().add(com.quilate.ui.MarcaQuilate.crear(138));
         for (Modulo.Seccion seccion : Modulo.Seccion.values()) {
             Label navTitulo = new Label(seccion.titulo().toUpperCase(Locale.forLanguageTag("es")));
             navTitulo.getStyleClass().add("nav-seccion");

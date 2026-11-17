@@ -57,7 +57,7 @@ class DisenoVisualTest {
                 Stage ventana = fx(() -> {
                     Ventanas.abrir(modulo);
                     Stage abierta = Window.getWindows().stream().filter(w -> w instanceof Stage)
-                            .map(w -> (Stage) w).filter(w -> (modulo.titulo() + " · Joyeria Belle").equals(w.getTitle()))
+                            .map(w -> (Stage) w).filter(w -> (modulo.titulo() + " · Joyería Quilate").equals(w.getTitle()))
                             .findFirst().orElseThrow();
                     assertNotNull(abierta.getScene().getRoot());
                     // Abrir el mismo módulo no crea otra ventana.
@@ -71,7 +71,7 @@ class DisenoVisualTest {
                     esperar(() -> !"—".equals(((Label)ventana.getScene().lookup("#lblPerfilCompras")).getText()));
                     fx(() -> { assertNotEquals("—",((Label)ventana.getScene().lookup("#lblPerfilCompras")).getText()); return null; });
                 }
-                if (modulo == Modulo.VENTAS) fx(() -> { probarEscaneo(ventana); return null; });
+                if (modulo == Modulo.VENTAS) probarEscaneo(ventana);
                 if (modulo == Modulo.PEDIDOS) probarEditor(ventana, capturar);
                 if (capturar) {
                     String nombre = String.format("%02d-%s", numero++, modulo.name().toLowerCase(Locale.ROOT));
@@ -113,16 +113,20 @@ class DisenoVisualTest {
         }
     }
     @SuppressWarnings("unchecked")
-    private static void probarEscaneo(Stage ventana) {
+    /** El escaneo consulta la BD en segundo plano: se espera cada lectura antes de revisar la tabla. */
+    private static void probarEscaneo(Stage ventana) throws Exception {
         TextField codigo=(TextField)ventana.getScene().lookup("#txtCodigoVenta");
-        for(int i=0;i<2;i++){codigo.setText("QL-001");codigo.fireEvent(new javafx.event.ActionEvent());}
         TableView<?> tabla=(TableView<?>)ventana.getScene().lookup("#tablaDetalles");
-        assertEquals(1,tabla.getItems().size());assertEquals(2,tabla.getColumns().get(1).getCellData(0));
-        assertEquals(0,new BigDecimal("3600").compareTo((BigDecimal)tabla.getColumns().get(4).getCellData(0)));
-        codigo.setText("NO-EXISTE");codigo.fireEvent(new javafx.event.ActionEvent());
-        assertEquals(2,tabla.getColumns().get(1).getCellData(0));
-        assertTrue(((Label)ventana.getScene().lookup("#lblMensaje")).getText().contains("No existe"));
-        codigo.clear();
+        Label mensaje=(Label)ventana.getScene().lookup("#lblMensaje");
+        for(int i=1;i<=2;i++){
+            int esperadas=i;
+            fx(() -> { codigo.setText("QL-001"); codigo.fireEvent(new javafx.event.ActionEvent()); return null; });
+            esperar(() -> tabla.getItems().size()==1 && Integer.valueOf(esperadas).equals(tabla.getColumns().get(1).getCellData(0)));
+        }
+        fx(() -> { assertEquals(0,new BigDecimal("3600").compareTo((BigDecimal)tabla.getColumns().get(4).getCellData(0))); return null; });
+        fx(() -> { codigo.setText("NO-EXISTE"); codigo.fireEvent(new javafx.event.ActionEvent()); return null; });
+        esperar(() -> mensaje.getText().contains("No existe"));
+        fx(() -> { assertEquals(2,tabla.getColumns().get(1).getCellData(0)); codigo.clear(); return null; });
     }
     @SuppressWarnings("unchecked")
     private static void esperar(Callable<Boolean> condicion) throws Exception {
@@ -148,9 +152,9 @@ class DisenoVisualTest {
 
 
         Platform.runLater(() -> ((Button)ventana.getScene().lookup("#btnDisenar")).fire());
-        esperar(() -> Window.getWindows().stream().anyMatch(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Joyeria Belle")));
+        esperar(() -> Window.getWindows().stream().anyMatch(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Joyería Quilate")));
         fx(() -> {
-            Stage modal=(Stage)Window.getWindows().stream().filter(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Joyeria Belle")).findFirst().orElseThrow();
+            Stage modal=(Stage)Window.getWindows().stream().filter(w -> w instanceof Stage st && String.valueOf(st.getTitle()).contains("Atelier Joyería Quilate")).findFirst().orElseThrow();
             DialogPane pane=(DialogPane)modal.getScene().getRoot();
             try {
                 ((TextField)pane.lookup("#textoGrabado")).setText("M & L · Siempre");

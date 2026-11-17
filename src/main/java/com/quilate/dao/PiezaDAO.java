@@ -11,7 +11,6 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.hibernate.exception.ConstraintViolationException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -156,9 +155,6 @@ public class PiezaDAO {
             return em.createQuery(
                     "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria ORDER BY p.nombre",
                     Pieza.class).getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error al listar piezas", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -179,9 +175,6 @@ public class PiezaDAO {
                     Pieza.class);
             q.setParameter("catId", categoriaId);
             return q.getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error al listar piezas por categoría", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -205,9 +198,6 @@ public class PiezaDAO {
                     Pieza.class);
             q.setParameter("texto", "%" + textoBusqueda.trim() + "%");
             return q.getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error en búsqueda por nombre", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -320,6 +310,9 @@ public class PiezaDAO {
             actual.setNombre(datos.getNombre());
             actual.setCosto(datos.getCosto());
             actual.setPrecioVenta(datos.getPrecioVenta());
+            actual.setMaterial(datos.getMaterial());
+            actual.setQuilates(datos.getQuilates());
+            actual.setPesoGramos(datos.getPesoGramos());
             actual.setCategoria(categoria);
             actual.setExistencias(nuevasExistencias);
 
@@ -460,6 +453,22 @@ public class PiezaDAO {
         }
         if (pieza.getPrecioVenta() == null || !Double.isFinite(pieza.getPrecioVenta()) || pieza.getPrecioVenta() < 0) {
             throw new IllegalArgumentException("El precio de venta debe ser un valor no negativo.");
+        }
+        if (pieza.getPrecioVenta() <= 0) {
+            throw new IllegalArgumentException("El precio de venta debe ser mayor que cero.");
+        }
+        if (pieza.getPrecioVenta() < pieza.getCosto()) {
+            throw new IllegalArgumentException("El precio de venta no puede ser menor que el costo.");
+        }
+        if (pieza.getMaterial() != null && pieza.getMaterial().length() > 50) {
+            throw new IllegalArgumentException("El material admite como máximo 50 caracteres.");
+        }
+        if (pieza.getQuilates() != null && (pieza.getQuilates() < 1 || pieza.getQuilates() > 24)) {
+            throw new IllegalArgumentException("Los quilates deben estar entre 1 y 24.");
+        }
+        if (pieza.getPesoGramos() != null && (pieza.getPesoGramos().signum() <= 0
+                || pieza.getPesoGramos().compareTo(new java.math.BigDecimal("999999.99")) > 0)) {
+            throw new IllegalArgumentException("El peso debe ser mayor que cero y menor que 1,000,000 g.");
         }
         if (pieza.getExistencias() == null || pieza.getExistencias() < 0) {
             throw new IllegalArgumentException("Las existencias no pueden ser negativas.");

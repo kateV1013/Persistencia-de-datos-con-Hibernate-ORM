@@ -8,7 +8,7 @@
             <HBox spacing="12" alignment="CENTER_LEFT">
                 <StackPane fx:id="logo" styleClass="logo"/>
                 <VBox spacing="1">
-                    <Label text="Belle" styleClass="marca"/>
+                    <Label text="Quilate" styleClass="marca"/>
                     <Label text="JOYERIA · MANAGUA" styleClass="marca-detalle"/>
                 </VBox>
             </HBox>
@@ -20,7 +20,7 @@
                 <Label text="Cada detalle cuenta." wrapText="true" styleClass="nota-titulo"/>
                 <Label text="Tu tienda, tu taller y tus clientes en un solo lugar." wrapText="true" styleClass="nota-texto"/>
             </VBox>
-            <Label text="JOYERIA BELLE  /  NICARAGUA" styleClass="lateral-firma"/>
+            <Label text="JOYERÍA QUILATE  /  NICARAGUA" styleClass="lateral-firma"/>
         </VBox>
     </left>
     <center>
@@ -28,7 +28,7 @@
             <top>
                 <HBox styleClass="encabezado" alignment="CENTER_LEFT">
                     <VBox spacing="4">
-                        <Label text="JOYERIA BELLE · MANAGUA" styleClass="eyebrow"/>
+                        <Label text="JOYERÍA QUILATE · MANAGUA" styleClass="eyebrow"/>
                         <Label text="Vista general" styleClass="page-title"/>
                     </VBox>
                     <Region HBox.hgrow="ALWAYS"/>

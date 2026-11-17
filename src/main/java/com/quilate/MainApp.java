@@ -15,7 +15,7 @@ public class MainApp extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
 
-        stage.setTitle("Joyeria Belle · Menú principal");
+        stage.setTitle("Joyería Quilate · Menú principal");
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
         double alto = Math.min(880, pantalla.getHeight() - 40);
         stage.setScene(Ventanas.crearEscena(loader.load(), Math.min(1360, pantalla.getWidth() - 40), alto));

@@ -91,4 +91,31 @@ class InventarioDAOTest {
         assertThrows(IllegalArgumentException.class, () -> piezas.guardar(p));
         assertTrue(piezas.listarTodas().isEmpty());
     }
+
+    @Test void rechazaPrecioMenorQueElCosto() {
+        Pieza p = pieza();
+        p.setPrecioVenta(50.0);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> piezas.guardar(p));
+        assertTrue(e.getMessage().contains("menor que el costo"), e.getMessage());
+    }
+
+    @Test void editarPiezaGuardaMaterialQuilatesYPeso() {
+        Pieza p = piezas.guardar(pieza());
+        Pieza formulario = formularioDesfasado(p, 5);
+        formulario.setMaterial("Oro");
+        formulario.setQuilates((short) 18);
+        formulario.setPesoGramos(new java.math.BigDecimal("3.50"));
+
+        piezas.actualizarDatos(formulario, 5);
+
+        Pieza enBd = piezas.buscarPorId(p.getId()).orElseThrow();
+        assertEquals("Oro", enBd.getMaterial());
+        assertEquals((short) 18, enBd.getQuilates());
+        assertEquals(0, new java.math.BigDecimal("3.50").compareTo(enBd.getPesoGramos()));
+    }
+
+    @Test void rechazaCategoriaConDescripcionDemasiadoLarga() {
+        assertThrows(IllegalArgumentException.class,
+                () -> categorias.guardar(new Categoria("Collares", "x".repeat(501))));
+    }
 }

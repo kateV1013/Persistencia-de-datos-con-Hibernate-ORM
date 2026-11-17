@@ -30,11 +30,6 @@ public class ApartadoService {
         dao.cancelar(apartadoId);
     }
 
-    public void completar(Long apartadoId) {
-        if (apartadoId == null) throw new ValidacionException("Seleccione un apartado.");
-        dao.completar(apartadoId);
-    }
-
     public List<Apartado> listar() {
         return dao.listar();
     }

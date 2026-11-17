@@ -9,9 +9,8 @@ import com.quilate.model.EstadoApartado;
 import com.quilate.model.EstadoVenta;
 import com.quilate.model.Pieza;
 import com.quilate.model.Venta;
-import com.quilate.util.JPAUtil;
+import com.quilate.util.Transaccion;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.LockModeType;
 
 import java.math.BigDecimal;
@@ -117,6 +116,19 @@ public class VentaService {
                 pieza.setExistencias(pieza.getExistencias() + detalle.getCantidad());
             }
             return venta;
+        });
+    }
+
+    /** Elimina una venta que sigue en preparación; no toca existencias porque aún no se descontaron. */
+    public void eliminarBorrador(Long ventaId) {
+        enTransaccion(em -> {
+            Venta venta = requerirVenta(em, ventaId, LockModeType.PESSIMISTIC_WRITE);
+            if (venta.getEstado() != EstadoVenta.PREPARACION) {
+                throw new ReglaNegocioException(
+                        "Solo se pueden eliminar ventas en preparación; una confirmada se anula.");
+            }
+            em.remove(venta);
+            return null;
         });
     }
 
@@ -279,20 +291,6 @@ public class VentaService {
     }
 
     private <T> T enTransaccion(Function<EntityManager, T> operacion) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            T resultado = operacion.apply(em);
-            tx.commit();
-            return resultado;
-        } catch (RuntimeException e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e;
-        } finally {
-            em.close();
-        }
+        return Transaccion.ejecutar(operacion);
     }
 }

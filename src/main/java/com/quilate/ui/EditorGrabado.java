@@ -15,7 +15,7 @@ public final class EditorGrabado {
     public static Optional<DisenoPieza> abrir(Window owner,DisenoPieza previo) {
         DisenoPieza d=previo==null?new DisenoPieza():previo.copia();
         Dialog<DisenoPieza> dialogo=new Dialog<>();dialogo.initOwner(owner);
-        dialogo.setTitle("Atelier Joyeria Belle · Diseño de la pieza");
+        dialogo.setTitle("Atelier Joyería Quilate · Diseño de la pieza");
         dialogo.setResizable(true);
         ButtonType aplicar=new ButtonType("Aplicar al pedido",ButtonBar.ButtonData.OK_DONE);
         dialogo.getDialogPane().getButtonTypes().addAll(aplicar,ButtonType.CANCEL);

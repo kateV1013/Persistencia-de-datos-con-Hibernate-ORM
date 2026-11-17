@@ -1,8 +1,8 @@
 package com.quilate.dao;
 
 import com.quilate.util.JPAUtil;
+import com.quilate.util.Transaccion;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,21 +60,7 @@ public abstract class GenericDAO<T, ID> {
     }
 
     protected <R> R enTransaccion(Function<EntityManager, R> operacion) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            R resultado = operacion.apply(em);
-            tx.commit();
-            return resultado;
-        } catch (RuntimeException e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e;
-        } finally {
-            em.close();
-        }
+        return Transaccion.ejecutar(operacion);
     }
 
     protected void enTransaccionSinRetorno(Consumer<EntityManager> operacion) {

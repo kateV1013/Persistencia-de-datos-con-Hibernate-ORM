@@ -33,7 +33,7 @@ class VentaServiceTest {
         Long[] ids = Transaccion.ejecutar(em -> {
             Cliente cliente = new Cliente("Ana", "Lopez", "55550000", "ana@correo.com");
             Pieza pieza = new Pieza("COD-VENTA-1", "Anillo", "Oro",
-                    new BigDecimal("60.00"), new BigDecimal("100.00"), "ANILLO", 5);
+                    new BigDecimal("60.00"), new BigDecimal("100.00"), null, 5);
             em.persist(cliente);
             em.persist(pieza);
             em.flush();
@@ -104,5 +104,26 @@ class VentaServiceTest {
 
     private int existencias() {
         return Transaccion.ejecutar(em -> em.find(Pieza.class, piezaId).getExistencias());
+    }
+
+    @Test
+    void eliminaUnBorradorSinTocarExistencias() {
+        Venta borrador = service.crearEnPreparacion(clienteId, List.of(
+                new SolicitudDetalleVenta(piezaId, 2, BigDecimal.ZERO)));
+
+        service.eliminarBorrador(borrador.getId());
+
+        assertThrows(ReglaNegocioException.class, () -> service.buscarConDetalles(borrador.getId()));
+        assertEquals(5, existencias());
+    }
+
+    @Test
+    void noEliminaUnaVentaConfirmada() {
+        Venta borrador = service.crearEnPreparacion(clienteId, List.of(
+                new SolicitudDetalleVenta(piezaId, 1, BigDecimal.ZERO)));
+        service.confirmar(borrador.getId());
+
+        assertThrows(ReglaNegocioException.class, () -> service.eliminarBorrador(borrador.getId()));
+        assertEquals(4, existencias());
     }
 }
