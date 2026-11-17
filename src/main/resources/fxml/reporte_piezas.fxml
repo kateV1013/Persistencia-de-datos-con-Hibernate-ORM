@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.quilate.controller.ReportePiezasController">
+ <top><VBox spacing="14">
+  <FlowPane hgap="12" vgap="8" alignment="CENTER_LEFT"><Label text="PERÍODO" styleClass="campo-label"/><DatePicker fx:id="dpDesde" promptText="Desde · opcional" prefWidth="160"/><DatePicker fx:id="dpHasta" promptText="Hasta · opcional" prefWidth="160"/><Button fx:id="btnGenerar" text="Actualizar análisis" onAction="#onGenerar"/><Button text="Todo el historial" onAction="#todoElHistorial" styleClass="secundario"/><Label text="REPORTES" styleClass="campo-label"/><Button text="Resumen" onAction="#reporteResumen" styleClass="secundario"/><Button text="Más vendidas" onAction="#reporteMasVendidas" styleClass="secundario"/><Button text="Rentabilidad" onAction="#reporteRentabilidad" styleClass="secundario"/><Label fx:id="lblMensaje" styleClass="mensaje"/></FlowPane>
+  <HBox spacing="12">
+   <VBox spacing="6" styleClass="kpi-card" HBox.hgrow="ALWAYS"><Label text="INGRESOS NETOS" styleClass="campo-label"/><Label fx:id="lblIngresos" text="—" styleClass="kpi-value"/><Label text="Después de descuentos" styleClass="ayuda"/></VBox>
+   <VBox spacing="6" styleClass="kpi-card" HBox.hgrow="ALWAYS"><Label text="GANANCIA BRUTA" styleClass="campo-label"/><Label fx:id="lblGanancia" text="—" styleClass="kpi-value"/><Label text="Antes de gastos operativos" styleClass="ayuda"/></VBox>
+   <VBox spacing="6" styleClass="kpi-card" HBox.hgrow="ALWAYS"><Label text="DESCUENTOS OTORGADOS" styleClass="campo-label"/><Label fx:id="lblDescuentos" text="—" styleClass="kpi-value"/><Label text="Suma del período" styleClass="ayuda"/></VBox>
+   <VBox spacing="6" styleClass="kpi-card" HBox.hgrow="ALWAYS"><Label text="VENTAS CONFIRMADAS" styleClass="campo-label"/><Label fx:id="lblVentas" text="—" styleClass="kpi-value"/><Label text="Excluye borradores y anuladas" styleClass="ayuda"/></VBox>
+  </HBox>
+ </VBox></top>
+ <center><TabPane fx:id="reportes" tabClosingPolicy="UNAVAILABLE"/></center>
+</BorderPane>

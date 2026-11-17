@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:id="raiz" fx:controller="com.quilate.controller.MainController" styleClass="menu-principal">
+    <left>
+        <VBox fx:id="lateral" styleClass="lateral" prefWidth="224" minWidth="224">
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <StackPane fx:id="logo" styleClass="logo"/>
+                <VBox spacing="1">
+                    <Label text="Quilate" styleClass="marca"/>
+                    <Label text="JOYERIA · MANAGUA" styleClass="marca-detalle"/>
+                </VBox>
+            </HBox>
+            <Label text="ESPACIO DE TRABAJO" styleClass="nav-seccion"/>
+            <Button text="Vista general" styleClass="nav-inicio" maxWidth="Infinity" onAction="#irInicio"/>
+            <VBox fx:id="navegacion" spacing="5"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <VBox styleClass="lateral-nota" spacing="8">
+                <Label text="Cada detalle cuenta." wrapText="true" styleClass="nota-titulo"/>
+                <Label text="Tu tienda, tu taller y tus clientes en un solo lugar." wrapText="true" styleClass="nota-texto"/>
+            </VBox>
+            <Label text="JOYERÍA QUILATE  /  NICARAGUA" styleClass="lateral-firma"/>
+        </VBox>
+    </left>
+    <center>
+        <BorderPane>
+            <top>
+                <HBox styleClass="encabezado" alignment="CENTER_LEFT">
+                    <VBox spacing="4">
+                        <Label text="JOYERÍA QUILATE · MANAGUA" styleClass="eyebrow"/>
+                        <Label text="Vista general" styleClass="page-title"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <VBox spacing="5" alignment="CENTER_RIGHT">
+                        <Label fx:id="lblFecha" styleClass="fecha"/>
+                        <Label text="Panel de gestión" styleClass="etiqueta-suave"/>
+                    </VBox>
+                </HBox>
+            </top>
+            <center>
+                <ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="menu-scroll">
+                    <VBox fx:id="contenedorSecciones" styleClass="menu-contenido">
+                        <HBox styleClass="hero" spacing="20" alignment="CENTER_LEFT">
+                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                <Label text="PRECISIÓN EN CADA DETALLE" styleClass="hero-kicker"/>
+                                <Label text="El valor está en
+cómo lo gestionas." styleClass="hero-title"/>
+                                <Label text="Joyas para ella y para él. Cada pieza, una historia." styleClass="hero-subtitle"/>
+                                <Button text="Registrar una venta  →" styleClass="boton-oro" onAction="#abrirVentas"/>
+                            </VBox>
+                            <StackPane fx:id="gema" minWidth="190" prefWidth="190" prefHeight="160" mouseTransparent="true"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="module-toolbar">
+                            <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                <Label text="Tu espacio de trabajo" styleClass="saludo"/>
+                                <Label text="Selecciona un módulo para comenzar." styleClass="saludo-detalle"/>
+                            </VBox>
+                            <TextField fx:id="busqueda" promptText="Buscar módulo…" prefWidth="240"/>
+                        </HBox>
+                        <Label fx:id="sinResultados" text="No encontramos ese módulo. Prueba con ventas, clientes o taller." styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                    </VBox>
+                </ScrollPane>
+            </center>
+            <bottom>
+                <HBox styleClass="barra-estado">
+                    <Circle fx:id="indicadorConexion" radius="4" styleClass="indicador"/>
+                    <Label fx:id="lblEstado" maxWidth="600"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Diseñado para cuidar cada detalle"/>
+                </HBox>
+            </bottom>
+        </BorderPane>
+    </center>
+</BorderPane>
