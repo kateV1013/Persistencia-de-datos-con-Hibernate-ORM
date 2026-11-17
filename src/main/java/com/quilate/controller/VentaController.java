@@ -11,7 +11,9 @@ import com.quilate.model.Venta;
 import com.quilate.service.CalculadoraVenta;
 import com.quilate.service.SolicitudDetalleVenta;
 import com.quilate.service.VentaService;
+import com.quilate.ui.DialogoPeriodo;
 import com.quilate.util.AlertUtil;
+import com.quilate.util.ReporteUtil;
 import com.quilate.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -400,5 +402,32 @@ public class VentaController {
 
     private record LineaCarrito(Pieza pieza, int cantidad, BigDecimal precio, BigDecimal costo,
                                 BigDecimal descuento, BigDecimal subtotal) {
+    }
+
+    // ---------- reportes ----------
+
+    @FXML
+    private void reporteVentasPorFechas() {
+        DialogoPeriodo.abrirReporte("/reportes/ventas_por_fechas.jrxml", "Ventas por fechas", true);
+    }
+
+    @FXML
+    private void reporteComprobante() {
+        Venta seleccionada = tablaVentas.getSelectionModel().getSelectedItem();
+        if (seleccionada == null) {
+            AlertUtil.advertencia("Selecciona una venta en la tabla para ver su comprobante.");
+            return;
+        }
+        if (seleccionada.getEstado() != EstadoVenta.CONFIRMADA) {
+            AlertUtil.advertencia("Solo las ventas confirmadas tienen comprobante.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/ventas_comprobante.jrxml",
+                java.util.Map.of("p_venta_id", seleccionada.getId()), "Comprobante de venta " + seleccionada.getId());
+    }
+
+    @FXML
+    private void reporteVentasPorEstado() {
+        DialogoPeriodo.abrirReporte("/reportes/ventas_por_estado.jrxml", "Ventas por estado y pago", true);
     }
 }
