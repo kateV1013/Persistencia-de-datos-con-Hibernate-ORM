@@ -1,4 +1,4 @@
-# Diseños por pedido de Joyeria Belle
+# Diseños por pedido de Joyería Quilate
 
 Cada pedido guarda su propio diseño. Un mismo cliente puede tener varias piezas
 diferentes. Al seleccionar una fila, la vista muestra el grabado, material,
