@@ -27,7 +27,7 @@ public final class EtiquetaBarras {
         var g=imagen.getGraphicsContext2D();g.setFill(Color.WHITE);g.fillRect(0,0,imagen.getWidth(),64);
         g.setFill(Color.BLACK);
         for(int i=0;i<barras.length;i++) if(barras[i]) g.fillRect((i+10)*modulo,0,modulo,64);
-        Label marca=new Label("JOYERIA BELLE"),pieza=new Label(nombre),numero=new Label(codigo);
+        Label marca=new Label("JOYERÍA QUILATE"),pieza=new Label(nombre),numero=new Label(codigo);
         for(Label l:new Label[]{marca,pieza,numero}) l.setStyle("-fx-text-fill: black; -fx-font-size: 11px;");
         pieza.setWrapText(true);pieza.setMaxWidth(imagen.getWidth());pieza.setAlignment(Pos.CENTER);
         VBox etiqueta=new VBox(5,marca,pieza,imagen,numero);etiqueta.setAlignment(Pos.CENTER);
@@ -36,7 +36,7 @@ public final class EtiquetaBarras {
     }
     public static void abrir(Window owner,Pieza pieza) {
         VBox etiqueta=crear(pieza.getCodigoBarras(),pieza.getNombre());
-        Dialog<Void> dialogo=new Dialog<>();dialogo.initOwner(owner);dialogo.setTitle("Código de barras · Joyeria Belle");
+        Dialog<Void> dialogo=new Dialog<>();dialogo.initOwner(owner);dialogo.setTitle("Código de barras · Joyería Quilate");
         ButtonType imprimir=new ButtonType("Imprimir etiqueta",ButtonBar.ButtonData.OTHER);
         dialogo.getDialogPane().getButtonTypes().addAll(imprimir,ButtonType.CLOSE);
         Label estado=new Label("Configura el papel y las copias en el diálogo de impresión.");estado.setWrapText(true);

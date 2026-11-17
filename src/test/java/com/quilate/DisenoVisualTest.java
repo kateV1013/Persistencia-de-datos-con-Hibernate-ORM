@@ -111,7 +111,14 @@ class DisenoVisualTest {
                         if(capturar) fx(() -> { captura(ventana,"10-reporte-"+indice); return null; });
                     }
                 }
-                fx(() -> { ventana.close(); return null; });
+                // Esc cierra la ventana del módulo (y la quita de las abiertas).
+                fx(() -> {
+                    javafx.event.Event.fireEvent(ventana.getScene().getRoot(), new javafx.scene.input.KeyEvent(
+                            javafx.scene.input.KeyEvent.KEY_PRESSED, "", "", javafx.scene.input.KeyCode.ESCAPE,
+                            false, false, false, false));
+                    assertFalse(ventana.isShowing(), modulo + " no se cerró con Esc");
+                    return null;
+                });
             }
             if (capturar) {
                 fx(() -> { principal.setWidth(920); principal.setHeight(700); return null; });
