@@ -61,6 +61,7 @@ public class PedidoController {
     @FXML private Label lblDiseno;
     @FXML private Button btnDisenar, btnQuitarDiseno;
     private com.quilate.model.DisenoPieza disenoActual;
+    private boolean mostrandoPedido;
 
     private final PedidoService pedidoService = new PedidoService();
     private final TipoServicioService tipoServicioService = new TipoServicioService();
@@ -117,6 +118,15 @@ public class PedidoController {
                 txtPrecio.setText(Formatos.dineroEditable(tipo.getPrecioBase()));
             }
         });
+        cmbCliente.valueProperty().addListener((obs, anterior, cliente) -> {
+            if (!mostrandoPedido) {
+                if (anterior != null && (cliente == null || !anterior.getId().equals(cliente.getId()))) {
+                    disenoActual=null;
+                    lblMensaje.setText("Cliente cambiado. Define el diseño para este cliente antes de guardar.");
+                }
+                actualizarVista();
+            }
+        });
 
         btnDisenar.disableProperty().bind(btnGuardar.disableProperty());
         limpiar();
@@ -169,6 +179,7 @@ public class PedidoController {
     // ---------- formulario ----------
 
     private void mostrar(PedidoPersonalizado p) {
+        mostrandoPedido=true;
         idEditando = p.getId();
         cmbCliente.setValue(p.getCliente());
         cmbServicio.setValue(p.getTipoServicio());
@@ -183,7 +194,9 @@ public class PedidoController {
         btnCancelarPedido.setDisable(cancelado || p.getEstado() == EstadoPedido.ENTREGADO);
         lblModo.setText("Pedido N.º " + p.getId());
         lblMensaje.setText(cancelado ? "Este pedido está cancelado (solo lectura)." : "");
-        disenoActual=p.getDiseno()==null?null:p.getDiseno().copia(); actualizarVista();
+        disenoActual=p.getDiseno()==null?null:p.getDiseno().copia();
+        mostrandoPedido=false;
+        actualizarVista();
     }
 
     private void limpiar() {
@@ -220,8 +233,10 @@ public class PedidoController {
     private void actualizarVista() {
         vistaGrabado.setDiseno(disenoActual);
         btnQuitarDiseno.setDisable(disenoActual==null || btnGuardar.isDisabled());
-        lblDiseno.setText(disenoActual==null ? "Aún no has definido un diseño. Abre el editor para probar un grabado y sus medidas."
-                : disenoActual.getForma()+" · "+disenoActual.getAcabado()+"\n"+disenoActual.getMedida()+" × "+disenoActual.getAncho()+" mm\nGrabado: "+(disenoActual.getTexto().isBlank()?"Sin texto":disenoActual.getTexto()));
+        String contexto=(cmbCliente.getValue()==null?"Selecciona un cliente":cmbCliente.getValue().getNombreCompleto())
+                +(idEditando==null?" · Nuevo pedido":" · Pedido N.º "+idEditando)+"\n";
+        lblDiseno.setText(contexto+(disenoActual==null ? "Este pedido no tiene diseño guardado. Define su pieza en el editor."
+                : disenoActual.getForma()+" · "+disenoActual.getAcabado()+"\n"+disenoActual.getMedida()+" × "+disenoActual.getAncho()+" mm\nGrabado: "+(disenoActual.getTexto().isBlank()?"Sin texto":disenoActual.getTexto())));
     }
     @FXML private void onDisenar() {
         if(btnGuardar.isDisabled()) return;

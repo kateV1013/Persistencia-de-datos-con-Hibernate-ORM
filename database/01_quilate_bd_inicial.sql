@@ -76,20 +76,3 @@ INSERT INTO categorias (nombre, descripcion) VALUES
 ('PULSERA', 'Pulseras'),
 ('OTRO', 'Otras piezas')
 ON CONFLICT (nombre) DO NOTHING;
-
-INSERT INTO cliente (nombre, apellido, telefono, correo) VALUES
-('Maria', 'Lopez', '88881111', 'maria.lopez@correo.com'),
-('Jose', 'Martinez', '87772222', 'jose.martinez@correo.com')
-ON CONFLICT (correo) DO NOTHING;
-
-INSERT INTO piezas (codigo_barras, nombre, material, quilates, peso_gramos,
-                    costo, precio_venta, existencias, categoria_id)
-SELECT datos.codigo, datos.nombre, datos.material, datos.quilates, datos.peso,
-       datos.costo, datos.precio, datos.stock, c.id
-FROM (VALUES
-    ('7501000000011', 'Anillo solitario', 'Oro', 14::SMALLINT, 3.20::NUMERIC, 4500.00, 7000.00, 5, 'ANILLO'),
-    ('7501000000028', 'Cadena cubana', 'Plata', NULL::SMALLINT, 12.50::NUMERIC, 1200.00, 2000.00, 10, 'COLLAR'),
-    ('7501000000035', 'Argollas pequenas', 'Oro', 10::SMALLINT, 1.80::NUMERIC, 1800.00, 2600.00, 8, 'ARETES')
-) AS datos(codigo, nombre, material, quilates, peso, costo, precio, stock, categoria)
-JOIN categorias c ON c.nombre = datos.categoria
-ON CONFLICT (codigo_barras) DO NOTHING;

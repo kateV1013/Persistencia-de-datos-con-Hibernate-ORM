@@ -21,10 +21,3 @@ CREATE TABLE IF NOT EXISTS pedido_personalizado (
 
 CREATE INDEX IF NOT EXISTS idx_pedido_fecha_programada
     ON pedido_personalizado(fecha_programada);
-
-INSERT INTO tipo_servicio (nombre, descripcion, precio_base) VALUES
-('Grabado', 'Grabado de nombres, fechas o iniciales', 300.00),
-('Reparacion', 'Soldadura, cambio de broche o reparacion de cadenas', 500.00),
-('Ajuste de talla', 'Agrandar o reducir la talla de un anillo', 400.00),
-('Limpieza y pulido', 'Limpieza ultrasonica y pulido de la pieza', 200.00)
-ON CONFLICT (nombre) DO NOTHING;

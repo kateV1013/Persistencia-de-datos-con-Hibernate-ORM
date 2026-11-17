@@ -7,7 +7,7 @@ public final class DisenoService {
     private DisenoService() { }
     public static void validar(DisenoPieza d) {
         if(d==null)return;
-        if(!Set.of("Anillo","Placa").contains(d.getForma()==null?"":d.getForma())) error("Selecciona Anillo o Placa.");
+        if(!DisenoPieza.FORMAS.contains(d.getForma()==null?"":d.getForma())) error("Selecciona una forma de pieza válida.");
         if(!Set.of("Oro","Plata","Oro rosa").contains(d.getAcabado()==null?"":d.getAcabado())) error("Selecciona un acabado válido.");
         if(!Set.of("Clásica","Moderna","Cursiva").contains(d.getFuente()==null?"":d.getFuente())) error("Selecciona una tipografía válida.");
         if(d.getTexto()==null || d.getTexto().codePointCount(0,d.getTexto().length())>40 || d.getTexto().contains("\n")) error("El grabado admite hasta 40 caracteres en una sola línea.");
@@ -15,6 +15,8 @@ public final class DisenoService {
         rango(d.getMedida(),anillo?12:15,anillo?28:60,"medida");
         rango(d.getAncho(),anillo?2:8,anillo?12:35,"ancho");
         rango(d.getLetra(),1,4,"tamaño de letra");
+        if("Placa circular".equals(d.getForma()) && d.getMedida().compareTo(d.getAncho())!=0)
+            error("La placa circular debe tener el mismo ancho y alto.");
         if(d.getLetra().compareTo(d.getAncho())>0) error("La letra no puede ser más alta que la banda o placa.");
     }
     private static void rango(BigDecimal valor,int min,int max,String campo) {

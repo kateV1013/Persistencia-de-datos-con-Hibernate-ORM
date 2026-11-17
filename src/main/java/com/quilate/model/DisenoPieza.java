@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 /** Parámetros reproducibles de la vista previa. Todas las columnas son opcionales para pedidos antiguos. */
 @Embeddable
 public class DisenoPieza {
+    public static final java.util.List<String> FORMAS = java.util.List.of(
+            "Anillo", "Placa", "Placa ovalada", "Placa circular", "Placa corazón");
     @Column(name="diseno_texto",length=40) private String texto="";
     @Column(name="diseno_forma",length=16) private String forma="Anillo";
     @Column(name="diseno_acabado",length=16) private String acabado="Oro";
