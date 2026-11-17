@@ -21,7 +21,8 @@
             <property name="hibernate.hbm2ddl.auto" value="validate"/>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.jdbc.time_zone" value="UTC"/>
+            <!-- Sin hibernate.jdbc.time_zone: las fechas se guardan con la hora local
+                 de la tienda, igual que las ven los reportes SQL y pgAdmin. -->
         </properties>
     </persistence-unit>
 </persistence>

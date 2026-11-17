@@ -3,6 +3,8 @@
 -- ATENCION: reemplaza TODOS los datos comerciales. Respaldar antes de ejecutar.
 -- No representa el catalogo, clientes ni servicios reales de Belle.
 BEGIN;
+-- CURRENT_DATE y CURRENT_TIMESTAMP en hora de Managua, igual que la aplicacion.
+SET LOCAL TIME ZONE 'America/Managua';
 TRUNCATE TABLE detalle_venta, venta, apartado, pedido_personalizado,
     piezas, cliente, tipo_servicio, categorias RESTART IDENTITY;
 INSERT INTO categorias (nombre, descripcion) VALUES
