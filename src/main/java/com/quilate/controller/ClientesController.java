@@ -65,4 +65,17 @@ public class ClientesController {
         Long id=seleccionado.getId();
         Tareas.ejecutar(() -> { servicio.eliminar(id); return true; }, r -> { nuevo(); recargar(); });
     }
+
+    // ---------- reportes ----------
+    @FXML private void reporteDirectorio() {
+        ReporteUtil.mostrarReporte("/reportes/clientes_directorio.jrxml", java.util.Map.of(), "Directorio de clientes");
+    }
+    @FXML private void reporteHistorial() {
+        if (seleccionado == null) { AlertUtil.advertencia("Selecciona un cliente en la tabla para ver su historial."); return; }
+        ReporteUtil.mostrarReporte("/reportes/clientes_historial.jrxml",
+                java.util.Map.of("p_cliente_id", seleccionado.getId()), "Historial · " + seleccionado.getNombreCompleto());
+    }
+    @FXML private void reporteMejores() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/clientes_mejores.jrxml", "Mejores clientes", true);
+    }
 }
