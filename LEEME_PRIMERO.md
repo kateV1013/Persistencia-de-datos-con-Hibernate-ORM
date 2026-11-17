@@ -4,7 +4,7 @@
 
 Si ya usabas Quilate, abre **pgAdmin**, selecciona tu base de datos de Quilate y ejecuta una vez el archivo **`database/03_diseno_personalizado.sql`**. Agrega las columnas que guardan el grabado y las medidas; conserva tus registros y se puede repetir. No borres ni recrees tu base.
 
-Para una instalación desde cero, ejecuta los scripts `01`, `02` y `03`, en ese orden, sobre tu base PostgreSQL.
+Para una instalación desde cero, ejecuta los scripts `01`, `02` y `03`, en ese orden, sobre tu base PostgreSQL. El `04` es opcional: carga datos ficticios y reemplaza los que tengas.
 
 Después abre la carpeta que contiene `pom.xml` en IntelliJ, selecciona **JDK 21**, recarga Maven y ejecuta `com.quilate.Launcher`. Conserva tu configuración de conexión en `db.properties` o las variables indicadas en README.
 

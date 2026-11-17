@@ -1,7 +1,7 @@
 Quilate · Verificación del rediseño
 
 Java 21 / JavaFX 21.0.5
-Pruebas: 40
+Pruebas: 57
 Fallos y errores: 0
 
 Suite completa aprobada; pruebas visuales repetidas tras los ajustes finales.
