@@ -6,6 +6,7 @@ import com.quilate.model.Pieza;
 import com.quilate.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.hibernate.exception.ConstraintViolationException;
@@ -243,7 +244,9 @@ public class PiezaDAO {
     // ──────────────────────────────────────────────────────────────────────
 
     /**
-     * Actualiza los datos de una pieza existente.
+     * Actualiza los datos de una pieza existente, existencias incluidas.
+     * Desde un formulario usa {@link #actualizarDatos(Pieza, int)}: este método
+     * escribe las existencias que traiga el objeto aunque ya estén desfasadas.
      *
      * @param pieza pieza con los datos modificados (debe tener ID)
      * @return la pieza actualizada y gestionada
@@ -266,6 +269,73 @@ public class PiezaDAO {
             if (esDuplicado(e)) {
                 throw new IllegalArgumentException(
                         "Ya existe una pieza con el código de barras: " + pieza.getCodigoBarras(), e);
+            }
+            LOG.log(Level.SEVERE, "Error al actualizar pieza", e);
+            throw new RuntimeException("Error al actualizar la pieza.", e);
+
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Actualiza una pieza desde un formulario sin pisar las existencias que
+     * otra ventana (ventas, apartados) haya cambiado mientras tanto.
+     *
+     * <p>Los datos descriptivos se copian sobre la pieza tal como está hoy en
+     * la BD. Las existencias no se escriben como valor absoluto: se aplica solo
+     * la diferencia entre lo que el usuario veía y lo que dejó escrito. Si no
+     * tocó el campo, las existencias de la BD quedan intactas.
+     *
+     * @param datos             pieza con los datos del formulario (debe tener ID)
+     * @param existenciasVistas existencias que mostraba el formulario al cargarse
+     * @return la pieza actualizada
+     */
+    public Pieza actualizarDatos(Pieza datos, int existenciasVistas) {
+        validarPieza(datos);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+            Pieza actual = em.find(Pieza.class, datos.getId(), LockModeType.PESSIMISTIC_WRITE);
+            if (actual == null) {
+                throw new IllegalArgumentException("La pieza ya no existe. Pulsa Actualizar.");
+            }
+            Categoria categoria = em.find(Categoria.class, datos.getCategoria().getId());
+            if (categoria == null) {
+                throw new IllegalArgumentException("La categoría indicada no existe en la BD.");
+            }
+
+            int ajuste = datos.getExistencias() - existenciasVistas;
+            int nuevasExistencias = actual.getExistencias() + ajuste;
+            if (nuevasExistencias < 0) {
+                throw new IllegalArgumentException(
+                        "Las existencias cambiaron mientras editabas: ahora hay "
+                                + actual.getExistencias() + ". Pulsa Actualizar y vuelve a intentarlo.");
+            }
+
+            actual.setCodigoBarras(datos.getCodigoBarras());
+            actual.setNombre(datos.getNombre());
+            actual.setCosto(datos.getCosto());
+            actual.setPrecioVenta(datos.getPrecioVenta());
+            actual.setCategoria(categoria);
+            actual.setExistencias(nuevasExistencias);
+
+            tx.commit();
+            LOG.info("Pieza actualizada: ID=" + actual.getId());
+            return actual;
+
+        } catch (IllegalArgumentException e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            if (esDuplicado(e)) {
+                throw new IllegalArgumentException(
+                        "Ya existe una pieza con el código de barras: " + datos.getCodigoBarras(), e);
             }
             LOG.log(Level.SEVERE, "Error al actualizar pieza", e);
             throw new RuntimeException("Error al actualizar la pieza.", e);

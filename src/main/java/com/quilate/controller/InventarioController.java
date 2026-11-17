@@ -286,7 +286,9 @@ public class InventarioController implements Initializable {
                     mostrarError("El código de barras ya lo usa otra pieza.");
                     return;
                 }
-                piezaDAO.actualizar(pieza);
+                // Solo se aplica el ajuste de existencias que hizo el usuario; así no se
+                // pisan las ventas o apartados registrados desde otra ventana.
+                piezaDAO.actualizarDatos(pieza, piezaEnEdicion.getExistencias());
                 mostrarEstado("Pieza actualizada exitosamente.", false);
             }
 
