@@ -5,6 +5,7 @@ import com.quilate.dao.PiezaDAO;
 import com.quilate.exception.EntidadConDependenciasException;
 import com.quilate.model.Categoria;
 import com.quilate.model.Pieza;
+import com.quilate.util.Formatos;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -13,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +66,9 @@ public class InventarioController implements Initializable {
     @FXML private TextField  txtCosto;
     @FXML private TextField  txtPrecioVenta;
     @FXML private TextField  txtExistencias;
+    @FXML private TextField  txtMaterial;
+    @FXML private TextField  txtQuilates;
+    @FXML private TextField  txtPeso;
     @FXML private ComboBox<Categoria> cmbCategoria;
 
     // ──────────────────────────────────────────────────────────────────────
@@ -145,6 +150,8 @@ public class InventarioController implements Initializable {
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
         colCosto.setCellValueFactory(new PropertyValueFactory<>("costo"));
         colPrecio.setCellValueFactory(new PropertyValueFactory<>("precioVenta"));
+        colCosto.setCellFactory(columna -> celdaDinero());
+        colPrecio.setCellFactory(columna -> celdaDinero());
         colExistencias.setCellValueFactory(new PropertyValueFactory<>("existencias"));
 
         // La categoría requiere un cell factory personalizado porque es un objeto
@@ -155,6 +162,17 @@ public class InventarioController implements Initializable {
                         : "Sin categoría"));
 
         tablaPiezas.setItems(listaPiezas);
+    }
+
+    /** Muestra un importe Double como "C$ 1,500.00" en lugar de "1500.0". */
+    private static TableCell<Pieza, Double> celdaDinero() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(Double valor, boolean vacia) {
+                super.updateItem(valor, vacia);
+                setText(vacia || valor == null ? null : Formatos.dinero(BigDecimal.valueOf(valor)));
+            }
+        };
     }
 
     private void configurarSeleccionTabla() {
@@ -213,8 +231,13 @@ public class InventarioController implements Initializable {
     }
 
     private void cargarTodas() {
-        listaPiezas.setAll(piezaDAO.listarTodas());
-        mostrarEstado("Inventario cargado: " + listaPiezas.size() + " pieza(s).", false);
+        try {
+            listaPiezas.setAll(piezaDAO.listarTodas());
+            mostrarEstado("Inventario cargado: " + listaPiezas.size() + " pieza(s).", false);
+        } catch (RuntimeException e) {
+            mostrarEstado("No se pudo cargar el inventario: "
+                    + com.quilate.util.Tareas.mensajeCorto(e), true);
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────────
@@ -236,7 +259,13 @@ public class InventarioController implements Initializable {
             return;
         }
 
-        Optional<Pieza> resultado = piezaDAO.buscarPorCodigoBarras(codigo);
+        Optional<Pieza> resultado;
+        try {
+            resultado = piezaDAO.buscarPorCodigoBarras(codigo);
+        } catch (RuntimeException e) {
+            mostrarError("No se pudo buscar la pieza: " + com.quilate.util.Tareas.mensajeCorto(e));
+            return;
+        }
 
         if (resultado.isPresent()) {
             Pieza pieza = resultado.get();
@@ -279,9 +308,6 @@ public class InventarioController implements Initializable {
             } else {
                 // Edición
                 pieza.setId(piezaEnEdicion.getId());
-                pieza.setMaterial(piezaEnEdicion.getMaterial());
-                pieza.setQuilates(piezaEnEdicion.getQuilates());
-                pieza.setPesoGramos(piezaEnEdicion.getPesoGramos());
                 if (piezaDAO.existeCodigoBarras(pieza.getCodigoBarras(), pieza.getId())) {
                     mostrarError("El código de barras ya lo usa otra pieza.");
                     return;
@@ -367,6 +393,8 @@ public class InventarioController implements Initializable {
             cargarCategorias(); // actualizar el ComboBox
         } catch (IllegalArgumentException e) {
             mostrarError(e.getMessage());
+        } catch (RuntimeException e) {
+            mostrarError("No se pudo crear la categoría: " + com.quilate.util.Tareas.mensajeCorto(e));
         }
     }
 
@@ -393,8 +421,10 @@ public class InventarioController implements Initializable {
             categoriaDAO.eliminar(seleccionada.getId());
             mostrarEstado("Categoría eliminada.", false);
             cargarCategorias();
-        } catch (EntidadConDependenciasException e) {
+        } catch (EntidadConDependenciasException | IllegalArgumentException e) {
             mostrarError(e.getMessage());
+        } catch (RuntimeException e) {
+            mostrarError("No se pudo eliminar la categoría: " + com.quilate.util.Tareas.mensajeCorto(e));
         }
     }
 
@@ -457,6 +487,35 @@ public class InventarioController implements Initializable {
         }
 
         // Categoría seleccionada
+        try {
+            double costo = Double.parseDouble(txtCosto.getText().trim());
+            double precio = Double.parseDouble(txtPrecioVenta.getText().trim());
+            if (precio == 0) errores.append("• El precio de venta debe ser mayor que cero.\n");
+            if (precio < costo) errores.append("• El precio de venta no puede ser menor que el costo.\n");
+        } catch (NumberFormatException e) {
+            // ya reportado arriba
+        }
+        if (texto(txtMaterial).length() > 50) {
+            errores.append("• El material admite como máximo 50 caracteres.\n");
+        }
+        if (!texto(txtQuilates).isEmpty()) {
+            try {
+                int quilates = Integer.parseInt(texto(txtQuilates));
+                if (quilates < 1 || quilates > 24) errores.append("• Los quilates deben estar entre 1 y 24.\n");
+            } catch (NumberFormatException e) {
+                errores.append("• Los quilates deben ser un número entero (ej. 18).\n");
+            }
+        }
+        if (!texto(txtPeso).isEmpty()) {
+            try {
+                BigDecimal peso = new BigDecimal(texto(txtPeso).replace(",", "."));
+                if (peso.signum() <= 0 || peso.compareTo(new BigDecimal("999999.99")) > 0) {
+                    errores.append("• El peso debe ser mayor que cero (en gramos).\n");
+                }
+            } catch (NumberFormatException e) {
+                errores.append("• El peso debe ser un número (ej. 3.50).\n");
+            }
+        }
         if (cmbCategoria.getValue() == null) {
             errores.append("• Debes seleccionar una categoría.\n");
         }
@@ -473,7 +532,7 @@ public class InventarioController implements Initializable {
     // ──────────────────────────────────────────────────────────────────────
 
     private Pieza construirPiezaDesdeFormulario() {
-        return new Pieza(
+        Pieza pieza = new Pieza(
                 txtCodigoBarras.getText().trim(),
                 txtNombrePieza.getText().trim(),
                 Double.parseDouble(txtCosto.getText().trim()),
@@ -481,15 +540,27 @@ public class InventarioController implements Initializable {
                 Integer.parseInt(txtExistencias.getText().trim()),
                 cmbCategoria.getValue()
         );
+        pieza.setMaterial(texto(txtMaterial).isEmpty() ? null : texto(txtMaterial));
+        pieza.setQuilates(texto(txtQuilates).isEmpty() ? null : Short.valueOf(texto(txtQuilates)));
+        pieza.setPesoGramos(texto(txtPeso).isEmpty() ? null
+                : new BigDecimal(texto(txtPeso).replace(",", ".")).setScale(2, java.math.RoundingMode.HALF_UP));
+        return pieza;
+    }
+
+    private static String texto(TextField campo) {
+        return campo.getText() == null ? "" : campo.getText().trim();
     }
 
     private void cargarPiezaEnFormulario(Pieza pieza) {
         piezaEnEdicion = pieza;
         txtCodigoBarras.setText(pieza.getCodigoBarras());
         txtNombrePieza.setText(pieza.getNombre());
-        txtCosto.setText(String.valueOf(pieza.getCosto()));
-        txtPrecioVenta.setText(String.valueOf(pieza.getPrecioVenta()));
+        txtCosto.setText(Formatos.dineroEditable(BigDecimal.valueOf(pieza.getCosto())));
+        txtPrecioVenta.setText(Formatos.dineroEditable(BigDecimal.valueOf(pieza.getPrecioVenta())));
         txtExistencias.setText(String.valueOf(pieza.getExistencias()));
+        txtMaterial.setText(pieza.getMaterial() == null ? "" : pieza.getMaterial());
+        txtQuilates.setText(pieza.getQuilates() == null ? "" : pieza.getQuilates().toString());
+        txtPeso.setText(pieza.getPesoGramos() == null ? "" : pieza.getPesoGramos().toPlainString());
 
         // Seleccionar la categoría correspondiente en el ComboBox
         cmbCategoria.setValue(null);
@@ -505,6 +576,9 @@ public class InventarioController implements Initializable {
         txtCosto.clear();
         txtPrecioVenta.clear();
         txtExistencias.clear();
+        txtMaterial.clear();
+        txtQuilates.clear();
+        txtPeso.clear();
         cmbCategoria.setValue(null);
         tablaPiezas.getSelectionModel().clearSelection();
         piezaEnEdicion = null;

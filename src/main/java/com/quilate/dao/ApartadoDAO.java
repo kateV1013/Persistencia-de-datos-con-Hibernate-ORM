@@ -8,8 +8,8 @@ import com.quilate.model.EstadoApartado;
 import com.quilate.model.HistorialCompra;
 import com.quilate.model.Pieza;
 import com.quilate.util.JPAUtil;
+import com.quilate.util.Transaccion;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.LockModeType;
 
 import java.math.BigDecimal;
@@ -21,10 +21,7 @@ public class ApartadoDAO {
     /** Crea el apartado y descuenta la cantidad de existencias (misma transacción). */
     public Apartado crear(Long clienteId, Long piezaId, int cantidad) {
         if (cantidad <= 0) throw new ValidacionException("La cantidad debe ser positiva.");
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
+        return Transaccion.ejecutar(em -> {
             Cliente cliente = em.find(Cliente.class, clienteId);
             if (cliente == null) throw new ValidacionException("El cliente no existe.");
             Pieza pieza = em.find(Pieza.class, piezaId, LockModeType.PESSIMISTIC_WRITE);
@@ -39,23 +36,14 @@ public class ApartadoDAO {
 
             Apartado apartado = new Apartado(cliente, pieza, cantidad);
             em.persist(apartado);
-            tx.commit();
             return apartado;
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+        });
     }
 
     /** Cambia la cantidad ajustando la reserva según la diferencia. */
     public void modificarCantidad(Long apartadoId, int nuevaCantidad) {
         if (nuevaCantidad <= 0) throw new ValidacionException("La cantidad debe ser positiva.");
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
+        Transaccion.ejecutar(em -> {
             Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (apartado == null) throw new ValidacionException("El apartado no existe.");
             if (apartado.getEstado() != EstadoApartado.ACTIVO) {
@@ -70,21 +58,13 @@ public class ApartadoDAO {
             }
             pieza.setExistencias(pieza.getExistencias() - diferencia); // diferencia negativa devuelve
             apartado.setCantidad(nuevaCantidad);
-            tx.commit();
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+            return null;
+        });
     }
 
     /** Cancela el apartado y devuelve la cantidad reservada a existencias. */
     public void cancelar(Long apartadoId) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
+        Transaccion.ejecutar(em -> {
             Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (apartado == null) throw new ValidacionException("El apartado no existe.");
             if (apartado.getEstado() != EstadoApartado.ACTIVO) {
@@ -93,34 +73,8 @@ public class ApartadoDAO {
             Pieza pieza = em.find(Pieza.class, apartado.getPieza().getId(), LockModeType.PESSIMISTIC_WRITE);
             pieza.setExistencias(pieza.getExistencias() + apartado.getCantidad());
             apartado.setEstado(EstadoApartado.CANCELADO);
-            tx.commit();
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
-    }
-
-    /** Marca el apartado como comprado (no toca existencias: ya estaban reservadas). */
-    public void completar(Long apartadoId) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
-            if (apartado == null) throw new ValidacionException("El apartado no existe.");
-            if (apartado.getEstado() != EstadoApartado.ACTIVO) {
-                throw new ValidacionException("Solo se pueden completar apartados activos.");
-            }
-            apartado.setEstado(EstadoApartado.COMPLETADO);
-            tx.commit();
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+            return null;
+        });
     }
 
     /** JOIN FETCH evita LazyInitializationException al mostrar cliente y pieza en la tabla. */

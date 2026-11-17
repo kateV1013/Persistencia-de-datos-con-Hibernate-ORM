@@ -20,7 +20,7 @@ class ApartadoServiceTest {
         Long[] ids = Transaccion.ejecutar(em -> {
             Cliente c = new Cliente("Ana", "55550000", "ana@example.com");
             Pieza p = new Pieza("AP-1", "Anillo", "Oro", new BigDecimal("60"),
-                    new BigDecimal("100"), "Anillos", 5);
+                    new BigDecimal("100"), null, 5);
             em.persist(c); em.persist(p); em.flush();
             return new Long[]{c.getId(), p.getId()};
         });

@@ -12,7 +12,7 @@ public class AnalisisDAO {
         if (desde != null && hasta != null && desde.isAfter(hasta))
             throw new ReglaNegocioException("La fecha inicial debe ser anterior o igual a la final.");
         String hql = """
-            select new com.quilate.dto.LineaAnalisis(v.id, c.id, concat(c.nombre, ' ', c.apellido),
+            select new com.quilate.dto.LineaAnalisis(v.id, c.id, trim(concat(c.nombre, ' ', coalesce(c.apellido, ''))),
                 v.fechaHora, p.id, p.nombre, d.cantidad, d.precioUnitario, d.costoUnitarioVenta, d.descuentoAplicado)
             from DetalleVenta d join d.venta v join v.cliente c join d.pieza p
             where v.estado = :estado

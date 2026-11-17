@@ -60,6 +60,20 @@
                     <TextField fx:id="txtExistencias" promptText="0" maxWidth="Infinity"/>
                 </VBox>
                 <VBox spacing="5">
+                    <Label text="MATERIAL" styleClass="campo-label"/>
+                    <TextField fx:id="txtMaterial" promptText="Ej. Oro, Plata 925" maxWidth="Infinity"/>
+                </VBox>
+                <HBox spacing="10">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="QUILATES" styleClass="campo-label"/>
+                        <TextField fx:id="txtQuilates" promptText="Ej. 18" maxWidth="Infinity"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="PESO (g)" styleClass="campo-label"/>
+                        <TextField fx:id="txtPeso" promptText="Ej. 3.50" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+                <VBox spacing="5">
                     <Label text="CATEGORÍA *" styleClass="campo-label"/>
                     <ComboBox fx:id="cmbCategoria" promptText="Selecciona una categoría" maxWidth="Infinity"/>
                 </VBox>

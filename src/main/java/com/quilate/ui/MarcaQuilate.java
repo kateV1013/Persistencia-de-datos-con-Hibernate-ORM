@@ -10,25 +10,28 @@ import javafx.scene.shape.FillRule;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.transform.Scale;
 
-/** Adaptación vectorial del monograma JB de la referencia proporcionada. */
-public final class MarcaBelle {
-    private MarcaBelle() { }
+/** Marca ficticia de Joyería Quilate: monograma Q sobre un círculo marfil. */
+public final class MarcaQuilate {
+    private MarcaQuilate() { }
 
     public static Node crear(double tamano) {
         Circle fondo = new Circle(50, 50, 50, Color.web("#E8E2DC"));
-        SVGPath monograma = new SVGPath();
-        monograma.setFillRule(FillRule.EVEN_ODD);
-        monograma.setContent("M33 20 H53 C72 20 73 37 59 41 "
-                + "C79 44 76 67 54 67 H48 V70 C48 83 39 86 32 83 "
-                + "C24 81 25 74 30 74 C36 74 35 82 39 81 "
-                + "C41 80 41 75 41 69 V27 C41 22 39 21 33 21 Z "
-                + "M48 22 V40 H51 C62 40 63 22 52 22 Z "
-                + "M48 43 V65 H53 C68 65 67 43 53 43 Z");
-        monograma.setFill(Color.web("#BA9A90"));
-        Group logo = new Group(fondo, monograma);
+        Color tono = Color.web("#BA9A90");
+
+        SVGPath aro = new SVGPath();
+        aro.setFillRule(FillRule.EVEN_ODD);
+        aro.setContent("M50 22 A24 24 0 1 0 50.01 22 Z "
+                + "M50 30 A16 16 0 1 1 49.99 30 Z");
+        aro.setFill(tono);
+
+        SVGPath cola = new SVGPath();
+        cola.setContent("M52 63 L56 57 L80 72 L76 78 Z");
+        cola.setFill(tono);
+
+        Group logo = new Group(fondo, aro, cola);
         logo.getTransforms().add(new Scale(tamano / 100, tamano / 100));
         Group resultado = new Group(logo);
-        resultado.setAccessibleText("Joyeria Belle, monograma JB");
+        resultado.setAccessibleText("Joyería Quilate, monograma Q");
         return resultado;
     }
 

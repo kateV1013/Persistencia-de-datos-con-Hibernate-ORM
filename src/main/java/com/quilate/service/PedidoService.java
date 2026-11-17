@@ -83,6 +83,10 @@ public class PedidoService {
             if (actual.getEstado() == EstadoPedido.CANCELADO) {
                 throw new ReglaNegocioException("Un pedido cancelado no se puede modificar.");
             }
+            if (actual.getEstado() == EstadoPedido.ENTREGADO) {
+                throw new ReglaNegocioException("Un pedido entregado ya no se puede modificar.");
+            }
+            validarTransicion(actual.getEstado(), datos.getEstado());
 
             boolean cambioFecha = !actual.getFechaProgramada().equals(datos.getFechaProgramada());
             if (cambioFecha) {
@@ -131,6 +135,17 @@ public class PedidoService {
             throw new ReglaNegocioException("Ya no hay espacio en la semana del "
                     + lunes.format(FECHA) + " al " + domingo.format(FECHA)
                     + " (" + ocupados + "/" + CUPO_SEMANAL + " pedidos). Elige otra fecha.");
+        }
+    }
+
+    /**
+     * Un pedido avanza Pendiente → En proceso → Terminado → Entregado.
+     * Puede quedarse en su estado o avanzar (incluso saltar pasos), pero no regresar.
+     */
+    static void validarTransicion(EstadoPedido actual, EstadoPedido nuevo) {
+        if (nuevo.ordinal() < actual.ordinal()) {
+            throw new ReglaNegocioException("Un pedido no puede regresar de \""
+                    + actual + "\" a \"" + nuevo + "\".");
         }
     }
 

@@ -38,4 +38,18 @@ class AnalisisDAOTest {
         assertEquals(3,new AnalisisService().perfil(clienteId).total().ventas());
         assertThrows(RuntimeException.class,()->new AnalisisService().consultar(LocalDate.of(2026,11,11),LocalDate.of(2026,11,10)));
     }
+
+    @Test void nombraAlClienteAunqueNoTengaApellido() {
+        Long id = Transaccion.ejecutar(em -> {
+            Cliente c = new Cliente("Luis", null, "88880001", null);
+            em.persist(c);
+            Pieza p = new Pieza("ANA-2", "Cadena", 60.0, 100.0, 5, null);
+            em.persist(p);
+            Venta v = new Venta(c, LocalDateTime.of(2026, 11, 12, 10, 0), "EFECTIVO", EstadoVenta.CONFIRMADA);
+            v.agregarDetalle(new DetalleVenta(p, 1, new BigDecimal("100"), new BigDecimal("60"), BigDecimal.ZERO));
+            em.persist(v);
+            return c.getId();
+        });
+        assertEquals("Luis", new AnalisisDAO().consultar(null, null, id).get(0).cliente());
+    }
 }

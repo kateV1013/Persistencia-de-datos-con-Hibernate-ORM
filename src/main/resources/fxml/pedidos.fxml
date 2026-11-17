@@ -47,7 +47,7 @@
         </TableView>
         <HBox spacing="16" alignment="CENTER_LEFT" styleClass="preview-panel">
             <LienzoGrabado fx:id="vistaGrabado" prefWidth="390" prefHeight="205" minWidth="270" maxHeight="205"/>
-            <VBox spacing="10" HBox.hgrow="ALWAYS"><Label text="ATELIER BELLE" styleClass="eyebrow"/><Label text="Vista de la pieza" styleClass="titulo-seccion"/><Label fx:id="lblDiseno" wrapText="true" styleClass="ayuda"/><Label text="Vista orientativa · sin escala real" styleClass="preview-caption"/><Button fx:id="btnDisenar" text="Diseñar pieza" onAction="#onDisenar"/><Button fx:id="btnQuitarDiseno" text="Quitar diseño" onAction="#onQuitarDiseno" styleClass="secundario"/></VBox>
+            <VBox spacing="10" HBox.hgrow="ALWAYS"><Label text="ATELIER QUILATE" styleClass="eyebrow"/><Label text="Vista de la pieza" styleClass="titulo-seccion"/><Label fx:id="lblDiseno" wrapText="true" styleClass="ayuda"/><Label text="Vista orientativa · sin escala real" styleClass="preview-caption"/><Button fx:id="btnDisenar" text="Diseñar pieza" onAction="#onDisenar"/><Button fx:id="btnQuitarDiseno" text="Quitar diseño" onAction="#onQuitarDiseno" styleClass="secundario"/></VBox>
         </HBox>
       </VBox>
     </center>
