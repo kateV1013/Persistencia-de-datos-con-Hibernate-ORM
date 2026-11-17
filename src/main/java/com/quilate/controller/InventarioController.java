@@ -5,7 +5,9 @@ import com.quilate.dao.PiezaDAO;
 import com.quilate.exception.EntidadConDependenciasException;
 import com.quilate.model.Categoria;
 import com.quilate.model.Pieza;
+import com.quilate.util.AlertUtil;
 import com.quilate.util.Formatos;
+import com.quilate.util.ReporteUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -17,6 +19,7 @@ import javafx.scene.input.KeyEvent;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -70,6 +73,8 @@ public class InventarioController implements Initializable {
     @FXML private TextField  txtQuilates;
     @FXML private TextField  txtPeso;
     @FXML private ComboBox<Categoria> cmbCategoria;
+    /** Filtro del reporte por categoría; separado del combo del formulario. */
+    @FXML private ComboBox<Categoria> cmbFiltroCategoria;
 
     // ──────────────────────────────────────────────────────────────────────
     //  Inyecciones FXML – Formulario de Categoría
@@ -117,7 +122,10 @@ public class InventarioController implements Initializable {
     @FXML
     public void onRecargar() {
         com.quilate.util.Tareas.ejecutar(categoriaDAO::listarTodas,
-                categorias -> cmbCategoria.getItems().setAll(categorias),
+                categorias -> {
+                    cmbCategoria.getItems().setAll(categorias);
+                    actualizarFiltroCategorias(categorias);
+                },
                 e -> mostrarEstado(com.quilate.util.Tareas.mensajeCorto(e), true));
         com.quilate.util.Tareas.ejecutar(piezaDAO::listarTodas,
                 piezas -> {
@@ -162,6 +170,71 @@ public class InventarioController implements Initializable {
                         : "Sin categoría"));
 
         tablaPiezas.setItems(listaPiezas);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    //  Reportes
+    // ──────────────────────────────────────────────────────────────────────
+
+    private void actualizarFiltroCategorias(List<Categoria> categorias) {
+        Categoria elegida = cmbFiltroCategoria.getValue();
+        cmbFiltroCategoria.getItems().setAll(categorias);
+        if (elegida != null) {
+            categorias.stream().filter(c -> c.getId().equals(elegida.getId()))
+                    .findFirst().ifPresent(cmbFiltroCategoria::setValue);
+        }
+    }
+
+    @FXML
+    public void onReporteGeneral() {
+        ReporteUtil.mostrarReporte("/reportes/inventario_general.jrxml", Map.of(), "Inventario general");
+    }
+
+    @FXML
+    public void onReportePorCategoria() {
+        Categoria categoria = cmbFiltroCategoria.getValue();
+        if (categoria == null) {
+            AlertUtil.advertencia("Elige la categoría a reportar en la lista junto al botón.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/inventario_por_categoria.jrxml",
+                Map.of("p_categoria_id", categoria.getId()), "Piezas de " + categoria.getNombre());
+    }
+
+    @FXML
+    public void onReporteStockBajo() {
+        TextInputDialog dialogo = new TextInputDialog("3");
+        dialogo.setTitle("Stock bajo");
+        dialogo.setHeaderText(null);
+        dialogo.setContentText("Mostrar piezas con existencias menores o iguales a:");
+        var css = getClass().getResource("/css/styles.css");
+        if (css != null) dialogo.getDialogPane().getStylesheets().add(css.toExternalForm());
+        Optional<String> respuesta = dialogo.showAndWait();
+        if (respuesta.isEmpty()) return;
+        int limite;
+        try {
+            limite = Integer.parseInt(respuesta.get().trim());
+        } catch (NumberFormatException e) {
+            AlertUtil.advertencia("Escribe un número entero, por ejemplo 3.");
+            return;
+        }
+        if (limite < 0) {
+            AlertUtil.advertencia("El límite no puede ser negativo.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/inventario_stock_bajo.jrxml",
+                Map.of("p_stock_minimo", limite), "Stock bajo");
+    }
+
+    @FXML
+    public void onReporteFicha() {
+        Pieza seleccionada = tablaPiezas.getSelectionModel().getSelectedItem();
+        if (seleccionada == null) {
+            AlertUtil.advertencia("Selecciona una pieza en la tabla para ver su ficha.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/inventario_ficha_pieza.jrxml",
+                Map.of("p_pieza_id", seleccionada.getId()), "Ficha · " + seleccionada.getNombre());
     }
 
     /** Muestra un importe Double como "C$ 1,500.00" en lugar de "1500.0". */
@@ -212,6 +285,7 @@ public class InventarioController implements Initializable {
     private void cargarCategorias() {
         List<Categoria> categorias = categoriaDAO.listarTodas();
         cmbCategoria.setItems(FXCollections.observableArrayList(categorias));
+        actualizarFiltroCategorias(categorias);
 
         // Mostrar el nombre en el ComboBox
         cmbCategoria.setCellFactory(lv -> new ListCell<>() {
