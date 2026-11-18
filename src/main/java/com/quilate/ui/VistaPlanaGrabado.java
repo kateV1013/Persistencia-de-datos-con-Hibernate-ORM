@@ -21,9 +21,9 @@ public final class VistaPlanaGrabado extends Region {
     private void dibujar() {
         GraphicsContext g=canvas.getGraphicsContext2D();
         double w=getWidth(),h=getHeight(),s=Math.min(w/540,h/330);
-        g.setFill(Color.web("#F7F0EA"));g.fillRoundRect(0,0,w,h,22,22);
+        g.setFill(Color.web("#F4F1E8"));g.fillRoundRect(0,0,w,h,22,22);
         if(diseno==null) {
-            g.setFill(Color.web("#7B6255"));g.setFont(Font.font("Open Sans",14));
+            g.setFill(Color.web("#536D5F"));g.setFont(Font.font("Open Sans",14));
             g.setTextAlign(TextAlignment.CENTER);g.fillText("Sin diseño guardado",w/2,h/2);
             return;
         }
@@ -37,7 +37,7 @@ public final class VistaPlanaGrabado extends Region {
         }
         Paint metal=new LinearGradient(0,0,1,.8,true,CycleMethod.NO_CYCLE,new Stop(0,oscuro),new Stop(.22,claro),new Stop(.48,medio),new Stop(.73,claro),new Stop(1,oscuro));
         double medida=d.getMedida().doubleValue(),banda=d.getAncho().doubleValue();
-        g.setFill(Color.web("#45342C",.11));g.fillOval(-190,65,380,40);
+        g.setFill(Color.web("#1A352A",.11));g.fillOval(-190,65,380,40);
         String texto=d.getTexto();
         Font font=Font.font("Moderna".equals(d.getFuente())?"Open Sans":"Serif",FontWeight.NORMAL,"Cursiva".equals(d.getFuente())?FontPosture.ITALIC:FontPosture.REGULAR,d.getLetra().doubleValue()*8);
         g.setFont(font);g.setTextAlign(TextAlignment.CENTER);g.setTextBaseline(javafx.geometry.VPos.CENTER);
@@ -62,7 +62,7 @@ public final class VistaPlanaGrabado extends Region {
             double interior=rx-espesor*1.3;
             g.setFill(new LinearGradient(0,0,0,1,true,CycleMethod.NO_CYCLE,new Stop(0,oscuro.darker()),new Stop(.6,medio),new Stop(1,oscuro)));
             g.fillOval(-interior,-ry-11,interior*2,ry*1.35);
-            g.setFill(Color.web("#F7F0EA"));g.fillOval(-interior+3,-ry+2,interior*2-6,ry*.95);
+            g.setFill(Color.web("#F4F1E8"));g.fillOval(-interior+3,-ry+2,interior*2-6,ry*.95);
             int[] caracteres=texto.codePoints().toArray();
             double amplitud=Math.min(2.05,caracteres.length*font.getSize()*.65/(rx*.82));
             if(caracteres.length>0) {
@@ -78,10 +78,10 @@ public final class VistaPlanaGrabado extends Region {
             }
         }
         double y=112;
-        g.setStroke(Color.web("#A38B7E"));g.setLineWidth(1);g.setLineDashes(3,4);
+        g.setStroke(Color.web("#819285"));g.setLineWidth(1);g.setLineDashes(3,4);
         g.strokeLine(-anchoVisible/2,y,anchoVisible/2,y);g.setLineDashes();
         g.strokeLine(-anchoVisible/2,y-6,-anchoVisible/2,y+6);g.strokeLine(anchoVisible/2,y-6,anchoVisible/2,y+6);
-        g.setFill(Color.web("#7B6255"));g.setFont(Font.font("Open Sans",11));
+        g.setFill(Color.web("#536D5F"));g.setFont(Font.font("Open Sans",11));
         g.fillText(("Anillo".equals(d.getForma())?"Diámetro interior: ":"Ancho de placa: ")+d.getMedida().stripTrailingZeros().toPlainString()+" mm",0,133);
         g.restore();
     }

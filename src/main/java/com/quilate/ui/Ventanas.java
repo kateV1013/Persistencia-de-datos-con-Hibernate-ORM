@@ -7,7 +7,6 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -38,7 +37,6 @@ public final class Ventanas {
     private static final double DESPLAZAMIENTO_CASCADA = 28;
     /** Cmd+M en Mac, Ctrl+M en Windows y Linux. */
     private static final KeyCombination MINIMIZAR = new KeyCodeCombination(KeyCode.M, KeyCombination.SHORTCUT_DOWN);
-    private static final boolean MAC = System.getProperty("os.name", "").toLowerCase().startsWith("mac");
 
     private Ventanas() {
     }
@@ -76,7 +74,6 @@ public final class Ventanas {
         ventana.setScene(crearEscena(raiz, ancho, alto));
         ventana.setMinWidth(1040);
         ventana.setMinHeight(680);
-        prepararVentana(ventana);
         ventana.setOnHidden(e -> ABIERTAS.remove(modulo));
         atajosDeVentana(ventana);
 
@@ -142,21 +139,6 @@ public final class Ventanas {
         return Objects.requireNonNull(Ventanas.class.getResource(HOJA_ESTILOS)).toExternalForm();
     }
 
-    /** Icono de la aplicacion en la barra de titulo y de tareas. */
-    public static void prepararVentana(Stage ventana) {
-        ventana.getIcons().addAll(iconosAplicacion());
-    }
-
-    private static List<Image> iconos;
-
-    private static List<Image> iconosAplicacion() {
-        if (iconos == null) {
-            iconos = List.of(MarcaQuilate.imagen(16), MarcaQuilate.imagen(32),
-                    MarcaQuilate.imagen(64));
-        }
-        return iconos;
-    }
-
     private static HBox encabezado(Modulo modulo) {
         Label titulo = new Label(modulo.titulo());
         titulo.getStyleClass().add("encabezado-modulo-titulo");
@@ -168,9 +150,7 @@ public final class Ventanas {
         HBox.setHgrow(espacio, javafx.scene.layout.Priority.ALWAYS);
         Label marca = new Label("JOYERÍA QUILATE");
         marca.getStyleClass().add("modulo-marca");
-        Label atajos = new Label("Esc cierra · " + (MAC ? "⌘M" : "Ctrl+M") + " minimiza");
-        atajos.getStyleClass().add("encabezado-modulo-descripcion");
-        encabezado.getChildren().addAll(espacio, atajos, MarcaQuilate.crear(36), marca);
+        encabezado.getChildren().addAll(espacio, marca);
         encabezado.setAlignment(Pos.CENTER_LEFT);
         encabezado.getStyleClass().add("encabezado-modulo");
         return encabezado;

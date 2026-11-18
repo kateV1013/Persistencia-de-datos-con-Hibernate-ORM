@@ -30,7 +30,7 @@ public final class LienzoGrabado extends Region {
             PointLight luz=new PointLight(Color.WHITE);luz.setTranslateX(-150);luz.setTranslateY(-180);luz.setTranslateZ(-250);
             Group mundo=new Group(modelo,new AmbientLight(Color.color(.55,.55,.55)),luz);
             escena=new SubScene(mundo,540,300,true,SceneAntialiasing.BALANCED);
-            escena.setFill(Color.web("#F7F0EA"));camara.setNearClip(.1);camara.setFarClip(5000);camara.setFieldOfView(35);
+            escena.setFill(Color.web("#F4F1E8"));camara.setNearClip(.1);camara.setFarClip(5000);camara.setFieldOfView(35);
             escena.setCamera(camara);getChildren().add(escena);
             escena.setOnMousePressed(e->{ultimoX=e.getSceneX();ultimoY=e.getSceneY();});
             escena.setOnMouseDragged(e->{
@@ -43,7 +43,7 @@ public final class LienzoGrabado extends Region {
         } else {
             escena=null;alternativa=new VistaPlanaGrabado();getChildren().add(alternativa);
         }
-        mensaje.setStyle("-fx-text-fill: #7B6255; -fx-font-size: 10px;");mensaje.setWrapText(true);
+        mensaje.setStyle("-fx-text-fill: #536D5F; -fx-font-size: 10px;");mensaje.setWrapText(true);
         mensaje.setMouseTransparent(true);getChildren().add(mensaje);setDiseno(null);
     }
     public void setDiseno(DisenoPieza d) {

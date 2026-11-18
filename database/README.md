@@ -73,3 +73,4 @@ programan desde hoy. El taller debe validar el espacio físico antes de grabar.
 Busca Mujer, Hombre o Unisex en inventario para explorar el catálogo por
 público; son etiquetas dentro del nombre, no una columna nueva.
 
+Consulta la descripción del proyecto en ../docs/JOYERIA_QUILATE.md.

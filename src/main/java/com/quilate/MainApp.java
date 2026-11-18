@@ -21,7 +21,6 @@ public class MainApp extends Application {
         stage.setScene(Ventanas.crearEscena(loader.load(), Math.min(1360, pantalla.getWidth() - 40), alto));
         stage.setMinWidth(900);
         stage.setMinHeight(650);
-        Ventanas.prepararVentana(stage);
         // Al cerrar el menu principal se cierran tambien las ventanas de los modulos.
         stage.setOnHidden(e -> {
             Ventanas.cerrarTodas();

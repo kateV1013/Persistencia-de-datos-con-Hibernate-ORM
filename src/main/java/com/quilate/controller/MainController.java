@@ -11,7 +11,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -31,7 +30,6 @@ public class MainController {
     private static final DateTimeFormatter FORMATO_FECHA =
             DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es"));
 
-    @FXML private StackPane logo;
     @FXML private Label lblFecha;
     @FXML private VBox contenedorSecciones;
     @FXML private Circle indicadorConexion;
@@ -39,7 +37,6 @@ public class MainController {
 
     @FXML
     private void initialize() {
-        logo.getChildren().add(com.quilate.ui.MarcaQuilate.crear(38));
         String fecha = LocalDate.now().format(FORMATO_FECHA);
         lblFecha.setText(Character.toUpperCase(fecha.charAt(0)) + fecha.substring(1));
 
@@ -49,7 +46,6 @@ public class MainController {
 
     @FXML private javafx.scene.layout.BorderPane raiz;
     @FXML private VBox lateral, navegacion;
-    @FXML private StackPane gema;
     @FXML private javafx.scene.control.TextField busqueda;
     @FXML private javafx.scene.control.ScrollPane scroll;
     @FXML private Label sinResultados;
@@ -57,7 +53,6 @@ public class MainController {
     private final java.util.Map<Modulo.Seccion, VBox> secciones = new java.util.EnumMap<>(Modulo.Seccion.class);
 
     private void construirMenu() {
-        gema.getChildren().add(com.quilate.ui.MarcaQuilate.crear(138));
         for (Modulo.Seccion seccion : Modulo.Seccion.values()) {
             Label navTitulo = new Label(seccion.titulo().toUpperCase(Locale.forLanguageTag("es")));
             navTitulo.getStyleClass().add("nav-seccion");
@@ -80,7 +75,7 @@ public class MainController {
                 tarjeta.setMaxWidth(Double.MAX_VALUE);
                 tarjetas.getChildren().add(tarjeta);
                 tarjetasModulo.put(modulo, tarjeta);
-                Button enlace = new Button(modulo.titulo(), Iconos.crear(modulo.icono(), 17, Color.web("#DDCCC3")));
+                Button enlace = new Button(modulo.titulo(), Iconos.crear(modulo.icono(), 17, Color.web("#C5D6D0")));
                 enlace.getStyleClass().add("nav-boton");
                 enlace.setMaxWidth(Double.MAX_VALUE);
                 enlace.setOnAction(e -> Ventanas.abrir(modulo));

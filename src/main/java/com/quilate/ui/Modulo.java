@@ -8,20 +8,20 @@ package com.quilate.ui;
 public enum Modulo {
 
     VENTAS("Ventas", "Registrar y confirmar ventas", "/fxml/ventas.fxml",
-            Iconos.VENTAS, "#806059", Seccion.TIENDA),
+            Iconos.VENTAS, "#245C4E", Seccion.TIENDA),
     APARTADOS("Apartados", "Reservar piezas para clientes", "/fxml/apartados.fxml",
-            Iconos.APARTADOS, "#8D7268", Seccion.TIENDA),
+            Iconos.APARTADOS, "#60786B", Seccion.TIENDA),
     CLIENTES("Clientes", "Datos e historial de compras", "/fxml/clientes.fxml",
-            Iconos.CLIENTES, "#79656C", Seccion.TIENDA),
+            Iconos.CLIENTES, "#3D6968", Seccion.TIENDA),
     INVENTARIO("Inventario", "Piezas, existencias y categorías", "/fxml/inventario.fxml",
-            Iconos.INVENTARIO, "#78665C", Seccion.TIENDA),
+            Iconos.INVENTARIO, "#446458", Seccion.TIENDA),
 
     PEDIDOS("Pedidos personalizados", "Grabados, reparaciones y cupo semanal", "/fxml/pedidos.fxml",
-            Iconos.PEDIDOS, "#946F61", Seccion.TALLER),
+            Iconos.PEDIDOS, "#8F7053", Seccion.TALLER),
     SERVICIOS("Tipos de servicio", "Catálogo y precios base del taller", "/fxml/servicios.fxml",
-            Iconos.SERVICIOS, "#987B68", Seccion.TALLER),
+            Iconos.SERVICIOS, "#9A7947", Seccion.TALLER),
     REPORTE_PIEZAS("Reportes y análisis", "Ventas, horarios, clientes y rentabilidad", "/fxml/reporte_piezas.fxml",
-            Iconos.REPORTE, "#73656D", Seccion.TALLER);
+            Iconos.REPORTE, "#556E74", Seccion.TALLER);
 
     public enum Seccion {
         TIENDA("Tienda"),

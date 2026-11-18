@@ -7,7 +7,7 @@ PDF instalada para guardar el resultado. Una etiqueta por página. Si no cabe,
 selecciona un papel mayor u orientación horizontal; no se reduce la escala de las
 barras automáticamente. No se ha probado una impresora física.
 
-Los códigos admiten de 1 a 50 caracteres ASCII imprimibles (por ejemplo JB-001).
+Los códigos admiten de 1 a 50 caracteres ASCII imprimibles (por ejemplo QL-001).
 El código debe guardarse en Inventario antes de imprimir. ZXing genera el símbolo,
 incluida su verificación; las barras se mantienen negras sobre blanco con márgenes
 blancos laterales para facilitar la lectura. El lector debe escribir el código

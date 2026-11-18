@@ -1,12 +1,10 @@
-> **Versión con reportes completos y Atelier de grabados:** antes de abrir sobre una base existente, ejecuta `database/03_diseno_personalizado.sql` en pgAdmin. Lee `LEEME_PRIMERO.md` para el recorrido de las funciones nuevas y `DISENO_QUILATE.md` para el diseño y la validación.
-
 # Quilate — Sistema de Ventas y Análisis de Clientes para Joyería
 
 Aplicación de escritorio en **JavaFX** con persistencia mediante **Hibernate ORM (JPA)** y **PostgreSQL**.
 Registra piezas por código de barras, ventas, descuentos con límite de rentabilidad,
 pedidos personalizados (grabados, reparaciones…) con cupo semanal y reportes de ventas.
 
-## Requisitos
+## 1. Proyecto y requisitos
 
 | Herramienta | Versión |
 |---|---|
@@ -18,7 +16,7 @@ pedidos personalizados (grabados, reparaciones…) con cupo semanal y reportes d
 Dependencias principales (se descargan solas desde `pom.xml`): JavaFX 21.0.5, Hibernate ORM 6.6.4,
 driver PostgreSQL 42.7.4. Para las pruebas: JUnit 5 y H2.
 
-## Estructura del proyecto
+### Estructura del proyecto
 
 ```
 src/main/java/com/quilate/
@@ -32,7 +30,7 @@ src/main/java/com/quilate/
 ├── exception/           ← ReglaNegocioException
 └── util/                ← JPAUtil (EntityManagerFactory), Transaccion, Tareas, AlertUtil, Formatos
 src/main/resources/
-├── META-INF/persistence.xml
+├── hibernate.cfg.xml
 ├── fxml/                ← vistas (main, ventas, pedidos, servicios, reporte_piezas)
 └── css/styles.css
 src/test/java/           ← pruebas automáticas con H2 en memoria
@@ -43,7 +41,7 @@ database/
 └── 04_reemplazar_datos_demo.sql    ← datos ficticios (borra y reemplaza los existentes)
 ```
 
-## 1. Preparar PostgreSQL
+## 2. Instalación y ejecución
 
 1. Abrir pgAdmin (o `psql`) con el usuario administrador y crear la base:
    ```sql
@@ -75,7 +73,7 @@ database/
 Los cambios al esquema se agregan como un archivo nuevo (`03_...sql`) con `ALTER TABLE`;
 no se editan los scripts que ya se ejecutaron.
 
-## 2. Configurar la conexión con variables de entorno
+### Configurar la conexión con variables de entorno
 
 La aplicación **no tiene credenciales en el código**. `JPAUtil` las lee de estas variables de entorno:
 
@@ -114,7 +112,16 @@ Ese archivo está en `.gitignore`. Si existen ambos, las variables de entorno ti
 Por defecto `hibernate.hbm2ddl.auto=validate`: Hibernate comprueba al arrancar que las entidades coincidan con
 las tablas y **no modifica la base**. Si falta una tabla o columna, la aplicación lo indica en la barra inferior.
 
-## 3. Ejecutar
+### Generar tablas con Hibernate en una base de prueba
+
+Para demostrar la generación automática, crea una base PostgreSQL vacía y
+configura una conexión cuyo usuario pueda crear tablas. Define
+`DB_SCHEMA_MODE=update` y ejecuta la aplicación. Hibernate usará los ocho
+mapeos de `hibernate.cfg.xml` para generar el esquema. Para una instalación de
+uso normal, aplica los scripts SQL, que incluyen restricciones y datos iniciales,
+y deja el modo predeterminado `validate`.
+
+### Ejecutar
 
 **Desde IntelliJ IDEA:**
 
@@ -135,7 +142,7 @@ La barra inferior de la ventana indica si la conexión con PostgreSQL fue exitos
 
 ### Pruebas automáticas
 
-Las pruebas usan una base H2 en memoria, así que **no necesitan PostgreSQL**:
+Las pruebas usan H2, incluida una base temporal en disco para comprobar la recuperación de datos después de cerrar y volver a abrir Hibernate:
 
 ```bash
 ./mvnw test
@@ -143,7 +150,9 @@ Las pruebas usan una base H2 en memoria, así que **no necesitan PostgreSQL**:
 
 En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 
-## Inventario, clientes y apartados
+## 3. Funcionalidades
+
+### Inventario, clientes y apartados
 
 - **Inventario**: alta, consulta, edición y eliminación de piezas, búsqueda por lector de código
   de barras y administración de categorías (crear, editar y eliminar). Las piezas usadas en
@@ -154,7 +163,7 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
   convertir la reserva en una venta sin descontar el inventario nuevamente.
 - Cada pantalla incluye una acción **Actualizar** para consultar cambios de otros módulos.
 
-## Funcionalidades — Integrante 3: ventas y descuentos
+### Integrante 3: ventas y descuentos
 
 - **Ventas** (ventana *Ventas*): permite seleccionar cliente y método de pago, agregar piezas,
   cambiar cantidades, aplicar descuentos monetarios por unidad y guardar ventas en preparación.
@@ -165,7 +174,7 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 - `VentaService.confirmarDesdeApartado` convierte un apartado activo sin descontar dos veces,
   verifica pieza y cantidad, y marca el apartado como completado en la misma transacción.
 
-## Funcionalidades — Integrante 4: pedidos personalizados y reportes
+### Integrante 4: pedidos personalizados y reportes
 
 - **Tipos de servicio** (ventana *Tipos de servicio*): CRUD completo. No se permiten nombres repetidos
   ni precios negativos, y no se puede eliminar un servicio que ya se usó en pedidos.
@@ -180,7 +189,28 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
   y suma las cantidades vendidas **solo de ventas confirmadas**; se muestra en un gráfico de barras y una tabla.
   Está en `ReporteDAO.piezasMasVendidas`.
 
-## Flujo de trabajo con Git
+## 4. Modelo de datos
+
+| Entidad | Relaciones y función |
+|---|---|
+| Categoría | Clasifica muchas piezas. |
+| Pieza | Pertenece a una categoría y aparece en detalles de venta y apartados. El código de barras es único. |
+| Cliente | Se asocia a ventas, apartados y pedidos personalizados. |
+| Apartado | Reserva una pieza para un cliente. Puede convertirse en una sola venta. |
+| Venta | Pertenece a un cliente, contiene detalles y puede tener un apartado de origen único. |
+| DetalleVenta | Une una venta con una pieza y guarda cantidad, precio, costo y descuento aplicados. |
+| TipoServicio | Clasifica los pedidos del taller. |
+| PedidoPersonalizado | Pertenece a un cliente y a un tipo de servicio. Guarda los parámetros opcionales del grabado. |
+
+## 5. Decisiones de diseño y persistencia
+
+- **Relación 1–N.** El detalle guarda la clave de venta con `@JoinColumn`. La venta declara `mappedBy` y sincroniza ambos lados con `agregarDetalle` y `limpiarDetalles`. Los detalles dependen de la venta, por eso se aplica cascada y eliminación de huérfanos.
+- **Relación 1–1.** Una restricción única sobre `apartado_origen_id` impide reutilizar el mismo apartado en dos ventas. La conversión usa el inventario ya reservado.
+- **Transacciones.** La aplicación comparte una `SessionFactory`. Cada operación abre su sesión o gestor de entidades, confirma los cambios juntos o revierte ante un error y cierra los recursos.
+- **Consultas.** La búsqueda por código enlaza un parámetro nombrado, los pedidos cargan cliente y servicio con `JOIN FETCH` y las piezas más vendidas usan `SUM` y `GROUP BY`. Los valores de entrada se enlazan como parámetros.
+- **Grabados.** Guardamos forma, texto y medidas junto a cada pedido. Con esos datos el visor reconstruye la pieza al abrirla.
+
+## 6. Control de versiones
 
 1. `main` siempre debe compilar. No se hace push directo a `main`.
 2. Cada integrante trabaja en su propia rama creada desde `dev`:
@@ -198,7 +228,23 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 5. Después de cada merge: `git pull` en `dev` y comprobar que compila (`./mvnw test`) y arranca.
 6. Al final, `dev` se integra a `main` con un Pull Request revisado.
 
-## Seguridad
+### Seguridad
 
 - Nunca subir contraseñas: usar variables de entorno o `db.properties` (ignorado por Git).
 - No subir respaldos de la base (`*.backup`, `*.dump`) ni configuraciones locales de IntelliJ.
+
+
+## 7. Evidencias
+
+Las capturas se generaron con datos ficticios de la prueba visual.
+
+1. **Inicio y estado de conexión.**
+   ![Pantalla de inicio y estado de conexión](evidencias/01-inicio.png)
+2. **CRUD de inventario.**
+   ![Inventario y formulario de piezas](evidencias/02-inventario.png)
+3. **Venta y sus detalles.**
+   ![Formulario y detalle de venta](evidencias/03-ventas.png)
+4. **Pedidos asociados a clientes y servicios.**
+   ![Listado de pedidos y formulario del taller](evidencias/04-pedidos.png)
+5. **Reporte de piezas más vendidas.**
+   ![Reporte de piezas más vendidas](evidencias/05-reporte.png)

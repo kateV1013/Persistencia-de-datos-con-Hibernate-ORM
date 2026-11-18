@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.hbm2ddl.auto">validate</property>
+        <property name="hibernate.show_sql">false</property>
+        <mapping class="com.quilate.model.Categoria"/>
+        <mapping class="com.quilate.model.Pieza"/>
+        <mapping class="com.quilate.model.Cliente"/>
+        <mapping class="com.quilate.model.Apartado"/>
+        <mapping class="com.quilate.model.Venta"/>
+        <mapping class="com.quilate.model.DetalleVenta"/>
+        <mapping class="com.quilate.model.TipoServicio"/>
+        <mapping class="com.quilate.model.PedidoPersonalizado"/>
+    </session-factory>
+</hibernate-configuration>
