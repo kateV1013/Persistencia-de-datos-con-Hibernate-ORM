@@ -37,8 +37,10 @@ src/main/resources/
 └── css/styles.css
 src/test/java/           ← pruebas automáticas con H2 en memoria
 database/
-├── 01_quilate_bd_inicial.sql       ← inventario, clientes, apartados, ventas y datos de prueba
-└── 02_pedidos_y_estado_venta.sql   ← tipo_servicio y pedido_personalizado
+├── 01_quilate_bd_inicial.sql       ← inventario, clientes, apartados, ventas y categorías base
+├── 02_pedidos_y_estado_venta.sql   ← tipo_servicio y pedido_personalizado
+├── 03_diseno_personalizado.sql     ← columnas del diseño de cada pedido
+└── 04_reemplazar_datos_demo.sql    ← datos ficticios (borra y reemplaza los existentes)
 ```
 
 ## 1. Preparar PostgreSQL
@@ -51,6 +53,7 @@ database/
    1. `01_quilate_bd_inicial.sql`
    2. `02_pedidos_y_estado_venta.sql`
    3. `03_diseno_personalizado.sql`
+   4. `04_reemplazar_datos_demo.sql` (opcional: carga datos ficticios para practicar)
 
    En pgAdmin: clic derecho sobre `quilate` → **Query Tool** → abrir el archivo → **Execute (F5)**.
    Con `psql`:

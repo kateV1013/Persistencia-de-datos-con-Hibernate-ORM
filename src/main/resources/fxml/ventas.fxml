@@ -71,6 +71,7 @@
                 </FlowPane>
                 <VBox spacing="4" styleClass="profit-box"><Label fx:id="lblGanancia" styleClass="titulo-seccion"/><Label fx:id="lblAhorro" styleClass="ayuda"/><Label fx:id="lblMargen" styleClass="ayuda" wrapText="true"/></VBox>
 <FlowPane hgap="8" vgap="8" alignment="CENTER_RIGHT">
+                    <Button text="Eliminar borrador" onAction="#eliminarBorrador" styleClass="peligro"/>
                     <Button text="Guardar borrador" onAction="#guardarPreparacion" styleClass="secundario"/>
                     <Button text="Confirmar venta" onAction="#confirmarVenta" styleClass="confirmar"/>
                 </FlowPane>
@@ -90,6 +91,12 @@
                     </columns>
                 </TableView>
                 <Button text="Anular venta y devolver existencias" onAction="#anularVenta" styleClass="peligro" maxWidth="Infinity"/>
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Ventas por fechas" onAction="#reporteVentasPorFechas" styleClass="secundario"/>
+                    <Button text="Comprobante" onAction="#reporteComprobante" styleClass="secundario"/>
+                    <Button text="Por estado y pago" onAction="#reporteVentasPorEstado" styleClass="secundario"/>
+                </FlowPane>
             </VBox>
         </SplitPane>
     </center>

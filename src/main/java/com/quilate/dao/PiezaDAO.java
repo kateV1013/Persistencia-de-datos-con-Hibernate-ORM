@@ -6,11 +6,11 @@ import com.quilate.model.Pieza;
 import com.quilate.util.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.hibernate.exception.ConstraintViolationException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -155,9 +155,6 @@ public class PiezaDAO {
             return em.createQuery(
                     "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria ORDER BY p.nombre",
                     Pieza.class).getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error al listar piezas", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -178,9 +175,6 @@ public class PiezaDAO {
                     Pieza.class);
             q.setParameter("catId", categoriaId);
             return q.getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error al listar piezas por categoría", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -204,9 +198,6 @@ public class PiezaDAO {
                     Pieza.class);
             q.setParameter("texto", "%" + textoBusqueda.trim() + "%");
             return q.getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error en búsqueda por nombre", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -243,7 +234,9 @@ public class PiezaDAO {
     // ──────────────────────────────────────────────────────────────────────
 
     /**
-     * Actualiza los datos de una pieza existente.
+     * Actualiza los datos de una pieza existente, existencias incluidas.
+     * Desde un formulario usa {@link #actualizarDatos(Pieza, int)}: este método
+     * escribe las existencias que traiga el objeto aunque ya estén desfasadas.
      *
      * @param pieza pieza con los datos modificados (debe tener ID)
      * @return la pieza actualizada y gestionada
@@ -266,6 +259,76 @@ public class PiezaDAO {
             if (esDuplicado(e)) {
                 throw new IllegalArgumentException(
                         "Ya existe una pieza con el código de barras: " + pieza.getCodigoBarras(), e);
+            }
+            LOG.log(Level.SEVERE, "Error al actualizar pieza", e);
+            throw new RuntimeException("Error al actualizar la pieza.", e);
+
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Actualiza una pieza desde un formulario sin pisar las existencias que
+     * otra ventana (ventas, apartados) haya cambiado mientras tanto.
+     *
+     * <p>Los datos descriptivos se copian sobre la pieza tal como está hoy en
+     * la BD. Las existencias no se escriben como valor absoluto: se aplica solo
+     * la diferencia entre lo que el usuario veía y lo que dejó escrito. Si no
+     * tocó el campo, las existencias de la BD quedan intactas.
+     *
+     * @param datos             pieza con los datos del formulario (debe tener ID)
+     * @param existenciasVistas existencias que mostraba el formulario al cargarse
+     * @return la pieza actualizada
+     */
+    public Pieza actualizarDatos(Pieza datos, int existenciasVistas) {
+        validarPieza(datos);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+            Pieza actual = em.find(Pieza.class, datos.getId(), LockModeType.PESSIMISTIC_WRITE);
+            if (actual == null) {
+                throw new IllegalArgumentException("La pieza ya no existe. Pulsa Actualizar.");
+            }
+            Categoria categoria = em.find(Categoria.class, datos.getCategoria().getId());
+            if (categoria == null) {
+                throw new IllegalArgumentException("La categoría indicada no existe en la BD.");
+            }
+
+            int ajuste = datos.getExistencias() - existenciasVistas;
+            int nuevasExistencias = actual.getExistencias() + ajuste;
+            if (nuevasExistencias < 0) {
+                throw new IllegalArgumentException(
+                        "Las existencias cambiaron mientras editabas: ahora hay "
+                                + actual.getExistencias() + ". Pulsa Actualizar y vuelve a intentarlo.");
+            }
+
+            actual.setCodigoBarras(datos.getCodigoBarras());
+            actual.setNombre(datos.getNombre());
+            actual.setCosto(datos.getCosto());
+            actual.setPrecioVenta(datos.getPrecioVenta());
+            actual.setMaterial(datos.getMaterial());
+            actual.setQuilates(datos.getQuilates());
+            actual.setPesoGramos(datos.getPesoGramos());
+            actual.setCategoria(categoria);
+            actual.setExistencias(nuevasExistencias);
+
+            tx.commit();
+            LOG.info("Pieza actualizada: ID=" + actual.getId());
+            return actual;
+
+        } catch (IllegalArgumentException e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            if (esDuplicado(e)) {
+                throw new IllegalArgumentException(
+                        "Ya existe una pieza con el código de barras: " + datos.getCodigoBarras(), e);
             }
             LOG.log(Level.SEVERE, "Error al actualizar pieza", e);
             throw new RuntimeException("Error al actualizar la pieza.", e);
@@ -390,6 +453,22 @@ public class PiezaDAO {
         }
         if (pieza.getPrecioVenta() == null || !Double.isFinite(pieza.getPrecioVenta()) || pieza.getPrecioVenta() < 0) {
             throw new IllegalArgumentException("El precio de venta debe ser un valor no negativo.");
+        }
+        if (pieza.getPrecioVenta() <= 0) {
+            throw new IllegalArgumentException("El precio de venta debe ser mayor que cero.");
+        }
+        if (pieza.getPrecioVenta() < pieza.getCosto()) {
+            throw new IllegalArgumentException("El precio de venta no puede ser menor que el costo.");
+        }
+        if (pieza.getMaterial() != null && pieza.getMaterial().length() > 50) {
+            throw new IllegalArgumentException("El material admite como máximo 50 caracteres.");
+        }
+        if (pieza.getQuilates() != null && (pieza.getQuilates() < 1 || pieza.getQuilates() > 24)) {
+            throw new IllegalArgumentException("Los quilates deben estar entre 1 y 24.");
+        }
+        if (pieza.getPesoGramos() != null && (pieza.getPesoGramos().signum() <= 0
+                || pieza.getPesoGramos().compareTo(new java.math.BigDecimal("999999.99")) > 0)) {
+            throw new IllegalArgumentException("El peso debe ser mayor que cero y menor que 1,000,000 g.");
         }
         if (pieza.getExistencias() == null || pieza.getExistencias() < 0) {
             throw new IllegalArgumentException("Las existencias no pueden ser negativas.");

@@ -43,6 +43,13 @@
                 <Label text="Gestionar reserva seleccionada" styleClass="campo-label"/>
                 <Button text="Convertir en venta" onAction="#vender" styleClass="confirmar"/>
                 <Button text="Cancelar reserva" onAction="#cancelar" styleClass="peligro"/>
+                <Separator/>
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Activos" onAction="#reporteActivos" styleClass="secundario"/>
+                    <Button text="Comprobante" onAction="#reporteComprobante" styleClass="secundario"/>
+                    <Button text="Por estado" onAction="#reportePorEstado" styleClass="secundario"/>
+                </FlowPane>
             </VBox>
         </ScrollPane>
     </right>

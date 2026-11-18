@@ -1,6 +1,6 @@
 package com.quilate.controller;
 
-import com.quilate.dao.GenericDAO;
+import com.quilate.dao.ClienteDAO;
 import com.quilate.model.Cliente;
 import com.quilate.model.EstadoPedido;
 import com.quilate.model.PedidoPersonalizado;
@@ -8,6 +8,7 @@ import com.quilate.model.TipoServicio;
 import com.quilate.service.PedidoService;
 import com.quilate.service.TipoServicioService;
 import com.quilate.util.AlertUtil;
+import com.quilate.util.ReporteUtil;
 import com.quilate.util.Formatos;
 import com.quilate.util.Tareas;
 import javafx.beans.property.SimpleStringProperty;
@@ -66,7 +67,7 @@ public class PedidoController {
     private final PedidoService pedidoService = new PedidoService();
     private final TipoServicioService tipoServicioService = new TipoServicioService();
     /** Lectura de clientes con el CRUD generico (el CRUD completo es de la pantalla de Clientes). */
-    private final GenericDAO<Cliente, Integer> clienteDAO = new GenericDAO<>(Cliente.class) { };
+    private final ClienteDAO clienteDAO = new ClienteDAO();
 
     /** Id del pedido que se esta editando, o null si es nuevo. */
     private Integer idEditando;
@@ -138,7 +139,7 @@ public class PedidoController {
     private void cargar() {
         boolean incluirCancelados = chkCancelados.isSelected();
         Tareas.ejecutar(() -> new Datos(
-                        clienteDAO.listarTodos().stream()
+                        clienteDAO.listar().stream()
                                 .sorted(Comparator.comparing(Cliente::getNombreCompleto, String.CASE_INSENSITIVE_ORDER))
                                 .toList(),
                         tipoServicioService.listar(),
@@ -188,12 +189,14 @@ public class PedidoController {
         txtPrecio.setText(Formatos.dineroEditable(p.getPrecio()));
 
         boolean cancelado = p.getEstado() == EstadoPedido.CANCELADO;
+        boolean entregado = p.getEstado() == EstadoPedido.ENTREGADO;
         cmbEstado.setValue(cancelado ? null : p.getEstado());
-        cmbEstado.setDisable(cancelado);
-        btnGuardar.setDisable(cancelado);
+        cmbEstado.setDisable(cancelado || entregado);
+        btnGuardar.setDisable(cancelado || entregado);
         btnCancelarPedido.setDisable(cancelado || p.getEstado() == EstadoPedido.ENTREGADO);
         lblModo.setText("Pedido N.º " + p.getId());
-        lblMensaje.setText(cancelado ? "Este pedido está cancelado (solo lectura)." : "");
+        lblMensaje.setText(cancelado ? "Este pedido está cancelado (solo lectura)."
+                : entregado ? "Este pedido ya fue entregado (solo lectura)." : "");
         disenoActual=p.getDiseno()==null?null:p.getDiseno().copia();
         mostrandoPedido=false;
         actualizarVista();
@@ -302,5 +305,31 @@ public class PedidoController {
             limpiar();
             cargar();
         });
+    }
+
+    // ---------- reportes ----------
+
+    /** Agenda de la semana de la fecha elegida en el formulario, o de la semana actual. */
+    @FXML
+    private void onReporteAgenda() {
+        LocalDate fecha = dpFecha.getValue() == null ? LocalDate.now() : dpFecha.getValue();
+        ReporteUtil.mostrarReporte("/reportes/pedidos_agenda_semanal.jrxml",
+                ReporteUtil.rangoFecha(PedidoService.lunesDe(fecha), PedidoService.domingoDe(fecha)),
+                "Agenda semanal");
+    }
+
+    @FXML
+    private void onReporteOrden() {
+        if (idEditando == null) {
+            AlertUtil.advertencia("Selecciona un pedido en la tabla para imprimir su orden de trabajo.");
+            return;
+        }
+        ReporteUtil.mostrarReporte("/reportes/pedidos_orden_trabajo.jrxml",
+                java.util.Map.of("p_pedido_id", idEditando), "Orden de trabajo " + idEditando);
+    }
+
+    @FXML
+    private void onReportePorEstado() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/pedidos_por_estado.jrxml", "Pedidos por estado", false);
     }
 }

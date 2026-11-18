@@ -8,6 +8,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -32,6 +36,9 @@ public final class Ventanas {
 
     private static final Map<Modulo, Stage> ABIERTAS = new EnumMap<>(Modulo.class);
     private static final double DESPLAZAMIENTO_CASCADA = 28;
+    /** Cmd+M en Mac, Ctrl+M en Windows y Linux. */
+    private static final KeyCombination MINIMIZAR = new KeyCodeCombination(KeyCode.M, KeyCombination.SHORTCUT_DOWN);
+    private static final boolean MAC = System.getProperty("os.name", "").toLowerCase().startsWith("mac");
 
     private Ventanas() {
     }
@@ -65,12 +72,13 @@ public final class Ventanas {
         double alto = Math.min(860, pantalla.getHeight() - 40);
 
         Stage ventana = new Stage();
-        ventana.setTitle(modulo.titulo() + " · Joyeria Belle");
+        ventana.setTitle(modulo.titulo() + " · Joyería Quilate");
         ventana.setScene(crearEscena(raiz, ancho, alto));
         ventana.setMinWidth(1040);
         ventana.setMinHeight(680);
         prepararVentana(ventana);
         ventana.setOnHidden(e -> ABIERTAS.remove(modulo));
+        atajosDeVentana(ventana);
 
         int yaAbiertas = ABIERTAS.size();
         ABIERTAS.put(modulo, ventana);
@@ -81,6 +89,24 @@ public final class Ventanas {
                 pantalla.getMaxY() - ventana.getHeight()));
 
         Animaciones.entrada(contenido, Duration.millis(60));
+    }
+
+    /**
+     * Esc cierra la ventana del módulo y Cmd/Ctrl + M la minimiza.
+     * Se usa un manejador (no un filtro): si un control ya usó la tecla Esc
+     * (por ejemplo, para cerrar una lista desplegable o cancelar una edición),
+     * la ventana no se cierra.
+     */
+    static void atajosDeVentana(Stage ventana) {
+        ventana.getScene().addEventHandler(KeyEvent.KEY_PRESSED, evento -> {
+            if (evento.getCode() == KeyCode.ESCAPE) {
+                evento.consume();
+                ventana.close();
+            } else if (MINIMIZAR.match(evento)) {
+                evento.consume();
+                ventana.setIconified(true);
+            }
+        });
     }
 
     /** Cierra todas las ventanas de modulos (al cerrar el menu principal). */
@@ -125,8 +151,8 @@ public final class Ventanas {
 
     private static List<Image> iconosAplicacion() {
         if (iconos == null) {
-            iconos = List.of(MarcaBelle.imagen(16), MarcaBelle.imagen(32),
-                    MarcaBelle.imagen(64));
+            iconos = List.of(MarcaQuilate.imagen(16), MarcaQuilate.imagen(32),
+                    MarcaQuilate.imagen(64));
         }
         return iconos;
     }
@@ -140,9 +166,11 @@ public final class Ventanas {
         HBox encabezado = new HBox(14, Iconos.enCirculo(modulo.icono(), 44), new VBox(2, titulo, descripcion));
         javafx.scene.layout.Region espacio = new javafx.scene.layout.Region();
         HBox.setHgrow(espacio, javafx.scene.layout.Priority.ALWAYS);
-        Label marca = new Label("JOYERIA BELLE");
+        Label marca = new Label("JOYERÍA QUILATE");
         marca.getStyleClass().add("modulo-marca");
-        encabezado.getChildren().addAll(espacio, MarcaBelle.crear(36), marca);
+        Label atajos = new Label("Esc cierra · " + (MAC ? "⌘M" : "Ctrl+M") + " minimiza");
+        atajos.getStyleClass().add("encabezado-modulo-descripcion");
+        encabezado.getChildren().addAll(espacio, atajos, MarcaQuilate.crear(36), marca);
         encabezado.setAlignment(Pos.CENTER_LEFT);
         encabezado.getStyleClass().add("encabezado-modulo");
         return encabezado;

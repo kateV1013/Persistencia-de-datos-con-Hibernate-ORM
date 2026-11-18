@@ -15,6 +15,7 @@
         <hibernate.version>6.6.4.Final</hibernate.version>
         <postgresql.version>42.7.4</postgresql.version>
         <junit.version>5.11.4</junit.version>
+        <jasperreports.version>6.21.3</jasperreports.version>
         <main.class>com.quilate.Launcher</main.class>
     </properties>
 
@@ -44,6 +45,12 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.4.14</version>
+        </dependency>
+        <!-- Reportes: compila .jrxml, los llena con la conexión de Hibernate y exporta a PDF -->
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>${jasperreports.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

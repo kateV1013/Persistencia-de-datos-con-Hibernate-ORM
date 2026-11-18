@@ -28,11 +28,11 @@ class ReporteDAOTest {
             Cliente c = new Cliente("Jose", "Martinez", "87772222", "jose@correo.com");
             em.persist(c);
             Pieza anillo = new Pieza("7501000000011", "Anillo solitario", "Oro",
-                    new BigDecimal("4500"), new BigDecimal("7000"), "ANILLO", 5);
+                    new BigDecimal("4500"), new BigDecimal("7000"), null, 5);
             Pieza cadena = new Pieza("7501000000028", "Cadena cubana", "Plata",
-                    new BigDecimal("1200"), new BigDecimal("2000"), "COLLAR", 10);
+                    new BigDecimal("1200"), new BigDecimal("2000"), null, 10);
             Pieza aretes = new Pieza("7501000000035", "Argollas pequenas", "Oro",
-                    new BigDecimal("1800"), new BigDecimal("2600"), "ARETES", 8);
+                    new BigDecimal("1800"), new BigDecimal("2600"), null, 8);
             em.persist(anillo);
             em.persist(cadena);
             em.persist(aretes);

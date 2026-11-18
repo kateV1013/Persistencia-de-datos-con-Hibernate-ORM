@@ -3,27 +3,18 @@ package com.quilate.dao;
 import com.quilate.exception.EntidadConDependenciasException;
 import com.quilate.model.Cliente;
 import com.quilate.util.JPAUtil;
+import com.quilate.util.Transaccion;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 
 import java.util.List;
 
 public class ClienteDAO {
 
     public Cliente crear(Cliente cliente) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
+        return Transaccion.ejecutar(em -> {
             em.persist(cliente);
-            tx.commit();
             return cliente;
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+        });
     }
 
     public Cliente buscarPorId(Long id) {
@@ -45,28 +36,32 @@ public class ClienteDAO {
         }
     }
 
-    public Cliente modificar(Cliente cliente) {
+    /** Indica si otro cliente ya usa ese correo (sin distinguir mayúsculas). */
+    public boolean existeCorreo(String correo, Long excluirId) {
         EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
         try {
-            tx.begin();
-            Cliente actualizado = em.merge(cliente);
-            tx.commit();
-            return actualizado;
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
+            return em.createQuery("""
+                            select count(c) from Cliente c
+                            where lower(c.correo) = lower(:correo) and c.id <> :excluir
+                            """, Long.class)
+                    .setParameter("correo", correo)
+                    .setParameter("excluir", excluirId == null ? -1L : excluirId)
+                    .getSingleResult() > 0;
         } finally {
             em.close();
         }
     }
 
+    public Cliente modificar(Cliente cliente) {
+        return Transaccion.ejecutar(em -> {
+            Cliente actualizado = em.merge(cliente);
+            return actualizado;
+        });
+    }
+
     /** No permite eliminar un cliente que ya tiene apartados. */
     public void eliminar(Long id) {
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
+        Transaccion.ejecutar(em -> {
             Long total = em.createQuery(
                             "SELECT COUNT(a) FROM Apartado a WHERE a.cliente.id = :id", Long.class)
                     .setParameter("id", id)
@@ -81,12 +76,7 @@ public class ClienteDAO {
             }
             Cliente cliente = em.find(Cliente.class, id);
             if (cliente != null) em.remove(cliente);
-            tx.commit();
-        } catch (RuntimeException e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
+            return null;
+        });
     }
 }

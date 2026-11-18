@@ -132,4 +132,31 @@ class PedidoServiceTest {
         assertThrows(ReglaNegocioException.class,
                 () -> tipoService.guardar(new TipoServicio("grabado", null, BigDecimal.TEN)));
     }
+
+    @Test
+    void unPedidoNoRegresaAUnEstadoAnterior() {
+        PedidoPersonalizado p = service.registrar(nuevo(lunes));
+        p.setEstado(EstadoPedido.TERMINADO);
+        service.modificar(p);
+
+        p.setEstado(EstadoPedido.PENDIENTE);
+        ReglaNegocioException e = assertThrows(ReglaNegocioException.class, () -> service.modificar(p));
+        assertTrue(e.getMessage().contains("no puede regresar"), e.getMessage());
+    }
+
+    @Test
+    void unPedidoEntregadoYaNoSeModifica() {
+        PedidoPersonalizado p = service.registrar(nuevo(lunes));
+        p.setEstado(EstadoPedido.ENTREGADO);
+        service.modificar(p);
+
+        p.setDescripcionTrabajo("Cambiar el grabado");
+        assertThrows(ReglaNegocioException.class, () -> service.modificar(p));
+    }
+
+    @Test
+    void elServicioRechazaPrecioBaseNegativo() {
+        assertThrows(ReglaNegocioException.class,
+                () -> tipoService.guardar(new TipoServicio("Limpieza", null, new BigDecimal("-5"))));
+    }
 }

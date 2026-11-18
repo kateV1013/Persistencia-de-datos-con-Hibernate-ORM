@@ -1,4 +1,4 @@
-# Base de datos · Joyeria Belle
+# Base de datos · Joyería Quilate
 
 ## Instalación nueva
 
@@ -7,7 +7,7 @@ Ejecuta en una base PostgreSQL vacía, en este orden:
 1. 01_quilate_bd_inicial.sql: tablas base y categorías.
 2. 02_pedidos_y_estado_venta.sql: servicios y pedidos.
 3. 03_diseno_personalizado.sql: campos del diseño personalizado.
-4. 04_reemplazar_datos_demo_belle.sql: datos ficticios para practicar.
+4. 04_reemplazar_datos_demo.sql: datos ficticios para practicar.
 
 Los scripts 01 y 02 ya no insertan los clientes, piezas ni servicios anteriores.
 El nombre técnico de la base y la configuración de conexión se mantienen.
@@ -73,4 +73,3 @@ programan desde hoy. El taller debe validar el espacio físico antes de grabar.
 Busca Mujer, Hombre o Unisex en inventario para explorar el catálogo por
 público; son etiquetas dentro del nombre, no una columna nueva.
 
-Consulta la investigación pública en ../docs/JOYERIA_BELLE.md.

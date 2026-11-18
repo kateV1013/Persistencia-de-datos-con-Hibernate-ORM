@@ -54,6 +54,13 @@
                 </FlowPane>
                 <Separator/>
                 <Button text="Eliminar cliente" onAction="#eliminar" styleClass="peligro"/>
+                <Separator/>
+                <Label text="REPORTES" styleClass="campo-label"/>
+                <FlowPane hgap="8" vgap="8">
+                    <Button text="Directorio" onAction="#reporteDirectorio" styleClass="secundario"/>
+                    <Button text="Historial del cliente" onAction="#reporteHistorial" styleClass="secundario"/>
+                    <Button text="Mejores clientes" onAction="#reporteMejores" styleClass="secundario"/>
+                </FlowPane>
                 <Label fx:id="mensaje" styleClass="mensaje" wrapText="true"/>
             </VBox>
         </ScrollPane>

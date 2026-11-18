@@ -59,4 +59,17 @@ public class ApartadosController {
         Tareas.ejecutar(() -> new VentaService().convertirApartado(id),
             v -> { nuevo(); recargar(); mensaje.setText("Venta #"+v.getId()+" confirmada sin descontar stock nuevamente."); });
     }
+
+    // ---------- reportes ----------
+    @FXML private void reporteActivos() {
+        ReporteUtil.mostrarReporte("/reportes/apartados_activos.jrxml", java.util.Map.of(), "Apartados activos");
+    }
+    @FXML private void reporteComprobante() {
+        if (seleccionado == null) { AlertUtil.advertencia("Selecciona un apartado en la tabla para ver su comprobante."); return; }
+        ReporteUtil.mostrarReporte("/reportes/apartados_comprobante.jrxml",
+                java.util.Map.of("p_apartado_id", seleccionado.getId()), "Apartado " + seleccionado.getId());
+    }
+    @FXML private void reportePorEstado() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/apartados_por_estado.jrxml", "Apartados por estado", true);
+    }
 }

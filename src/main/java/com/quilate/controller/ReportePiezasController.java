@@ -119,4 +119,15 @@ public class ReportePiezasController {
         c.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(valor.apply(f.getValue())));
         c.setPrefWidth(ancho); tabla.getColumns().add(c);
     }
+
+    // ---------- reportes: usan el período elegido arriba (vacío = todo el historial) ----------
+    @FXML private void reporteResumen() { reporte("analisis_resumen", "Resumen de ventas"); }
+    @FXML private void reporteMasVendidas() { reporte("analisis_piezas_mas_vendidas", "Piezas más vendidas"); }
+    @FXML private void reporteRentabilidad() { reporte("analisis_rentabilidad", "Rentabilidad por pieza"); }
+    private void reporte(String archivo, String titulo) {
+        try { dpDesde.commitValue(); dpHasta.commitValue(); }
+        catch (RuntimeException e) { lblMensaje.setText("Escribe fechas válidas o selecciónalas en el calendario."); return; }
+        try { ReporteUtil.mostrarReporte("/reportes/" + archivo + ".jrxml", ReporteUtil.rangoFechaHora(dpDesde.getValue(), dpHasta.getValue()), titulo); }
+        catch (RuntimeException e) { Tareas.mostrarError(e); }
+    }
 }

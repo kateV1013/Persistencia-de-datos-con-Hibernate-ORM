@@ -9,7 +9,6 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.hibernate.exception.ConstraintViolationException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -41,7 +40,7 @@ public class CategoriaDAO {
      * @throws IllegalArgumentException si el nombre está vacío o ya existe
      */
     public Categoria guardar(Categoria categoria) {
-        validarNombre(categoria.getNombre());
+        validar(categoria);
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -120,9 +119,6 @@ public class CategoriaDAO {
             return em.createQuery(
                     "SELECT c FROM Categoria c ORDER BY c.nombre",
                     Categoria.class).getResultList();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error al listar categorías", e);
-            return Collections.emptyList();
         } finally {
             em.close();
         }
@@ -140,7 +136,7 @@ public class CategoriaDAO {
      * @throws IllegalArgumentException si el nuevo nombre ya existe en otra categoría
      */
     public Categoria actualizar(Categoria categoria) {
-        validarNombre(categoria.getNombre());
+        validar(categoria);
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -235,9 +231,19 @@ public class CategoriaDAO {
     //  Helpers privados
     // ──────────────────────────────────────────────────────────────────────
 
+    private void validar(Categoria categoria) {
+        validarNombre(categoria.getNombre());
+        if (categoria.getDescripcion() != null && categoria.getDescripcion().length() > 500) {
+            throw new IllegalArgumentException("La descripción de la categoría admite como máximo 500 caracteres.");
+        }
+    }
+
     private void validarNombre(String nombre) {
         if (nombre == null || nombre.isBlank()) {
             throw new IllegalArgumentException("El nombre de la categoría no puede estar vacío.");
+        }
+        if (nombre.trim().length() > 100) {
+            throw new IllegalArgumentException("El nombre de la categoría admite como máximo 100 caracteres.");
         }
     }
 

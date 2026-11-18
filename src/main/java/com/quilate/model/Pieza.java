@@ -68,14 +68,15 @@ public class Pieza {
         this.categoria = categoria;
     }
 
-    /** Constructor compatible con los datos y pruebas del modulo de reportes. */
+    /** Constructor con material e importes en BigDecimal (usado por reportes y pruebas). */
     public Pieza(String codigoBarras, String nombre, String material, BigDecimal costo,
-                 BigDecimal precioVenta, String categoria, int cantidadDisponible) {
+                 BigDecimal precioVenta, Categoria categoria, int cantidadDisponible) {
         this.codigoBarras = codigoBarras;
         this.nombre = nombre;
         this.material = material;
         this.costo = costo.doubleValue();
         this.precioVenta = precioVenta.doubleValue();
+        this.categoria = categoria;
         this.existencias = cantidadDisponible;
     }
 
