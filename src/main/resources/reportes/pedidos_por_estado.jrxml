@@ -22,10 +22,10 @@ ORDER BY pe.estado]]>
 	<field name="pedidos" class="java.lang.Long"/>
 	<field name="monto" class="java.math.BigDecimal"/>
 	<variable name="suma_pedidos" class="java.lang.Long" calculation="Sum">
-		<variableExpression><![CDATA[$F{pedidos}]]></variableExpression>
+		<variableExpression><![CDATA["CANCELADO".equals($F{estado}) ? Long.valueOf(0) : $F{pedidos}]]></variableExpression>
 	</variable>
 	<variable name="suma_monto" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[$F{monto}]]></variableExpression>
+		<variableExpression><![CDATA["CANCELADO".equals($F{estado}) ? java.math.BigDecimal.ZERO : $F{monto}]]></variableExpression>
 	</variable>
 	<title>
 		<band height="66" splitType="Stretch">
@@ -114,7 +114,7 @@ ORDER BY pe.estado]]>
 				<reportElement style="Total" x="0" y="0" width="255" height="26"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA["Total"]]></textFieldExpression>
+				<textFieldExpression><![CDATA["Total sin cancelados"]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement style="Total" x="255" y="0" width="120" height="26"/>

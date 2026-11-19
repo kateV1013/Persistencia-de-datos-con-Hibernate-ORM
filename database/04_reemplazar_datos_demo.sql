@@ -1,4 +1,4 @@
--- JOYERIA QUILATE: DATOS FICTICIOS PARA EL PROYECTO, importes en C$.
+-- JOYERÍA QUILATE: DATOS FICTICIOS PARA EL PROYECTO, importes en C$.
 -- Ejecutar despues de 01, 02 y 03, con la aplicacion cerrada.
 -- ATENCION: reemplaza TODOS los datos comerciales. Respaldar antes de ejecutar.
 -- Negocio, catalogo, clientes y servicios son inventados.
@@ -84,29 +84,29 @@ INSERT INTO piezas (codigo_barras, nombre, material, quilates, peso_gramos,
                     costo, precio_venta, existencias, categoria_id)
 SELECT d.codigo, d.nombre, d.material, d.quilates, d.peso, d.costo, d.precio, d.stock, c.id
 FROM (VALUES
-('JB-001','Anillo Aurora - Mujer','Oro',14,2.80,5200,7800,6,'ANILLO'),
-('JB-002','Anillo Sello - Hombre','Plata 925',NULL,8.20,1100,1800,8,'ANILLO'),
-('JB-003','Argolla Horizonte - Unisex','Oro',18,4.50,9200,13800,4,'ANILLO'),
-('JB-004','Anillo Luna - Mujer','Plata 925',NULL,3.10,650,1100,12,'ANILLO'),
-('JB-005','Cadena Cubana - Hombre','Plata 925',NULL,18.50,2100,3400,7,'COLLAR'),
-('JB-006','Collar Alba - Mujer','Oro',14,3.60,6200,9400,5,'COLLAR'),
-('JB-007','Cadena Eslabon - Unisex','Oro',18,6.00,12500,18200,3,'COLLAR'),
-('JB-008','Collar Brisa - Mujer','Plata 925',NULL,5.20,850,1450,10,'COLLAR'),
-('JB-009','Aretes Destello - Mujer','Oro',14,1.90,3400,5200,8,'ARETES'),
-('JB-010','Aretes Punto - Unisex','Plata 925',NULL,1.50,280,550,15,'ARETES'),
-('JB-011','Argollas Luz - Mujer','Plata 925',NULL,3.40,600,1000,9,'ARETES'),
-('JB-012','Esclava Fortaleza - Hombre','Plata 925',NULL,15.00,1600,2600,6,'PULSERA'),
-('JB-013','Pulsera Estrella - Mujer','Oro',14,3.20,5700,8600,4,'PULSERA'),
-('JB-014','Pulsera Lazo - Unisex','Plata 925',NULL,7.00,850,1400,10,'PULSERA'),
-('JB-015','Dije Cruz - Hombre','Oro',18,2.50,4900,7400,5,'OTRO'),
-('JB-016','Dije Inicial - Unisex','Plata 925',NULL,2.00,350,650,14,'OTRO')
+('QL-001','Anillo Aurora - Mujer','Oro',14,2.80,5200,7800,6,'ANILLO'),
+('QL-002','Anillo Sello - Hombre','Plata 925',NULL,8.20,1100,1800,8,'ANILLO'),
+('QL-003','Argolla Horizonte - Unisex','Oro',18,4.50,9200,13800,4,'ANILLO'),
+('QL-004','Anillo Luna - Mujer','Plata 925',NULL,3.10,650,1100,12,'ANILLO'),
+('QL-005','Cadena Cubana - Hombre','Plata 925',NULL,18.50,2100,3400,7,'COLLAR'),
+('QL-006','Collar Alba - Mujer','Oro',14,3.60,6200,9400,5,'COLLAR'),
+('QL-007','Cadena Eslabon - Unisex','Oro',18,6.00,12500,18200,3,'COLLAR'),
+('QL-008','Collar Brisa - Mujer','Plata 925',NULL,5.20,850,1450,10,'COLLAR'),
+('QL-009','Aretes Destello - Mujer','Oro',14,1.90,3400,5200,8,'ARETES'),
+('QL-010','Aretes Punto - Unisex','Plata 925',NULL,1.50,280,550,15,'ARETES'),
+('QL-011','Argollas Luz - Mujer','Plata 925',NULL,3.40,600,1000,9,'ARETES'),
+('QL-012','Esclava Fortaleza - Hombre','Plata 925',NULL,15.00,1600,2600,6,'PULSERA'),
+('QL-013','Pulsera Estrella - Mujer','Oro',14,3.20,5700,8600,4,'PULSERA'),
+('QL-014','Pulsera Lazo - Unisex','Plata 925',NULL,7.00,850,1400,10,'PULSERA'),
+('QL-015','Dije Cruz - Hombre','Oro',18,2.50,4900,7400,5,'OTRO'),
+('QL-016','Dije Inicial - Unisex','Plata 925',NULL,2.00,350,650,14,'OTRO')
 ) AS d(codigo,nombre,material,quilates,peso,costo,precio,stock,categoria)
 JOIN categorias c ON c.nombre = d.categoria;
 
 
 -- 48 variantes con medidas distintas; conservan el material del modelo base.
 INSERT INTO piezas (codigo_barras,nombre,material,quilates,peso_gramos,costo,precio_venta,existencias,categoria_id)
-SELECT 'JB-' || lpad((16 + (v.n-1)*16 + p.id)::text,3,'0'),
+SELECT 'QL-' || lpad((16 + (v.n-1)*16 + p.id)::text,3,'0'),
        p.nombre || ' / ' ||
        CASE c.nombre
          WHEN 'ANILLO' THEN (ARRAY['talla 6','talla 8','talla 10'])[v.n]

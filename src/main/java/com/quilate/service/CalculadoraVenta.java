@@ -91,7 +91,7 @@ public final class CalculadoraVenta {
         BigDecimal maximo = calcularDescuentoMaximo(precioUnitario, costoUnitario);
         if (descuento.compareTo(maximo) > 0) {
             throw new ReglaNegocioException(
-                    "El descuento maximo permitido es " + maximo.toPlainString() + "."
+                    "El descuento máximo permitido es C$ " + maximo.toPlainString() + " por unidad."
             );
         }
         return descuento;

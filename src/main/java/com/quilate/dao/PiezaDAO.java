@@ -35,6 +35,11 @@ import java.util.logging.Logger;
  */
 public class PiezaDAO {
 
+    /** Letras sin tilde, números y guion: lo que imprime la etiqueta y lee el escáner. */
+    private static final java.util.regex.Pattern CODIGO = java.util.regex.Pattern.compile("^[A-Za-z0-9-]{1,50}$");
+    public static final double IMPORTE_MAXIMO = 10_000_000;
+    public static final int EXISTENCIAS_MAXIMAS = 100_000;
+
     private static final Logger LOG = Logger.getLogger(PiezaDAO.class.getName());
 
     // ──────────────────────────────────────────────────────────────────────
@@ -349,6 +354,9 @@ public class PiezaDAO {
         if (nuevasExistencias < 0) {
             throw new IllegalArgumentException("Las existencias no pueden ser negativas.");
         }
+        if (nuevasExistencias > EXISTENCIAS_MAXIMAS) {
+            throw new IllegalArgumentException("Las existencias no pueden pasar de 100,000 unidades.");
+        }
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -442,17 +450,34 @@ public class PiezaDAO {
     // ──────────────────────────────────────────────────────────────────────
 
     private void validarPieza(Pieza pieza) {
+        // Importes en córdobas con 2 decimales, como se muestran en pantalla y en los reportes.
+        if (pieza.getCosto() != null && Double.isFinite(pieza.getCosto())) {
+            pieza.setCosto(Math.round(pieza.getCosto() * 100) / 100.0);
+        }
+        if (pieza.getPrecioVenta() != null && Double.isFinite(pieza.getPrecioVenta())) {
+            pieza.setPrecioVenta(Math.round(pieza.getPrecioVenta() * 100) / 100.0);
+        }
         if (pieza.getCodigoBarras() == null || pieza.getCodigoBarras().isBlank()) {
             throw new IllegalArgumentException("El código de barras es obligatorio.");
         }
+        if (!CODIGO.matcher(pieza.getCodigoBarras().trim()).matches()) {
+            throw new IllegalArgumentException("El código de barras admite hasta 50 caracteres: "
+                    + "letras sin tilde, números y guion (por ejemplo QL-001).");
+        }
         if (pieza.getNombre() == null || pieza.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre de la pieza es obligatorio.");
+        }
+        if (pieza.getNombre().trim().length() > 200) {
+            throw new IllegalArgumentException("El nombre de la pieza admite como máximo 200 caracteres.");
         }
         if (pieza.getCosto() == null || !Double.isFinite(pieza.getCosto()) || pieza.getCosto() < 0) {
             throw new IllegalArgumentException("El costo debe ser un valor no negativo.");
         }
         if (pieza.getPrecioVenta() == null || !Double.isFinite(pieza.getPrecioVenta()) || pieza.getPrecioVenta() < 0) {
             throw new IllegalArgumentException("El precio de venta debe ser un valor no negativo.");
+        }
+        if (pieza.getCosto() > IMPORTE_MAXIMO || pieza.getPrecioVenta() > IMPORTE_MAXIMO) {
+            throw new IllegalArgumentException("El costo y el precio no pueden pasar de C$ 10,000,000.");
         }
         if (pieza.getPrecioVenta() <= 0) {
             throw new IllegalArgumentException("El precio de venta debe ser mayor que cero.");
@@ -472,6 +497,9 @@ public class PiezaDAO {
         }
         if (pieza.getExistencias() == null || pieza.getExistencias() < 0) {
             throw new IllegalArgumentException("Las existencias no pueden ser negativas.");
+        }
+        if (pieza.getExistencias() > EXISTENCIAS_MAXIMAS) {
+            throw new IllegalArgumentException("Las existencias no pueden pasar de 100,000 unidades.");
         }
         if (pieza.getCategoria() == null || pieza.getCategoria().getId() == null) {
             throw new IllegalArgumentException("La pieza debe tener una categoría asignada.");

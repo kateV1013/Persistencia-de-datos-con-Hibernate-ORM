@@ -20,7 +20,7 @@ public class ApartadoDAO {
 
     /** Crea el apartado y descuenta la cantidad de existencias (misma transacción). */
     public Apartado crear(Long clienteId, Long piezaId, int cantidad) {
-        if (cantidad <= 0) throw new ValidacionException("La cantidad debe ser positiva.");
+        if (cantidad <= 0) throw new ValidacionException("La cantidad debe ser mayor que cero.");
         return Transaccion.ejecutar(em -> {
             Cliente cliente = em.find(Cliente.class, clienteId);
             if (cliente == null) throw new ValidacionException("El cliente no existe.");
@@ -42,7 +42,7 @@ public class ApartadoDAO {
 
     /** Cambia la cantidad ajustando la reserva según la diferencia. */
     public void modificarCantidad(Long apartadoId, int nuevaCantidad) {
-        if (nuevaCantidad <= 0) throw new ValidacionException("La cantidad debe ser positiva.");
+        if (nuevaCantidad <= 0) throw new ValidacionException("La cantidad debe ser mayor que cero.");
         Transaccion.ejecutar(em -> {
             Apartado apartado = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (apartado == null) throw new ValidacionException("El apartado no existe.");

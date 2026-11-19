@@ -23,6 +23,10 @@ import java.util.List;
 public class PedidoService {
 
     public static final int CUPO_SEMANAL = 20;
+    /** Un pedido se programa como máximo con dos meses de anticipación. */
+    public static final int MESES_MAXIMOS_DE_ANTICIPACION = 2;
+    /** Límite de la columna NUMERIC(10,2) de precio. */
+    public static final BigDecimal PRECIO_MAXIMO = new BigDecimal("99999999.99");
 
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -46,6 +50,7 @@ public class PedidoService {
         if (pedido.getFechaProgramada().isBefore(LocalDate.now())) {
             throw new ReglaNegocioException("La fecha programada no puede ser anterior a hoy.");
         }
+        validarAnticipacion(pedido.getFechaProgramada());
         pedido.setId(null);
         pedido.setEstado(EstadoPedido.PENDIENTE);
         pedido.setDescripcionTrabajo(pedido.getDescripcionTrabajo().trim());
@@ -72,7 +77,7 @@ public class PedidoService {
             throw new ReglaNegocioException("Selecciona el estado del pedido.");
         }
         if (datos.getEstado() == EstadoPedido.CANCELADO) {
-            throw new ReglaNegocioException("Para cancelar un pedido usa el boton \"Cancelar pedido\".");
+            throw new ReglaNegocioException("Para cancelar un pedido usa el botón \"Cancelar pedido\".");
         }
 
         return Transaccion.ejecutar(em -> {
@@ -87,12 +92,18 @@ public class PedidoService {
                 throw new ReglaNegocioException("Un pedido entregado ya no se puede modificar.");
             }
             validarTransicion(actual.getEstado(), datos.getEstado());
+            if (datos.getEstado() == EstadoPedido.ENTREGADO
+                    && datos.getFechaProgramada().isAfter(LocalDate.now())) {
+                throw new ReglaNegocioException("No se puede marcar como entregado un pedido programado para el "
+                        + datos.getFechaProgramada().format(FECHA) + ": su fecha aún no llega.");
+            }
 
             boolean cambioFecha = !actual.getFechaProgramada().equals(datos.getFechaProgramada());
             if (cambioFecha) {
                 if (datos.getFechaProgramada().isBefore(LocalDate.now())) {
                     throw new ReglaNegocioException("La nueva fecha no puede ser anterior a hoy.");
                 }
+                validarAnticipacion(datos.getFechaProgramada());
                 verificarCupo(em, datos.getFechaProgramada(), actual.getId());
             }
 
@@ -162,7 +173,7 @@ public class PedidoService {
             throw new ReglaNegocioException("Describe el trabajo a realizar.");
         }
         if (descripcion.trim().length() > 500) {
-            throw new ReglaNegocioException("La descripcion no puede tener mas de 500 caracteres.");
+            throw new ReglaNegocioException("La descripción no puede tener más de 500 caracteres.");
         }
         if (p.getFechaProgramada() == null) {
             throw new ReglaNegocioException("Selecciona la fecha programada.");
@@ -171,8 +182,21 @@ public class PedidoService {
         if (precio == null) {
             throw new ReglaNegocioException("El precio es obligatorio.");
         }
-        if (precio.signum() < 0) {
-            throw new ReglaNegocioException("El precio no puede ser negativo.");
+        if (precio.signum() <= 0) {
+            throw new ReglaNegocioException("El precio debe ser mayor que cero.");
+        }
+        if (precio.compareTo(PRECIO_MAXIMO) > 0) {
+            throw new ReglaNegocioException("El precio no puede pasar de C$ 99,999,999.99.");
+        }
+        p.setPrecio(precio.setScale(2, java.math.RoundingMode.HALF_UP));
+    }
+
+    /** Evita fechas sin sentido como el año 9999: máximo dos meses adelante. */
+    private static void validarAnticipacion(LocalDate fecha) {
+        LocalDate limite = LocalDate.now().plusMonths(MESES_MAXIMOS_DE_ANTICIPACION);
+        if (fecha.isAfter(limite)) {
+            throw new ReglaNegocioException("La fecha programada no puede pasar del "
+                    + limite.format(FECHA) + " (dos meses desde hoy).");
         }
     }
 

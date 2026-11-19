@@ -41,18 +41,22 @@ public class TipoServicioService {
             throw new ReglaNegocioException("El nombre del servicio es obligatorio.");
         }
         if (nombre.trim().length() > 60) {
-            throw new ReglaNegocioException("El nombre no puede tener mas de 60 caracteres.");
+            throw new ReglaNegocioException("El nombre no puede tener más de 60 caracteres.");
         }
         if (tipo.getDescripcion() != null && tipo.getDescripcion().trim().length() > 255) {
-            throw new ReglaNegocioException("La descripcion no puede tener mas de 255 caracteres.");
+            throw new ReglaNegocioException("La descripción no puede tener más de 255 caracteres.");
         }
         BigDecimal precio = tipo.getPrecioBase();
         if (precio == null) {
             throw new ReglaNegocioException("El precio base es obligatorio.");
         }
-        if (precio.signum() < 0) {
-            throw new ReglaNegocioException("El precio base no puede ser negativo.");
+        if (precio.signum() <= 0) {
+            throw new ReglaNegocioException("El precio base debe ser mayor que cero.");
         }
+        if (precio.compareTo(PedidoService.PRECIO_MAXIMO) > 0) {
+            throw new ReglaNegocioException("El precio base no puede pasar de C$ 99,999,999.99.");
+        }
+        tipo.setPrecioBase(precio.setScale(2, java.math.RoundingMode.HALF_UP));
         if (dao.existeNombre(nombre, tipo.getId())) {
             throw new ReglaNegocioException("Ya existe un servicio llamado \"" + nombre.trim() + "\".");
         }

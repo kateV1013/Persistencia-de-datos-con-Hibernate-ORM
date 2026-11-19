@@ -88,7 +88,7 @@ public class VentaService {
         return enTransaccion(em -> {
             Apartado a = em.find(Apartado.class, apartadoId, LockModeType.PESSIMISTIC_WRITE);
             if (a == null || a.getEstado() != EstadoApartado.ACTIVO)
-                throw new ReglaNegocioException("Seleccione un apartado activo.");
+                throw new ReglaNegocioException("Selecciona un apartado activo.");
             Venta v = new Venta(a.getCliente());
             cargarDetalles(em, v, List.of(new SolicitudDetalleVenta(a.getPieza().getId(), a.getCantidad(), BigDecimal.ZERO)));
             v.setApartadoOrigen(a);
@@ -258,7 +258,7 @@ public class VentaService {
 
     private Cliente requerirCliente(EntityManager em, Long clienteId) {
         if (clienteId == null) {
-            throw new ReglaNegocioException("Debe seleccionar un cliente.");
+            throw new ReglaNegocioException("Selecciona un cliente.");
         }
         Cliente cliente = em.find(Cliente.class, clienteId);
         if (cliente == null) {
@@ -269,18 +269,18 @@ public class VentaService {
 
     private String validarMetodoPago(String metodoPago) {
         if (metodoPago == null) {
-            throw new ReglaNegocioException("Debe seleccionar un metodo de pago.");
+            throw new ReglaNegocioException("Selecciona un método de pago.");
         }
         String normalizado = metodoPago.trim().toUpperCase();
         if (!Set.of("EFECTIVO", "TARJETA", "TRANSFERENCIA").contains(normalizado)) {
-            throw new ReglaNegocioException("Metodo de pago no valido.");
+            throw new ReglaNegocioException("Método de pago no válido.");
         }
         return normalizado;
     }
 
     private Venta requerirVenta(EntityManager em, Long ventaId, LockModeType lockMode) {
         if (ventaId == null) {
-            throw new ReglaNegocioException("Debe seleccionar una venta.");
+            throw new ReglaNegocioException("Selecciona una venta.");
         }
         Venta venta = em.find(Venta.class, ventaId, lockMode);
         if (venta == null) {

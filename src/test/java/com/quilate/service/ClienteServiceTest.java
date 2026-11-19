@@ -70,4 +70,20 @@ class ClienteServiceTest {
 
         assertThrows(EntidadConDependenciasException.class, () -> servicio.eliminar(c.getId()));
     }
+
+    @Test
+    void exigeDigitosEnElTelefonoYLetrasEnElNombre() {
+        assertThrows(ValidacionException.class,
+                () -> servicio.guardar(new Cliente("Luis", null, "--------", null)));
+        assertThrows(ValidacionException.class,
+                () -> servicio.guardar(new Cliente("12345", null, null, null)));
+        assertThrows(ValidacionException.class,
+                () -> servicio.guardar(new Cliente("Luis", "999", null, null)));
+        assertNotNull(servicio.guardar(new Cliente("Luis", null, "+505 8888-1111", null)).getId());
+    }
+
+    @Test
+    void avisaSiElClienteYaNoExiste() {
+        assertThrows(ValidacionException.class, () -> servicio.eliminar(999_999L));
+    }
 }

@@ -12,7 +12,7 @@ public final class PoliticaEstadoVenta {
         validarEstado(estadoActual);
         if (estadoActual != EstadoVenta.PREPARACION) {
             throw new ReglaNegocioException(
-                    "Solo las ventas en preparacion pueden modificarse."
+                    "Solo las ventas en preparación pueden modificarse."
             );
         }
     }

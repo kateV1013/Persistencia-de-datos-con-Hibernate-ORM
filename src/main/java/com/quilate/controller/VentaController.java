@@ -143,7 +143,7 @@ public class VentaController {
         try {
             Pieza pieza = cmbPieza.getValue();
             if (pieza == null) {
-                throw new ReglaNegocioException("Debe seleccionar una pieza.");
+                throw new ReglaNegocioException("Selecciona una pieza.");
             }
             int cantidad;
             try {
@@ -190,7 +190,7 @@ public class VentaController {
         ejecutarOcupado(() -> guardar(solicitud), venta -> {
             ventaEnEdicionId = venta.getId();
             recargarVentas();
-            mensaje("Venta " + venta.getId() + " guardada en preparacion.");
+            mensaje("Venta " + venta.getId() + " guardada en preparación.");
         });
     }
 
@@ -231,7 +231,7 @@ public class VentaController {
     private void anularVenta() {
         Venta seleccionada = tablaVentas.getSelectionModel().getSelectedItem();
         if (seleccionada == null) {
-            AlertUtil.advertencia("Seleccione una venta confirmada.");
+            AlertUtil.advertencia("Selecciona una venta confirmada.");
             return;
         }
         if (!AlertUtil.confirmar("Anular la venta " + seleccionada.getId()
@@ -304,7 +304,7 @@ public class VentaController {
     private Solicitud leerSolicitud() {
         Cliente cliente = cmbCliente.getValue();
         if (cliente == null) {
-            AlertUtil.advertencia("Debe seleccionar un cliente.");
+            AlertUtil.advertencia("Selecciona un cliente.");
             return null;
         }
         List<SolicitudDetalleVenta> detalles = carrito.stream()
@@ -337,8 +337,8 @@ public class VentaController {
             carrito.setAll(venta.getDetalles().stream().map(this::aLinea).toList());
             actualizarTotal();
             mensaje(venta.getEstado() == EstadoVenta.PREPARACION
-                    ? "Venta en preparacion cargada para editar."
-                    : "Venta historica: " + venta.getEstado() + ".");
+                    ? "Venta en preparación cargada para editar."
+                    : "Venta histórica: " + venta.getEstado().name().charAt(0) + venta.getEstado().name().substring(1).toLowerCase() + ".");
         });
     }
 
@@ -388,11 +388,7 @@ public class VentaController {
         if (texto == null || texto.isBlank()) {
             return BigDecimal.ZERO;
         }
-        try {
-            return new BigDecimal(texto.trim().replace("C$", "").replace(",", "").trim());
-        } catch (NumberFormatException e) {
-            throw new ReglaNegocioException("El descuento debe ser un número, por ejemplo 50.00.");
-        }
+        return com.quilate.util.Formatos.leerDinero(texto, "descuento");
     }
 
     private void mensaje(String texto) {
