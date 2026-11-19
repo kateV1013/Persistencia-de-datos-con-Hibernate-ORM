@@ -37,7 +37,7 @@
                     <TextField fx:id="nombre" promptText="Ej. María" maxWidth="Infinity"/>
                 </VBox>
                 <VBox spacing="5">
-                    <Label text="APELLIDO *" styleClass="campo-label"/>
+                    <Label text="APELLIDO" styleClass="campo-label"/>
                     <TextField fx:id="apellido" promptText="Ej. López" maxWidth="Infinity"/>
                 </VBox>
                 <VBox spacing="5">
