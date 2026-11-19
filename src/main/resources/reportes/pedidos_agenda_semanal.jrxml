@@ -11,6 +11,9 @@
 	<parameter name="p_fecha_desde" class="java.sql.Date"/>
 	<parameter name="p_fecha_hasta" class="java.sql.Date"/>
 	<parameter name="p_periodo" class="java.lang.String"/>
+	<parameter name="p_cupo" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[com.quilate.service.PedidoService.CUPO_SEMANAL]]></defaultValueExpression>
+	</parameter>
 	<queryString language="SQL">
 		<![CDATA[SELECT pe.id_pedido, pe.fecha_programada, TRIM(CONCAT(c.nombre, ' ', COALESCE(c.apellido, ''))) AS cliente, ts.nombre AS servicio,
        pe.descripcion_trabajo, pe.estado, pe.precio
@@ -164,7 +167,7 @@ ORDER BY pe.fecha_programada, pe.id_pedido]]>
 				<reportElement style="Total" x="0" y="0" width="535" height="26"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + " de 20 pedidos de la semana"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + " de " + $P{p_cupo} + " pedidos de la semana"]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>

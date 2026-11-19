@@ -212,10 +212,11 @@ class ReportesTest {
         contiene(llenar("pedidos_orden_trabajo", Map.of("p_pedido_id", ids.pedido1())),
                 "Orden de trabajo N.º " + ids.pedido1(), "«V. M.»", "Anillo · Oro · fuente Clásica", "18.00 × 5.00 mm · letra 2.00 mm");
         contiene(llenar("pedidos_por_estado", ReporteUtil.rangoFecha(null, null)),
-                "Todo el historial · Emitido el " + textoEmision(), "Cancelado", "Pendiente", "En proceso", "C$ 925.00");
+                "Todo el historial · Emitido el " + textoEmision(), "Cancelado", "Pendiente", "En proceso",
+                "C$ 300.00", "Total sin cancelados", "C$ 625.00");
         contiene(llenar("servicios_catalogo", Map.of()), "Grabado", "Limpieza", "2 servicio(s)");
         contiene(llenar("servicios_ingresos", ReporteUtil.rangoFecha(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30))),
-                "C$ 375.00", "C$ 250.00", "C$ 625.00");
+                "C$ 375.00", "C$ 250.00", "C$ 625.00", "Entregado (cobrado)", "Por entregar");
         contiene(llenar("servicios_pedidos", Map.of("p_servicio_id", ids.grabado())),
                 "Pedidos del servicio Grabado", "2 pedido(s)", "C$ 675.00");
     }
