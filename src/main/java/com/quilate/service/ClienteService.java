@@ -27,12 +27,16 @@ public class ClienteService {
     }
 
     public void eliminar(Long id) {
-        if (id == null) throw new ValidacionException("Seleccione un cliente.");
+        if (id == null) throw new ValidacionException("Selecciona un cliente.");
         dao.eliminar(id);
     }
 
+    private static boolean contieneLetra(String texto) {
+        return texto != null && texto.chars().anyMatch(Character::isLetter);
+    }
+
     private void validar(Cliente c) {
-        if (c == null) throw new ValidacionException("Ingrese los datos del cliente.");
+        if (c == null) throw new ValidacionException("Ingresa los datos del cliente.");
         if (c.getNombre() == null || c.getNombre().isBlank()) {
             throw new ValidacionException("El nombre es obligatorio.");
         }
@@ -47,8 +51,15 @@ public class ClienteService {
         if (c.getNombre().length() > 60) throw new ValidacionException("Nombre: máximo 60 caracteres.");
         if (c.getCorreo() != null && c.getCorreo().isBlank()) c.setCorreo(null);
         if (c.getTelefono() != null && !c.getTelefono().isBlank()
-                && !TELEFONO.matcher(c.getTelefono().trim()).matches()) {
-            throw new ValidacionException("El teléfono solo admite dígitos, +, - y espacios (8 a 20 caracteres).");
+                && (!TELEFONO.matcher(c.getTelefono().trim()).matches()
+                    || c.getTelefono().chars().filter(Character::isDigit).count() < 8)) {
+            throw new ValidacionException("El teléfono debe tener al menos 8 dígitos; también admite +, - y espacios.");
+        }
+        if (!contieneLetra(c.getNombre())) {
+            throw new ValidacionException("El nombre debe contener letras.");
+        }
+        if (c.getApellido() != null && !c.getApellido().isBlank() && !contieneLetra(c.getApellido())) {
+            throw new ValidacionException("El apellido debe contener letras.");
         }
         if (c.getCorreo() != null && !c.getCorreo().isBlank()
                 && !CORREO.matcher(c.getCorreo().trim()).matches()) {

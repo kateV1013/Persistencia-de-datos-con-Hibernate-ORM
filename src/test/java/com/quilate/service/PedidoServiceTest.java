@@ -146,7 +146,7 @@ class PedidoServiceTest {
 
     @Test
     void unPedidoEntregadoYaNoSeModifica() {
-        PedidoPersonalizado p = service.registrar(nuevo(lunes));
+        PedidoPersonalizado p = service.registrar(nuevo(LocalDate.now()));
         p.setEstado(EstadoPedido.ENTREGADO);
         service.modificar(p);
 
@@ -158,5 +158,39 @@ class PedidoServiceTest {
     void elServicioRechazaPrecioBaseNegativo() {
         assertThrows(ReglaNegocioException.class,
                 () -> tipoService.guardar(new TipoServicio("Limpieza", null, new BigDecimal("-5"))));
+    }
+
+    @Test
+    void noSeEntregaUnPedidoAntesDeSuFecha() {
+        PedidoPersonalizado p = service.registrar(nuevo(lunes));
+        p.setEstado(EstadoPedido.ENTREGADO);
+        ReglaNegocioException e = assertThrows(ReglaNegocioException.class, () -> service.modificar(p));
+        assertTrue(e.getMessage().contains("aún no llega"), e.getMessage());
+    }
+
+    @Test
+    void laFechaNoPuedePasarDeDosMeses() {
+        assertThrows(ReglaNegocioException.class,
+                () -> service.registrar(nuevo(LocalDate.of(9999, 12, 31))));
+        assertThrows(ReglaNegocioException.class,
+                () -> service.registrar(nuevo(LocalDate.now().plusMonths(2).plusDays(1))));
+        assertTrue(service.registrar(nuevo(LocalDate.now().plusMonths(2))).getId() != null);
+        PedidoPersonalizado p = service.registrar(nuevo(lunes));
+        p.setFechaProgramada(LocalDate.now().plusMonths(3));
+        assertThrows(ReglaNegocioException.class, () -> service.modificar(p));
+    }
+
+    @Test
+    void elPrecioDebeSerPositivoYDentroDelLimite() {
+        PedidoPersonalizado gratis = nuevo(lunes);
+        gratis.setPrecio(BigDecimal.ZERO);
+        assertThrows(ReglaNegocioException.class, () -> service.registrar(gratis));
+        PedidoPersonalizado carisimo = nuevo(lunes);
+        carisimo.setPrecio(new BigDecimal("100000000"));
+        assertThrows(ReglaNegocioException.class, () -> service.registrar(carisimo));
+        assertThrows(ReglaNegocioException.class,
+                () -> tipoService.guardar(new TipoServicio("Garantia", null, BigDecimal.ZERO)));
+        assertThrows(ReglaNegocioException.class,
+                () -> tipoService.guardar(new TipoServicio("Oro macizo", null, new BigDecimal("100000000"))));
     }
 }

@@ -118,4 +118,27 @@ class InventarioDAOTest {
         assertThrows(IllegalArgumentException.class,
                 () -> categorias.guardar(new Categoria("Collares", "x".repeat(501))));
     }
+
+    @Test void rechazaDatosFueraDeRango() {
+        assertThrows(IllegalArgumentException.class,
+                () -> piezas.guardar(new Pieza("AÑO-1", "Anillo", 60.0, 100.0, 1, categoria)));
+        assertThrows(IllegalArgumentException.class,
+                () -> piezas.guardar(new Pieza("C".repeat(51), "Anillo", 60.0, 100.0, 1, categoria)));
+        assertThrows(IllegalArgumentException.class,
+                () -> piezas.guardar(new Pieza("N-1", "n".repeat(201), 60.0, 100.0, 1, categoria)));
+        assertThrows(IllegalArgumentException.class,
+                () -> piezas.guardar(new Pieza("P-1", "Anillo", 60.0, 10_000_001.0, 1, categoria)));
+        assertThrows(IllegalArgumentException.class,
+                () -> piezas.guardar(new Pieza("E-1", "Anillo", 60.0, 100.0, 100_001, categoria)));
+        assertTrue(piezas.listarTodas().isEmpty());
+        assertNotNull(piezas.guardar(new Pieza("QL-001", "Anillo", 60.0, 10_000_000.0, 100_000, categoria)).getId());
+    }
+
+    @Test void noRepiteCategoriasAunqueCambienLasMayusculas() {
+        assertThrows(IllegalArgumentException.class, () -> categorias.guardar(new Categoria("ANILLOS", null)));
+        assertThrows(IllegalArgumentException.class, () -> categorias.guardar(new Categoria("  anillos  ", null)));
+        Categoria otra = categorias.guardar(new Categoria("Cadenas", null));
+        otra.setNombre("anillos");
+        assertThrows(IllegalArgumentException.class, () -> categorias.actualizar(otra));
+    }
 }

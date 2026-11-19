@@ -1,5 +1,7 @@
 package com.quilate.dao;
 
+import com.quilate.exception.ValidacionException;
+
 import com.quilate.exception.EntidadConDependenciasException;
 import com.quilate.model.Cliente;
 import com.quilate.util.JPAUtil;
@@ -75,7 +77,10 @@ public class ClienteDAO {
                         "No se puede eliminar: el cliente tiene " + total + " movimiento(s) asociado(s).");
             }
             Cliente cliente = em.find(Cliente.class, id);
-            if (cliente != null) em.remove(cliente);
+            if (cliente == null) {
+                throw new ValidacionException("El cliente ya no existe. Pulsa Actualizar.");
+            }
+            em.remove(cliente);
             return null;
         });
     }

@@ -536,20 +536,18 @@ public class InventarioController implements Initializable {
             errores.append("• El nombre es obligatorio.\n");
         }
 
-        // Costo: decimal no negativo
+        // Costo y precio: se leen igual que en Pedidos y Servicios (acepta "1,500.00" o "C$ 1,500")
+        BigDecimal costo = null, precio = null;
         try {
-            double costo = Double.parseDouble(txtCosto.getText().trim());
-            if (!Double.isFinite(costo) || costo < 0) errores.append("• El costo debe ser finito y no negativo.\n");
-        } catch (NumberFormatException e) {
-            errores.append("• El costo debe ser un número válido (ej. 150.00).\n");
+            costo = Formatos.leerDinero(txtCosto.getText(), "costo");
+            if (costo.signum() < 0) errores.append("• El costo no puede ser negativo.\n");
+        } catch (RuntimeException e) {
+            errores.append("• ").append(e.getMessage()).append("\n");
         }
-
-        // Precio de venta: decimal no negativo
         try {
-            double precio = Double.parseDouble(txtPrecioVenta.getText().trim());
-            if (!Double.isFinite(precio) || precio < 0) errores.append("• El precio debe ser finito y no negativo.\n");
-        } catch (NumberFormatException e) {
-            errores.append("• El precio de venta debe ser un número válido (ej. 299.99).\n");
+            precio = Formatos.leerDinero(txtPrecioVenta.getText(), "precio de venta");
+        } catch (RuntimeException e) {
+            errores.append("• ").append(e.getMessage()).append("\n");
         }
 
         // Existencias: entero no negativo
@@ -561,13 +559,9 @@ public class InventarioController implements Initializable {
         }
 
         // Categoría seleccionada
-        try {
-            double costo = Double.parseDouble(txtCosto.getText().trim());
-            double precio = Double.parseDouble(txtPrecioVenta.getText().trim());
-            if (precio == 0) errores.append("• El precio de venta debe ser mayor que cero.\n");
-            if (precio < costo) errores.append("• El precio de venta no puede ser menor que el costo.\n");
-        } catch (NumberFormatException e) {
-            // ya reportado arriba
+        if (precio != null && precio.signum() <= 0) errores.append("• El precio de venta debe ser mayor que cero.\n");
+        if (costo != null && precio != null && precio.compareTo(costo) < 0) {
+            errores.append("• El precio de venta no puede ser menor que el costo.\n");
         }
         if (texto(txtMaterial).length() > 50) {
             errores.append("• El material admite como máximo 50 caracteres.\n");
@@ -609,8 +603,8 @@ public class InventarioController implements Initializable {
         Pieza pieza = new Pieza(
                 txtCodigoBarras.getText().trim(),
                 txtNombrePieza.getText().trim(),
-                Double.parseDouble(txtCosto.getText().trim()),
-                Double.parseDouble(txtPrecioVenta.getText().trim()),
+                Formatos.leerDinero(txtCosto.getText(), "costo").doubleValue(),
+                Formatos.leerDinero(txtPrecioVenta.getText(), "precio de venta").doubleValue(),
                 Integer.parseInt(txtExistencias.getText().trim()),
                 cmbCategoria.getValue()
         );

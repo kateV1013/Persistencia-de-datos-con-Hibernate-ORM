@@ -233,8 +233,28 @@ public class CategoriaDAO {
 
     private void validar(Categoria categoria) {
         validarNombre(categoria.getNombre());
+        categoria.setNombre(categoria.getNombre().trim());
+        if (existeNombre(categoria.getNombre(), categoria.getId())) {
+            throw new IllegalArgumentException("Ya existe una categoría con el nombre: " + categoria.getNombre());
+        }
         if (categoria.getDescripcion() != null && categoria.getDescripcion().length() > 500) {
             throw new IllegalArgumentException("La descripción de la categoría admite como máximo 500 caracteres.");
+        }
+    }
+
+    /** Compara sin distinguir mayúsculas: «Anillos» y «ANILLOS» son la misma categoría. */
+    private boolean existeNombre(String nombre, Long excluirId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("""
+                            select count(c) from Categoria c
+                            where lower(c.nombre) = lower(:nombre) and c.id <> :excluir
+                            """, Long.class)
+                    .setParameter("nombre", nombre)
+                    .setParameter("excluir", excluirId == null ? -1L : excluirId)
+                    .getSingleResult() > 0;
+        } finally {
+            em.close();
         }
     }
 

@@ -11,11 +11,11 @@ public final class AlertUtil {
     }
 
     public static void info(String mensaje) {
-        mostrar(Alert.AlertType.INFORMATION, "Informacion", mensaje);
+        mostrar(Alert.AlertType.INFORMATION, "Información", mensaje);
     }
 
     public static void advertencia(String mensaje) {
-        mostrar(Alert.AlertType.WARNING, "Atencion", mensaje);
+        mostrar(Alert.AlertType.WARNING, "Atención", mensaje);
     }
 
     public static void error(String mensaje) {

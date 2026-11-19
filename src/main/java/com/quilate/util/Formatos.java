@@ -27,15 +27,26 @@ public final class Formatos {
             throw new ReglaNegocioException("El " + campo + " es obligatorio.");
         }
         String limpio = texto.trim().replace("C$", "").replace(" ", "");
-        if (limpio.contains(",") && limpio.contains(".")) {
-            limpio = limpio.replace(",", "");
-        } else {
-            limpio = limpio.replace(",", ".");
+        // Solo dígitos, signo y separadores: rechaza "1e3", "NaN", letras, etc.
+        if (!limpio.matches("-?[0-9.,]+") || !limpio.matches(".*[0-9].*")) {
+            throw new ReglaNegocioException("El " + campo + " debe ser un número, por ejemplo 1,500.00");
+        }
+        int ultimaComa = limpio.lastIndexOf(','), ultimoPunto = limpio.lastIndexOf('.');
+        if (ultimaComa >= 0 && ultimoPunto >= 0) {
+            // "1,500.50" o "1.500,50": el separador que aparece último es el decimal.
+            String miles = ultimaComa > ultimoPunto ? "." : ",";
+            limpio = limpio.replace(miles, "").replace(',', '.');
+        } else if (ultimaComa >= 0) {
+            // "1,500" o "12,500,000" son miles (formato de Nicaragua); "1500,5" es decimal.
+            limpio = limpio.matches("-?\\d{1,3}(,\\d{3})+") ? limpio.replace(",", "") : limpio.replace(',', '.');
+        } else if (limpio.indexOf('.') != ultimoPunto) {
+            // Varios puntos ("1.500.000") solo pueden ser separadores de miles.
+            limpio = limpio.replace(".", "");
         }
         try {
             return new BigDecimal(limpio).setScale(2, RoundingMode.HALF_UP);
         } catch (NumberFormatException e) {
-            throw new ReglaNegocioException("El " + campo + " debe ser un numero, por ejemplo 1500.00");
+            throw new ReglaNegocioException("El " + campo + " debe ser un número, por ejemplo 1,500.00");
         }
     }
 

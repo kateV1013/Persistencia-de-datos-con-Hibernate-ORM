@@ -13,20 +13,20 @@ public class ApartadoService {
     private final ApartadoDAO dao = new ApartadoDAO();
 
     public Apartado apartar(Long clienteId, Long piezaId, int cantidad) {
-        if (clienteId == null) throw new ValidacionException("Seleccione un cliente.");
-        if (piezaId == null) throw new ValidacionException("Seleccione una pieza.");
+        if (clienteId == null) throw new ValidacionException("Selecciona un cliente.");
+        if (piezaId == null) throw new ValidacionException("Selecciona una pieza.");
         validarCantidad(cantidad);
         return dao.crear(clienteId, piezaId, cantidad);
     }
 
     public void modificarCantidad(Long apartadoId, int nuevaCantidad) {
-        if (apartadoId == null) throw new ValidacionException("Seleccione un apartado.");
+        if (apartadoId == null) throw new ValidacionException("Selecciona un apartado.");
         validarCantidad(nuevaCantidad);
         dao.modificarCantidad(apartadoId, nuevaCantidad);
     }
 
     public void cancelar(Long apartadoId) {
-        if (apartadoId == null) throw new ValidacionException("Seleccione un apartado.");
+        if (apartadoId == null) throw new ValidacionException("Selecciona un apartado.");
         dao.cancelar(apartadoId);
     }
 
@@ -35,7 +35,7 @@ public class ApartadoService {
     }
 
     public List<HistorialCompra> historial(Long clienteId) {
-        if (clienteId == null) throw new ValidacionException("Seleccione un cliente.");
+        if (clienteId == null) throw new ValidacionException("Selecciona un cliente.");
         return dao.historialPorCliente(clienteId);
     }
 
