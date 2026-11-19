@@ -17,8 +17,8 @@
                     <TableColumn fx:id="colId" text="ID" prefWidth="45"/>
                     <TableColumn fx:id="colCodigo" text="Código" prefWidth="115"/>
                     <TableColumn fx:id="colNombre" text="Pieza" prefWidth="180"/>
-                    <TableColumn fx:id="colCosto" text="Costo (C$)" prefWidth="100"/>
-                    <TableColumn fx:id="colPrecio" text="Precio (C$)" prefWidth="100"/>
+                    <TableColumn fx:id="colCosto" text="Costo" prefWidth="100"/>
+                    <TableColumn fx:id="colPrecio" text="Precio" prefWidth="100"/>
                     <TableColumn fx:id="colExistencias" text="Stock" prefWidth="65"/>
                     <TableColumn fx:id="colCategoria" text="Categoría" prefWidth="110"/>
                 </columns>

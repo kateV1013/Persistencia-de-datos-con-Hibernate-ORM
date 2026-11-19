@@ -15,6 +15,7 @@ public class MainApp extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
 
+        stage.getIcons().addAll(com.quilate.ui.MarcaQuilate.imagen(32), com.quilate.ui.MarcaQuilate.imagen(64));
         stage.setTitle("Joyería Quilate · Menú principal");
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
         double alto = Math.min(880, pantalla.getHeight() - 40);

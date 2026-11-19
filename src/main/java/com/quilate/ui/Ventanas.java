@@ -70,6 +70,7 @@ public final class Ventanas {
         double alto = Math.min(860, pantalla.getHeight() - 40);
 
         Stage ventana = new Stage();
+        ventana.getIcons().add(com.quilate.ui.MarcaQuilate.imagen(32));
         ventana.setTitle(modulo.titulo() + " · Joyería Quilate");
         ventana.setScene(crearEscena(raiz, ancho, alto));
         ventana.setMinWidth(1040);
@@ -150,7 +151,7 @@ public final class Ventanas {
         HBox.setHgrow(espacio, javafx.scene.layout.Priority.ALWAYS);
         Label marca = new Label("JOYERÍA QUILATE");
         marca.getStyleClass().add("modulo-marca");
-        encabezado.getChildren().addAll(espacio, marca);
+        encabezado.getChildren().addAll(espacio, new MarcaQuilate(32), marca);
         encabezado.setAlignment(Pos.CENTER_LEFT);
         encabezado.getStyleClass().add("encabezado-modulo");
         return encabezado;

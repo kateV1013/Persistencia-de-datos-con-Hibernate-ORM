@@ -79,6 +79,7 @@ public class VentaController {
 
     @FXML
     private void initialize() {
+        com.quilate.ui.MonedaVista.observar(lblTotal, this::actualizarTotal);
         colPieza.setCellValueFactory(f -> new ReadOnlyStringWrapper(f.getValue().pieza().getNombre()));
         colCantidad.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(f.getValue().cantidad()));
         colPrecio.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(f.getValue().precio()));
@@ -371,17 +372,17 @@ public class VentaController {
     private void actualizarTotal() {
         BigDecimal total = CalculadoraVenta.calcularTotal(
                 carrito.stream().map(LineaCarrito::subtotal).toList());
-        lblTotal.setText("Total: " + com.quilate.util.Formatos.dinero(total));
+        lblTotal.setText("Total: " + com.quilate.ui.MonedaVista.formatear(total));
         BigDecimal costo = carrito.stream().map(l -> l.costo().multiply(BigDecimal.valueOf(l.cantidad())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal descuentos = carrito.stream().map(l -> l.descuento().multiply(BigDecimal.valueOf(l.cantidad())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal ganancia = total.subtract(costo);
-        lblGanancia.setText("Ganancia bruta: " + com.quilate.util.Formatos.dinero(ganancia));
+        lblGanancia.setText("Ganancia bruta: " + com.quilate.ui.MonedaVista.formatear(ganancia));
         lblMargen.setText(carrito.isEmpty() ? "Agrega piezas para calcular el margen."
                 : ganancia.signum()==0 ? "Punto de equilibrio · sin ganancia bruta"
                 : "Margen: " + com.quilate.service.AnalisisService.margen(ganancia,total) + " % · antes de gastos operativos");
-        lblAhorro.setText("Descuentos: " + com.quilate.util.Formatos.dinero(descuentos));
+        lblAhorro.setText("Descuentos: " + com.quilate.ui.MonedaVista.formatear(descuentos));
     }
 
     private BigDecimal decimalOZero(String texto) {

@@ -5,6 +5,10 @@ import com.quilate.service.AnalisisService;
 import com.quilate.service.AnalisisService.Grupo;
 import com.quilate.service.AnalisisService.Resumen;
 import com.quilate.ui.PresentacionTablas;
+import com.quilate.ui.MonedaVista;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import java.math.BigDecimal;
 import com.quilate.util.*;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.fxml.FXML;
@@ -22,8 +26,10 @@ public class ReportePiezasController {
     @FXML private Label lblMensaje, lblIngresos, lblGanancia, lblDescuentos, lblVentas;
     @FXML private TabPane reportes;
     @FXML private Button btnGenerar;
+    @FXML private StackPane selectorMoneda;
     private long solicitud;
     @FXML private void initialize() {
+        selectorMoneda.getChildren().add(MonedaVista.selector());
         dpDesde.setValue(LocalDate.now().minusDays(29)); dpHasta.setValue(LocalDate.now());
         cargarAnalisis();
     }
@@ -46,46 +52,32 @@ public class ReportePiezasController {
     }
     private void mostrar(Resumen r) {
         int seleccion=Math.max(0,reportes.getSelectionModel().getSelectedIndex());
-        lblIngresos.setText(Formatos.dinero(r.total().ingreso()));
-        lblGanancia.setText(Formatos.dinero(r.total().ganancia()));
-        lblDescuentos.setText(Formatos.dinero(r.total().descuento()));
+        lblIngresos.textProperty().bind(MonedaVista.importe(r.total().ingreso()));
+        lblGanancia.textProperty().bind(MonedaVista.importe(r.total().ganancia()));
+        lblDescuentos.textProperty().bind(MonedaVista.importe(r.total().descuento()));
         lblVentas.setText(Long.toString(r.total().ventas()));
         reportes.getTabs().setAll(
             grupo("Piezas", "Las 10 piezas más vendidas · unidades", r.piezas(), true),
             grupo("Días de semana", "Ventas por día de la semana", r.dias(), false),
             grupo("Horarios", "Ventas por franja de una hora", r.horas(), false),
-            grupo("Mejores clientes", "Clientes por monto comprado · C$", r.clientes(), false),
+            grupo("Mejores clientes", "Clientes por monto comprado", r.clientes(), false),
             grupo("Fechas", "Ventas por fecha", r.fechas(), false), rentabilidad(r.lineas()));
         reportes.getSelectionModel().select(Math.min(seleccion,reportes.getTabs().size()-1));
     }
     private Tab grupo(String nombre, String titulo, List<Grupo> grupos, boolean unidades) {
-        CategoryAxis x=new CategoryAxis(); NumberAxis y=new NumberAxis();
-        boolean clientes=nombre.equals("Mejores clientes");
-        BarChart<String,Number> grafico=new BarChart<>(x,y); grafico.setLegendVisible(false); grafico.setAnimated(false);
-        grafico.setTitle(titulo); grafico.setMinHeight(190); grafico.setPrefHeight(240);
-        x.setTickLabelRotation(nombre.equals("Horarios") ? -45 : 0);
-        y.setLabel(clientes ? "Monto comprado (C$)" : unidades ? "Unidades" : "Ventas");
-        XYChart.Series<String,Number> serie=new XYChart.Series<>();
-        List<Grupo> visibles=(nombre.equals("Piezas")||clientes) ? grupos.stream().limit(10).toList() : grupos;
-        if(nombre.equals("Fechas")) visibles=grupos.size()>31 ? grupos.subList(grupos.size()-31,grupos.size()) : grupos;
-        double max=1;
-        for(Grupo g:visibles) {
-            Number valor=clientes ? g.ingreso() : unidades ? g.unidades() : g.ventas();
-            max=Math.max(max,valor.doubleValue());
-            String etiqueta=nombre.equals("Horarios") ? g.nombre().substring(0,5) : g.nombre();
-            XYChart.Data<String,Number> dato=new XYChart.Data<>(etiqueta,valor);
-            dato.nodeProperty().addListener((o,a,n) -> { if(n!=null) Tooltip.install(n,new Tooltip(g.nombre()+": "+valor)); });
-            serie.getData().add(dato);
-        }
-        grafico.getData().add(serie);
-        if(!clientes) { double paso=Math.max(1,Math.ceil(max/6)); y.setAutoRanging(false); y.setLowerBound(0); y.setUpperBound((Math.ceil(max/paso)+1)*paso); y.setTickUnit(paso); y.setMinorTickVisible(false); }
+        boolean clientes = nombre.equals("Mejores clientes");
+        Node grafico = unidades || clientes
+                ? ranking(titulo, grupos.stream().limit(10).toList(), clientes)
+                : graficoVentas(nombre, titulo, grupos);
         TableView<Grupo> tabla=new TableView<>();
         columna(tabla,nombre.equals("Piezas")?"Pieza":clientes?"Cliente":nombre,Grupo::nombre,220);
         columna(tabla,"Ventas",Grupo::ventas,85); columna(tabla,"Unidades",Grupo::unidades,85);
-        columna(tabla,"Ingreso neto",g -> Formatos.dinero(g.ingreso()),130);
-        columna(tabla,"Descuentos",g -> Formatos.dinero(g.descuento()),125);
-        columna(tabla,"Ganancia bruta",g -> Formatos.dinero(g.ganancia()),145);
-        tabla.getItems().setAll(grupos); tabla.setMinHeight(150);
+        columnaMoneda(tabla,"Ingreso neto",Grupo::ingreso,130);
+        columnaMoneda(tabla,"Descuentos",Grupo::descuento,125);
+        columnaMoneda(tabla,"Ganancia bruta",Grupo::ganancia,145);
+        tabla.getItems().setAll(grupos);
+        tabla.setMinHeight(150);
+        tabla.setPrefHeight(150);
         Label nota=new Label(clientes ? "Ordenados por monto comprado; los empates se resuelven por número de compras."
             : nombre.equals("Fechas") ? "Gráfico: últimas 31 fechas con ventas. La tabla incluye todas las fechas del período."
             : "Se cuentan ventas distintas; varias piezas de una misma venta no duplican su frecuencia.");
@@ -94,16 +86,105 @@ public class ReportePiezasController {
         vista.getStyleClass().add("tab-contenido"); PresentacionTablas.aplicar(vista);
         return new Tab(nombre,vista);
     }
+    private Node ranking(String titulo, List<Grupo> grupos, boolean clientes) {
+        Label encabezado = new Label(titulo);
+        encabezado.getStyleClass().add("ranking-titulo");
+        VBox lista = new VBox(2);
+        lista.getStyleClass().add("ranking-lista");
+        double maximo = grupos.stream().mapToDouble(g -> clientes ? g.ingreso().doubleValue() : g.unidades())
+                .max().orElse(0);
+        for (Grupo grupo : grupos) {
+            Label nombre = new Label(grupo.nombre());
+            nombre.getStyleClass().add("ranking-nombre");
+            nombre.setMinWidth(145);
+            nombre.prefWidthProperty().bind(lista.widthProperty().multiply(0.28));
+            nombre.setTooltip(new Tooltip(grupo.nombre()));
+            double dato = clientes ? grupo.ingreso().doubleValue() : grupo.unidades();
+            double proporcion = maximo > 0 ? Math.max(0, dato / maximo) : 0;
+            Region relleno = new Region();
+            relleno.getStyleClass().add("ranking-relleno");
+            relleno.setMaxHeight(10);
+            StackPane pista = new StackPane(relleno);
+            pista.setAlignment(Pos.CENTER_LEFT);
+            pista.setMinSize(28, 10);
+            pista.setMaxHeight(10);
+            pista.getStyleClass().add("ranking-pista");
+            relleno.maxWidthProperty().bind(pista.widthProperty().multiply(proporcion));
+            HBox.setHgrow(pista, Priority.ALWAYS);
+
+            Label valor = new Label();
+            valor.getStyleClass().add("ranking-valor");
+            valor.setMinWidth(clientes ? 120 : 32);
+            valor.setAlignment(Pos.CENTER_RIGHT);
+            if (clientes) valor.textProperty().bind(MonedaVista.importe(grupo.ingreso()));
+            else valor.setText(Long.toString(grupo.unidades()));
+            HBox fila = new HBox(12, nombre, pista, valor);
+            fila.setAlignment(Pos.CENTER_LEFT);
+            fila.setMinHeight(20);
+            lista.getChildren().add(fila);
+        }
+        VBox panel = new VBox(8, encabezado);
+        panel.getStyleClass().add("ranking-panel");
+        if (grupos.isEmpty()) {
+            Label vacio = new Label("No hay datos para graficar en este período.");
+            vacio.getStyleClass().add("ayuda");
+            panel.getChildren().add(vacio);
+        } else {
+            ScrollPane scroll = new ScrollPane(lista);
+            scroll.setFitToWidth(true);
+            scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scroll.setPrefViewportHeight(grupos.size() * 22 + 5);
+            scroll.setMinHeight(84);
+            VBox.setVgrow(scroll, Priority.ALWAYS);
+            panel.getChildren().add(scroll);
+        }
+        return panel;
+    }
+
+    private Node graficoVentas(String nombre, String titulo, List<Grupo> grupos) {
+        CategoryAxis x = new CategoryAxis();
+        NumberAxis y = new NumberAxis();
+        BarChart<String, Number> grafico = new BarChart<>(x, y);
+        grafico.setLegendVisible(false);
+        grafico.setAnimated(false);
+        grafico.setTitle(titulo);
+        grafico.setMinHeight(190);
+        grafico.setPrefHeight(240);
+        x.setTickLabelRotation(nombre.equals("Horarios") || nombre.equals("Fechas") ? -45 : 0);
+        y.setLabel("Ventas");
+        XYChart.Series<String, Number> serie = new XYChart.Series<>();
+        List<Grupo> visibles = nombre.equals("Fechas") && grupos.size() > 31
+                ? grupos.subList(grupos.size() - 31, grupos.size()) : grupos;
+        double maximo = 1;
+        for (Grupo grupo : visibles) {
+            maximo = Math.max(maximo, grupo.ventas());
+            String etiqueta = nombre.equals("Horarios") ? grupo.nombre().substring(0, 5) : grupo.nombre();
+            XYChart.Data<String, Number> punto = new XYChart.Data<>(etiqueta, grupo.ventas());
+            punto.nodeProperty().addListener((o, anterior, nodo) -> {
+                if (nodo != null) Tooltip.install(nodo, new Tooltip(grupo.nombre() + ": " + grupo.ventas()));
+            });
+            serie.getData().add(punto);
+        }
+        grafico.getData().add(serie);
+        double paso = Math.max(1, Math.ceil(maximo / 6));
+        y.setAutoRanging(false);
+        y.setLowerBound(0);
+        y.setUpperBound((Math.ceil(maximo / paso) + 1) * paso);
+        y.setTickUnit(paso);
+        y.setMinorTickVisible(false);
+        return grafico;
+    }
+
     private Tab rentabilidad(List<LineaAnalisis> lineas) {
         TableView<LineaAnalisis> tabla=new TableView<>();
         columna(tabla,"Venta",LineaAnalisis::ventaId,65);
         columna(tabla,"Fecha y hora",l -> l.fecha().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),150);
         columna(tabla,"Cliente",LineaAnalisis::cliente,165); columna(tabla,"Pieza",LineaAnalisis::pieza,160);
         columna(tabla,"Cantidad",LineaAnalisis::cantidad,70);
-        columna(tabla,"Descuento total",l -> Formatos.dinero(l.descuentoTotal()),130);
-        columna(tabla,"Ingreso neto",l -> Formatos.dinero(l.ingreso()),130);
-        columna(tabla,"Costo histórico",l -> Formatos.dinero(l.costoTotal()),130);
-        columna(tabla,"Ganancia bruta",l -> Formatos.dinero(l.ganancia()),130);
+        columnaMoneda(tabla,"Descuento total",LineaAnalisis::descuentoTotal,130);
+        columnaMoneda(tabla,"Ingreso neto",LineaAnalisis::ingreso,130);
+        columnaMoneda(tabla,"Costo histórico",LineaAnalisis::costoTotal,130);
+        columnaMoneda(tabla,"Ganancia bruta",LineaAnalisis::ganancia,130);
         columna(tabla,"Margen %",l -> AnalisisService.margen(l.ganancia(),l.ingreso())+" %",90);
         columna(tabla,"Resultado",l -> l.ganancia().signum()>0 ? "Con ganancia" : l.ganancia().signum()==0 ? "Sin ganancia" : "Pérdida",120);
         CheckBox solo=new CheckBox("Mostrar únicamente líneas con descuento");
@@ -118,6 +199,14 @@ public class ReportePiezasController {
         TableColumn<T,Object> c=new TableColumn<>(titulo);
         c.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(valor.apply(f.getValue())));
         c.setPrefWidth(ancho); tabla.getColumns().add(c);
+    }
+
+    private <T> void columnaMoneda(TableView<T> tabla, String titulo, Function<T, BigDecimal> valor, double ancho) {
+        TableColumn<T, BigDecimal> columna = new TableColumn<>(titulo);
+        columna.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(valor.apply(f.getValue())));
+        columna.setPrefWidth(ancho);
+        columna.getStyleClass().add("importe");
+        tabla.getColumns().add(columna);
     }
 
     // ---------- reportes: usan el período elegido arriba (vacío = todo el historial) ----------

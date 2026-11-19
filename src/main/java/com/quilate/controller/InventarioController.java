@@ -243,7 +243,7 @@ public class InventarioController implements Initializable {
             @Override
             protected void updateItem(Double valor, boolean vacia) {
                 super.updateItem(valor, vacia);
-                setText(vacia || valor == null ? null : Formatos.dinero(BigDecimal.valueOf(valor)));
+                setText(vacia || valor == null ? null : com.quilate.ui.MonedaVista.formatear(BigDecimal.valueOf(valor)));
             }
         };
     }

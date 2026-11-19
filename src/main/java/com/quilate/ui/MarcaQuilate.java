@@ -1,43 +1,38 @@
 package com.quilate.ui;
 
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.FillRule;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.transform.Scale;
 
-/** Marca ficticia de Joyería Quilate: monograma Q sobre un círculo marfil. */
-public final class MarcaQuilate {
-    private MarcaQuilate() { }
-
-    public static Node crear(double tamano) {
-        Circle fondo = new Circle(50, 50, 50, Color.web("#E8E2DC"));
-        Color tono = Color.web("#BA9A90");
-
-        SVGPath aro = new SVGPath();
-        aro.setFillRule(FillRule.EVEN_ODD);
-        aro.setContent("M50 22 A24 24 0 1 0 50.01 22 Z "
-                + "M50 30 A16 16 0 1 1 49.99 30 Z");
-        aro.setFill(tono);
-
-        SVGPath cola = new SVGPath();
-        cola.setContent("M52 63 L56 57 L80 72 L76 78 Z");
-        cola.setFill(tono);
-
-        Group logo = new Group(fondo, aro, cola);
-        logo.getTransforms().add(new Scale(tamano / 100, tamano / 100));
-        Group resultado = new Group(logo);
-        resultado.setAccessibleText("Joyería Quilate, monograma Q");
-        return resultado;
+/** Sello de Quilate: una gema facetada sobre esmeralda con un filo dorado. */
+public final class MarcaQuilate extends Group {
+    public MarcaQuilate() {
+        this(44);
     }
 
-    public static Image imagen(int tamano) {
+    public MarcaQuilate(double pixels) {
+        Color oro = Color.web("#E8CB87");
+        Circle sello = new Circle(32, 32, 30.5, Color.web("#173C32"));
+        sello.setStroke(oro);
+        sello.setStrokeWidth(1.5);
+        SVGPath gema = new SVGPath();
+        gema.setContent("M12 27 L22 17 H42 L52 27 L32 48 Z M12 27 H52 M22 17 L25 27 L32 48 L39 27 L42 17 M25 27 L32 17 L39 27");
+        gema.setFill(Color.TRANSPARENT);
+        gema.setStroke(oro);
+        gema.setStrokeWidth(1.65);
+        Group figura = new Group(sello, gema);
+        figura.getTransforms().add(new Scale(pixels / 64, pixels / 64));
+        getChildren().add(figura);
+        setMouseTransparent(true);
+    }
+
+    public static Image imagen(double pixels) {
         SnapshotParameters parametros = new SnapshotParameters();
         parametros.setFill(Color.TRANSPARENT);
-        return crear(tamano).snapshot(parametros, null);
+        return new MarcaQuilate(pixels).snapshot(parametros, null);
     }
 }

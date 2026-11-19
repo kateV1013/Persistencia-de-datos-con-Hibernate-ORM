@@ -31,6 +31,7 @@ public class MainController {
             DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es"));
 
     @FXML private Label lblFecha;
+    @FXML private javafx.scene.layout.StackPane selectorMoneda;
     @FXML private VBox contenedorSecciones;
     @FXML private Circle indicadorConexion;
     @FXML private Label lblEstado;
@@ -40,6 +41,7 @@ public class MainController {
         String fecha = LocalDate.now().format(FORMATO_FECHA);
         lblFecha.setText(Character.toUpperCase(fecha.charAt(0)) + fecha.substring(1));
 
+        selectorMoneda.getChildren().add(com.quilate.ui.MonedaVista.selector());
         construirMenu();
         verificarConexion();
     }

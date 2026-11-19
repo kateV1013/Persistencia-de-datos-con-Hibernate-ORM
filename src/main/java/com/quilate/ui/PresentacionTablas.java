@@ -1,6 +1,5 @@
 package com.quilate.ui;
 
-import com.quilate.util.Formatos;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -41,6 +40,7 @@ public final class PresentacionTablas {
                 columna.setMinWidth(minimo);
                 columna.setPrefWidth(Math.max(minimo, columna.getPrefWidth()));
                 configurar(columna);
+                registrarMoneda(tabla, columna);
             }
             // En ventanas pequeñas se permite desplazamiento horizontal; ninguna columna se reduce a cero.
             tabla.widthProperty().addListener((o, a, b) -> ajustarAncho(tabla));
@@ -58,9 +58,21 @@ public final class PresentacionTablas {
                 ? TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN
                 : TableView.UNCONSTRAINED_RESIZE_POLICY);
     }
+    private static boolean esImporte(TableColumn<?, ?> columna) {
+        String nombre = columna.getText().toLowerCase(Locale.ROOT);
+        return columna.getStyleClass().contains("importe") || nombre.contains("precio")
+                || nombre.contains("costo") || nombre.contains("total") || nombre.contains("descuento");
+    }
+
+    private static void registrarMoneda(TableView<?> tabla, TableColumn<?, ?> columna) {
+        if (esImporte(columna) && tabla.getProperties().putIfAbsent("quilate-moneda", true) == null) {
+            MonedaVista.observar(tabla, tabla::refresh);
+        }
+    }
+
     private static <S,T> void configurar(TableColumn<S,T> columna) {
         String nombre = columna.getText().toLowerCase(Locale.ROOT);
-        boolean dinero = nombre.contains("precio") || nombre.contains("costo") || nombre.contains("total") || nombre.contains("descuento");
+        boolean dinero = esImporte(columna);
         boolean estado = nombre.equals("estado");
         boolean fecha = nombre.contains("fecha");
         if (dinero) { columna.setMinWidth(110); columna.setPrefWidth(Math.max(110, columna.getPrefWidth())); }
@@ -73,7 +85,7 @@ public final class PresentacionTablas {
                 if (vacia || valor == null) return;
                 if (dinero && valor instanceof Number numero) {
                     setAlignment(Pos.CENTER_RIGHT);
-                    setText(Formatos.dinero(new BigDecimal(numero.toString())));
+                    setText(MonedaVista.formatear(new BigDecimal(numero.toString())));
                 } else if (estado) {
                     String codigo = valor.toString().toUpperCase(Locale.ROOT);
                     Label insignia = new Label(codigo.substring(0, 1) + codigo.substring(1).toLowerCase(Locale.ROOT).replace('_', ' '));

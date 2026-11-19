@@ -2,10 +2,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
+<?import com.quilate.ui.MarcaQuilate?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:id="raiz" fx:controller="com.quilate.controller.MainController" styleClass="menu-principal">
     <left>
         <VBox fx:id="lateral" styleClass="lateral" prefWidth="224" minWidth="224">
             <HBox spacing="12" alignment="CENTER_LEFT">
+                <MarcaQuilate/>
                 <VBox spacing="1">
                     <Label text="Quilate" styleClass="marca"/>
                     <Label text="GESTIÓN DE JOYERÍA" styleClass="marca-detalle"/>
@@ -26,9 +28,10 @@
                         <Label text="Vista general" styleClass="page-title"/>
                     </VBox>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <VBox spacing="5" alignment="CENTER_RIGHT">
+                    <HBox spacing="14" alignment="CENTER_RIGHT">
                         <Label fx:id="lblFecha" styleClass="fecha"/>
-                    </VBox>
+                        <StackPane fx:id="selectorMoneda"/>
+                    </HBox>
                 </HBox>
             </top>
             <center>

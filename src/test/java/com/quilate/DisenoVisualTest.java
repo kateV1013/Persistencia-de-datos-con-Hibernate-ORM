@@ -104,6 +104,32 @@ class DisenoVisualTest {
                 if (modulo == Modulo.REPORTE_PIEZAS) {
                     fx(() -> { assertEquals(LocalDate.now().minusDays(29),((DatePicker)ventana.getScene().lookup("#dpDesde")).getValue()); assertEquals(LocalDate.now(),((DatePicker)ventana.getScene().lookup("#dpHasta")).getValue()); return null; });
                     fx(() -> { DatePicker fecha=(DatePicker)ventana.getScene().lookup("#dpDesde"); assertEquals("15/11/2026",fecha.getConverter().toString(LocalDate.of(2026,11,15))); assertThrows(java.time.format.DateTimeParseException.class,()->fecha.getConverter().fromString("31/02/2026")); return null; });
+                    esperar(() -> ventana.getScene().lookup(".ranking-relleno") != null);
+                    fx(() -> {
+                        var escena = ventana.getScene();
+                        var menu = (MenuButton) escena.lookup(".selector-moneda");
+                        var ingresos = (Label) escena.lookup("#lblIngresos");
+                        assertTrue(ingresos.getText().startsWith("C$ "));
+                        String cordobas = ingresos.getText();
+                        var barra = escena.lookup(".ranking-relleno");
+                        assertTrue(barra.getLayoutBounds().getWidth() > 0);
+                        var piezas = ((TabPane) escena.lookup("#reportes")).getTabs().getFirst().getContent();
+                        assertEquals(10, piezas.lookupAll(".ranking-nombre").size());
+                        var lista = (javafx.scene.layout.VBox) piezas.lookup(".ranking-lista");
+                        var desplazamiento = (ScrollPane) piezas.lookup(".ranking-panel .scroll-pane");
+                        assertTrue(escena.getHeight() < 820 || desplazamiento.getViewportBounds().getHeight() >= lista.getHeight() - 1,
+                                "El ranking completo debe caber en una ventana de escritorio");
+                        try {
+                            menu.getItems().get(1).fire();
+                            var base = com.quilate.util.Formatos.leerDinero(cordobas, "ingresos");
+                            var usd = base.divide(new BigDecimal("36.6243"), 2, java.math.RoundingMode.HALF_UP);
+                            assertEquals(usd, new BigDecimal(ingresos.getText().substring(4).replace(",", "")));
+                        } finally {
+                            menu.getItems().get(0).fire();
+                        }
+                        assertEquals(cordobas, ingresos.getText());
+                        return null;
+                    });
                     for (int t=0;t<6;t++) {
                         int indice=t;
                         fx(() -> { TabPane tabs=(TabPane)ventana.getScene().lookup("#reportes"); assertEquals(6,tabs.getTabs().size()); tabs.getSelectionModel().select(indice); return null; });
@@ -224,6 +250,13 @@ class DisenoVisualTest {
                 em.persist(new Pieza("QL-00"+(i+1), nombres[i], 900.0+i*200, 1800.0+i*350, 8+i*2, categoria));
                 em.persist(new Cliente(clientes[i], apellidos[i], "8888000"+i, "cliente"+i+"@example.com"));
             }
+            String[] modelos = {"Argolla Horizonte - Unisex / talla 6",
+                    "Pulsera Estrella - Mujer / 17 cm", "Anillo Sello - Hombre / talla 8",
+                    "Dije Cruz - Hombre / 18 mm", "Collar Brisa - Mujer / 45 cm",
+                    "Aretes Destello - Mujer / medianos"};
+            for (int i = 0; i < modelos.length; i++) {
+                em.persist(new Pieza("QL-10" + i, modelos[i], 850.0, 1700.0, 10, categoria));
+            }
             em.persist(new TipoServicio("Grabado personalizado", "Iniciales y fechas especiales", new BigDecimal("300")));
             em.persist(new TipoServicio("Ajuste de talla", "Ajuste de anillos", new BigDecimal("450")));
             em.persist(new TipoServicio("Limpieza y pulido", "Cuidado y restauración", new BigDecimal("250")));
@@ -237,6 +270,10 @@ class DisenoVisualTest {
                 int dias=(int)i; Transaccion.ejecutar(em -> { em.find(Venta.class,venta.getId()).setFechaHora(LocalDate.now().minusDays(dias).atTime(dias%2==0?16:10,15)); return null; });
             }
         }
+        var detallesRanking = java.util.stream.LongStream.rangeClosed(7, 12)
+                .mapToObj(id -> new SolicitudDetalleVenta(id, (int) (id % 4) + 1, BigDecimal.ZERO)).toList();
+        Venta ventaRanking = ventas.crearEnPreparacion(1L, detallesRanking);
+        ventas.confirmar(ventaRanking.getId());
         new com.quilate.dao.ApartadoDAO().crear(2L, 6L, 1);
         Cliente cliente = new com.quilate.dao.ClienteDAO().listar().get(0);
         TipoServicio servicio = new TipoServicioService().listar().stream().filter(t -> t.getNombre().contains("Grabado")).findFirst().orElseThrow();

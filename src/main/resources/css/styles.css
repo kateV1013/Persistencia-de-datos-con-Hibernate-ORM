@@ -167,3 +167,31 @@
 .atelier-preview { -fx-padding: 20; -fx-background-color: #FCFAF3; -fx-background-radius: 16; -fx-border-color: #E7DFCD; -fx-border-radius: 16; }
 .atelier-title { -fx-font-family: "Serif"; -fx-font-size: 28; -fx-text-fill: #234B3B; }
 .mensaje-error { -fx-text-fill: #A43F42; -fx-font-size: 11; }
+
+
+/* Moneda de consulta y barras horizontales del análisis. */
+.selector-moneda {
+    -fx-background-color: #E9EFE6;
+    -fx-border-color: #D7E1D5;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 3 6;
+}
+.selector-moneda > .label { -fx-text-fill: #234B3B; -fx-font-weight: bold; }
+.ranking-panel {
+    -fx-background-color: #FFFDF9;
+    -fx-background-radius: 14;
+    -fx-border-color: #DCE5DA;
+    -fx-border-radius: 14;
+    -fx-padding: 12 16 10 16;
+}
+.ranking-titulo { -fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #173C32; }
+.ranking-panel .scroll-pane, .ranking-panel .scroll-pane > .viewport { -fx-background-color: transparent; }
+.ranking-lista { -fx-padding: 2 5 2 0; }
+.ranking-nombre { -fx-font-size: 11; -fx-text-fill: #304D40; }
+.ranking-valor { -fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #173C32; }
+.ranking-pista { -fx-background-color: #E8EEE5; -fx-background-radius: 8; }
+.ranking-relleno {
+    -fx-background-color: linear-gradient(to right, #226046, #398061);
+    -fx-background-radius: 8;
+}

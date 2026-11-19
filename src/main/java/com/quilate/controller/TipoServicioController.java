@@ -37,7 +37,7 @@ public class TipoServicioController {
     private void initialize() {
         colNombre.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNombre()));
         colDescripcion.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDescripcion()));
-        colPrecio.setCellValueFactory(c -> new SimpleStringProperty(Formatos.dinero(c.getValue().getPrecioBase())));
+        colPrecio.setCellValueFactory(c -> com.quilate.ui.MonedaVista.importe(c.getValue().getPrecioBase()));
         tabla.setPlaceholder(new Label("No hay servicios registrados"));
 
         tabla.getSelectionModel().selectedItemProperty().addListener((obs, anterior, tipo) -> {

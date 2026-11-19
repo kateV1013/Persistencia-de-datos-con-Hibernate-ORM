@@ -83,7 +83,7 @@ public class PedidoController {
         colServicio.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTipoServicio().getNombre()));
         colDescripcion.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDescripcionTrabajo()));
         colFecha.setCellValueFactory(c -> new SimpleStringProperty(Formatos.fecha(c.getValue().getFechaProgramada())));
-        colPrecio.setCellValueFactory(c -> new SimpleStringProperty(Formatos.dinero(c.getValue().getPrecio())));
+        colPrecio.setCellValueFactory(c -> com.quilate.ui.MonedaVista.importe(c.getValue().getPrecio()));
         colEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getEstado().toString()));
         tabla.setPlaceholder(new Label("No hay pedidos registrados"));
 
