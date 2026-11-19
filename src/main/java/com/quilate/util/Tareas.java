@@ -44,8 +44,24 @@ public final class Tareas {
         }
     }
 
+    /** true si el error viene de no poder conectarse a PostgreSQL (apagado, puerto o host incorrectos). */
+    static boolean esFallaDeConexion(Throwable e) {
+        for (Throwable c = e; c != null; c = c.getCause() == c ? null : c.getCause()) {
+            String nombre = c.getClass().getName();
+            String mensaje = String.valueOf(c.getMessage());
+            if (c instanceof java.net.ConnectException || nombre.endsWith("JDBCConnectionException")
+                    || mensaje.contains("Connection refused") || mensaje.contains("connection attempt failed")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Mensaje corto para mostrar en una etiqueta cuando falla la carga inicial. */
     public static String mensajeCorto(Throwable e) {
+        if (esFallaDeConexion(e)) {
+            return "No hay conexión con la base de datos. Revisa que PostgreSQL esté encendido y pulsa Actualizar.";
+        }
         Throwable causa = e;
         while (causa.getCause() != null && causa.getCause() != causa) {
             causa = causa.getCause();

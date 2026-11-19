@@ -673,4 +673,9 @@ public class InventarioController implements Initializable {
         try { com.quilate.ui.EtiquetaBarras.abrir(tablaPiezas.getScene().getWindow(),pieza); }
         catch(RuntimeException e) { mostrarError(e.getMessage()); }
     }
+
+    @FXML
+    public void onReporteCodigos() {
+        ReporteUtil.mostrarReporte("/reportes/inventario_codigos.jrxml", Map.of(), "Códigos de barras");
+    }
 }

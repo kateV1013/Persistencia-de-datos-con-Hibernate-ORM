@@ -72,4 +72,8 @@ public class ApartadosController {
     @FXML private void reportePorEstado() {
         com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/apartados_por_estado.jrxml", "Apartados por estado", true);
     }
+
+    @FXML private void reporteConvertidos() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/apartados_convertidos.jrxml", "Apartados convertidos en venta", true);
+    }
 }
