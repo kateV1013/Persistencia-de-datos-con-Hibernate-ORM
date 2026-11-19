@@ -363,7 +363,7 @@ public class VentaController {
         try {
             BigDecimal maximo = CalculadoraVenta.calcularDescuentoMaximo(
                     BigDecimal.valueOf(pieza.getPrecioVenta()), BigDecimal.valueOf(pieza.getCosto()));
-            lblDescuentoMaximo.setText("Descuento máximo por unidad: C$ " + maximo);
+            lblDescuentoMaximo.setText("Descuento máximo por unidad: " + com.quilate.ui.MonedaVista.formatear(maximo));
         } catch (RuntimeException e) {
             lblDescuentoMaximo.setText(e.getMessage());
         }
