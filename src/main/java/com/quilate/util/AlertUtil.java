@@ -23,12 +23,7 @@ public final class AlertUtil {
     }
 
     public static void error(Throwable e) {
-        Throwable causa = e;
-        while (causa.getCause() != null && causa.getCause() != causa) {
-            causa = causa.getCause();
-        }
-        String detalle = causa.getMessage() != null ? causa.getMessage() : causa.getClass().getSimpleName();
-        mostrar(Alert.AlertType.ERROR, "Error", detalle);
+        mostrar(Alert.AlertType.ERROR, "Error", Tareas.mensajeCorto(e));
     }
 
     public static boolean confirmar(String mensaje) {

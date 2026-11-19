@@ -7,6 +7,11 @@
         <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
         <property name="hibernate.hbm2ddl.auto">validate</property>
         <property name="hibernate.show_sql">false</property>
+        <!-- Pool HikariCP: reutiliza conexiones y valida que sigan vivas -->
+        <property name="hibernate.connection.provider_class">org.hibernate.hikaricp.internal.HikariCPConnectionProvider</property>
+        <property name="hibernate.hikari.poolName">quilate</property>
+        <property name="hibernate.hikari.maximumPoolSize">5</property>
+        <property name="hibernate.hikari.minimumIdle">1</property>
         <mapping class="com.quilate.model.Categoria"/>
         <mapping class="com.quilate.model.Pieza"/>
         <mapping class="com.quilate.model.Cliente"/>
