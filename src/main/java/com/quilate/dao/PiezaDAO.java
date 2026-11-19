@@ -1,0 +1,532 @@
+package com.quilate.dao;
+
+import com.quilate.exception.EntidadConDependenciasException;
+import com.quilate.model.Categoria;
+import com.quilate.model.Pieza;
+import com.quilate.util.JPAUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.TypedQuery;
+import org.hibernate.exception.ConstraintViolationException;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * DAO (Data Access Object) para la entidad {@link Pieza}.
+ *
+ * <p>Maneja todas las operaciones de persistencia de piezas usando
+ * la API de {@link EntityManager} y transacciones manuales.</p>
+ *
+ * <p><b>Reglas de negocio:</b>
+ * <ul>
+ *   <li>El {@code codigoBarras} debe ser único.</li>
+ *   <li>Las existencias no pueden ser negativas.</li>
+ *   <li>No se puede eliminar una pieza que esté referenciada en otras tablas
+ *       (p. ej. DetalleVenta – Integrante 3, Apartado – Integrante 2).
+ *       La violación de FK se captura y convierte en
+ *       {@link EntidadConDependenciasException}.</li>
+ * </ul>
+ * </p>
+ */
+public class PiezaDAO {
+
+    /** Letras sin tilde, números y guion: lo que imprime la etiqueta y lee el escáner. */
+    private static final java.util.regex.Pattern CODIGO = java.util.regex.Pattern.compile("^[A-Za-z0-9-]{1,50}$");
+    public static final double IMPORTE_MAXIMO = 10_000_000;
+    public static final int EXISTENCIAS_MAXIMAS = 100_000;
+
+    private static final Logger LOG = Logger.getLogger(PiezaDAO.class.getName());
+
+    // ──────────────────────────────────────────────────────────────────────
+    //  CREATE
+    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * Persiste una nueva {@link Pieza} en la base de datos.
+     *
+     * @param pieza la pieza a guardar (sin ID aún)
+     * @return la pieza con su ID asignado por la BD
+     * @throws IllegalArgumentException si el código de barras ya existe
+     *                                  o las existencias son negativas
+     */
+    public Pieza guardar(Pieza pieza) {
+        validarPieza(pieza);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+
+            // Si la categoría viene detached, la volvemos a adjuntar
+            Categoria categoriaManaged = em.find(Categoria.class, pieza.getCategoria().getId());
+            if (categoriaManaged == null) {
+                throw new IllegalArgumentException(
+                        "La categoría indicada no existe en la BD.");
+            }
+            pieza.setCategoria(categoriaManaged);
+
+            em.persist(pieza);
+            tx.commit();
+            LOG.info("Pieza guardada: " + pieza.getCodigoBarras());
+            return pieza;
+
+        } catch (IllegalArgumentException e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            if (esDuplicado(e)) {
+                throw new IllegalArgumentException(
+                        "Ya existe una pieza con el código de barras: " + pieza.getCodigoBarras(), e);
+            }
+            LOG.log(Level.SEVERE, "Error al guardar pieza", e);
+            throw new RuntimeException("Error al guardar la pieza.", e);
+
+        } finally {
+            em.close();
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    //  READ
+    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * Busca una pieza por su ID.
+     *
+     * @param id identificador de la pieza
+     * @return {@link Optional} con la pieza, o vacío si no existe
+     */
+    public Optional<Pieza> buscarPorId(Long id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            // JOIN FETCH para cargar la categoría en la misma consulta
+            TypedQuery<Pieza> q = em.createQuery(
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria WHERE p.id = :id",
+                    Pieza.class);
+            q.setParameter("id", id);
+            Pieza pieza = q.getSingleResult();
+            return Optional.of(pieza);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Busca una pieza por su código de barras exacto.
+     * <p>Este método es el punto de entrada del lector físico de barras.</p>
+     *
+     * @param codigoBarras código escaneado por el lector
+     * @return {@link Optional} con la pieza, o vacío si no existe
+     */
+    public Optional<Pieza> buscarPorCodigoBarras(String codigoBarras) {
+        if (codigoBarras == null || codigoBarras.isBlank()) {
+            return Optional.empty();
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Pieza> q = em.createQuery(
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria " +
+                    "WHERE p.codigoBarras = :codigo",
+                    Pieza.class);
+            q.setParameter("codigo", codigoBarras.trim());
+            Pieza pieza = q.getSingleResult();
+            return Optional.of(pieza);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Retorna todas las piezas ordenadas por nombre, con su categoría cargada.
+     *
+     * @return lista de piezas (puede ser vacía, nunca null)
+     */
+    public List<Pieza> listarTodas() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria ORDER BY p.nombre",
+                    Pieza.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lista todas las piezas de una categoría específica.
+     *
+     * @param categoriaId ID de la categoría
+     * @return lista de piezas de esa categoría
+     */
+    public List<Pieza> listarPorCategoria(Long categoriaId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Pieza> q = em.createQuery(
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria c " +
+                    "WHERE c.id = :catId ORDER BY p.nombre",
+                    Pieza.class);
+            q.setParameter("catId", categoriaId);
+            return q.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Busca piezas cuyo nombre contenga el texto dado (búsqueda parcial, case-insensitive).
+     *
+     * @param textoBusqueda fragmento del nombre a buscar
+     * @return lista de piezas que coinciden
+     */
+    public List<Pieza> buscarPorNombre(String textoBusqueda) {
+        if (textoBusqueda == null || textoBusqueda.isBlank()) {
+            return listarTodas();
+        }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Pieza> q = em.createQuery(
+                    "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria " +
+                    "WHERE LOWER(p.nombre) LIKE LOWER(:texto) ORDER BY p.nombre",
+                    Pieza.class);
+            q.setParameter("texto", "%" + textoBusqueda.trim() + "%");
+            return q.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Verifica si ya existe una pieza con el código de barras dado.
+     * Útil para validación en el controlador antes de intentar guardar.
+     *
+     * @param codigoBarras código a verificar
+     * @param idExcluir    ID de la pieza actual (para edición), null si es alta nueva
+     * @return {@code true} si el código ya está en uso por otra pieza
+     */
+    public boolean existeCodigoBarras(String codigoBarras, Long idExcluir) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql = (idExcluir == null)
+                    ? "SELECT COUNT(p) FROM Pieza p WHERE p.codigoBarras = :codigo"
+                    : "SELECT COUNT(p) FROM Pieza p WHERE p.codigoBarras = :codigo AND p.id <> :excluir";
+
+            var query = em.createQuery(jpql, Long.class)
+                    .setParameter("codigo", codigoBarras);
+            if (idExcluir != null) {
+                query.setParameter("excluir", idExcluir);
+            }
+            return query.getSingleResult() > 0;
+        } finally {
+            em.close();
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    //  UPDATE
+    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * Actualiza los datos de una pieza existente, existencias incluidas.
+     * Desde un formulario usa {@link #actualizarDatos(Pieza, int)}: este método
+     * escribe las existencias que traiga el objeto aunque ya estén desfasadas.
+     *
+     * @param pieza pieza con los datos modificados (debe tener ID)
+     * @return la pieza actualizada y gestionada
+     */
+    public Pieza actualizar(Pieza pieza) {
+        validarPieza(pieza);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+            Pieza actualizada = em.merge(pieza);
+            tx.commit();
+            LOG.info("Pieza actualizada: ID=" + pieza.getId());
+            return actualizada;
+
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            if (esDuplicado(e)) {
+                throw new IllegalArgumentException(
+                        "Ya existe una pieza con el código de barras: " + pieza.getCodigoBarras(), e);
+            }
+            LOG.log(Level.SEVERE, "Error al actualizar pieza", e);
+            throw new RuntimeException("Error al actualizar la pieza.", e);
+
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Actualiza una pieza desde un formulario sin pisar las existencias que
+     * otra ventana (ventas, apartados) haya cambiado mientras tanto.
+     *
+     * <p>Los datos descriptivos se copian sobre la pieza tal como está hoy en
+     * la BD. Las existencias no se escriben como valor absoluto: se aplica solo
+     * la diferencia entre lo que el usuario veía y lo que dejó escrito. Si no
+     * tocó el campo, las existencias de la BD quedan intactas.
+     *
+     * @param datos             pieza con los datos del formulario (debe tener ID)
+     * @param existenciasVistas existencias que mostraba el formulario al cargarse
+     * @return la pieza actualizada
+     */
+    public Pieza actualizarDatos(Pieza datos, int existenciasVistas) {
+        validarPieza(datos);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+            Pieza actual = em.find(Pieza.class, datos.getId(), LockModeType.PESSIMISTIC_WRITE);
+            if (actual == null) {
+                throw new IllegalArgumentException("La pieza ya no existe. Pulsa Actualizar.");
+            }
+            Categoria categoria = em.find(Categoria.class, datos.getCategoria().getId());
+            if (categoria == null) {
+                throw new IllegalArgumentException("La categoría indicada no existe en la BD.");
+            }
+
+            int ajuste = datos.getExistencias() - existenciasVistas;
+            int nuevasExistencias = actual.getExistencias() + ajuste;
+            if (nuevasExistencias < 0) {
+                throw new IllegalArgumentException(
+                        "Las existencias cambiaron mientras editabas: ahora hay "
+                                + actual.getExistencias() + ". Pulsa Actualizar y vuelve a intentarlo.");
+            }
+
+            actual.setCodigoBarras(datos.getCodigoBarras());
+            actual.setNombre(datos.getNombre());
+            actual.setCosto(datos.getCosto());
+            actual.setPrecioVenta(datos.getPrecioVenta());
+            actual.setMaterial(datos.getMaterial());
+            actual.setQuilates(datos.getQuilates());
+            actual.setPesoGramos(datos.getPesoGramos());
+            actual.setCategoria(categoria);
+            actual.setExistencias(nuevasExistencias);
+
+            tx.commit();
+            LOG.info("Pieza actualizada: ID=" + actual.getId());
+            return actual;
+
+        } catch (IllegalArgumentException e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            if (esDuplicado(e)) {
+                throw new IllegalArgumentException(
+                        "Ya existe una pieza con el código de barras: " + datos.getCodigoBarras(), e);
+            }
+            LOG.log(Level.SEVERE, "Error al actualizar pieza", e);
+            throw new RuntimeException("Error al actualizar la pieza.", e);
+
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Actualiza únicamente las existencias de una pieza.
+     * Útil para ajustes de inventario rápidos.
+     *
+     * @param id           ID de la pieza
+     * @param nuevasExistencias nuevo valor de existencias (>= 0)
+     */
+    public void actualizarExistencias(Long id, int nuevasExistencias) {
+        if (nuevasExistencias < 0) {
+            throw new IllegalArgumentException("Las existencias no pueden ser negativas.");
+        }
+        if (nuevasExistencias > EXISTENCIAS_MAXIMAS) {
+            throw new IllegalArgumentException("Las existencias no pueden pasar de 100,000 unidades.");
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+            int filas = em.createQuery(
+                    "UPDATE Pieza p SET p.existencias = :exist WHERE p.id = :id")
+                    .setParameter("exist", nuevasExistencias)
+                    .setParameter("id", id)
+                    .executeUpdate();
+            if (filas == 0) {
+                throw new IllegalArgumentException("No se encontró pieza con ID: " + id);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    //  DELETE
+    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * Elimina una pieza por ID.
+     *
+     * <p><b>Regla de negocio:</b> No se puede eliminar si la pieza está
+     * referenciada en otras tablas (p. ej. DetalleVenta, Apartado).
+     * La violación de FK se convierte en {@link EntidadConDependenciasException}.</p>
+     *
+     * <p>Se verifican ventas y apartados antes del borrado; las claves foráneas
+     * de la base de datos actúan como segunda línea de defensa.</p>
+     *
+     * @param id ID de la pieza a eliminar
+     * @throws EntidadConDependenciasException si la pieza tiene registros dependientes
+     * @throws IllegalArgumentException        si no existe la pieza
+     */
+    public void eliminar(Long id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+
+        try {
+            tx.begin();
+
+            Pieza pieza = em.find(Pieza.class, id);
+            if (pieza == null) {
+                throw new IllegalArgumentException("No se encontró la pieza con ID: " + id);
+            }
+
+            long apartados = em.createQuery(
+                    "select count(a) from Apartado a where a.pieza.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult();
+            long detalles = em.createQuery(
+                    "select count(d) from DetalleVenta d where d.pieza.id = :id", Long.class)
+                    .setParameter("id", id).getSingleResult();
+            if (apartados + detalles > 0) {
+                throw new EntidadConDependenciasException(
+                        "No se puede eliminar la pieza porque tiene ventas o apartados asociados.");
+            }
+
+            em.remove(pieza);
+            tx.commit();
+            LOG.info("Pieza eliminada: ID=" + id + ", código=" + pieza.getCodigoBarras());
+
+        } catch (EntidadConDependenciasException | IllegalArgumentException e) {
+            if (tx.isActive()) tx.rollback();
+            throw e;
+
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
+            // La FK de BD rechazó el DELETE (segunda línea de defensa)
+            if (esFKViolation(e)) {
+                throw new EntidadConDependenciasException(
+                        "No se puede eliminar la pieza porque está referenciada " +
+                        "en ventas, apartados u otros registros.", e);
+            }
+            LOG.log(Level.SEVERE, "Error al eliminar pieza ID=" + id, e);
+            throw new RuntimeException("Error al eliminar la pieza.", e);
+
+        } finally {
+            em.close();
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    //  Helpers privados
+    // ──────────────────────────────────────────────────────────────────────
+
+    private void validarPieza(Pieza pieza) {
+        // Importes en córdobas con 2 decimales, como se muestran en pantalla y en los reportes.
+        if (pieza.getCosto() != null && Double.isFinite(pieza.getCosto())) {
+            pieza.setCosto(Math.round(pieza.getCosto() * 100) / 100.0);
+        }
+        if (pieza.getPrecioVenta() != null && Double.isFinite(pieza.getPrecioVenta())) {
+            pieza.setPrecioVenta(Math.round(pieza.getPrecioVenta() * 100) / 100.0);
+        }
+        if (pieza.getCodigoBarras() == null || pieza.getCodigoBarras().isBlank()) {
+            throw new IllegalArgumentException("El código de barras es obligatorio.");
+        }
+        if (!CODIGO.matcher(pieza.getCodigoBarras().trim()).matches()) {
+            throw new IllegalArgumentException("El código de barras admite hasta 50 caracteres: "
+                    + "letras sin tilde, números y guion (por ejemplo QL-001).");
+        }
+        if (pieza.getNombre() == null || pieza.getNombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre de la pieza es obligatorio.");
+        }
+        if (pieza.getNombre().trim().length() > 200) {
+            throw new IllegalArgumentException("El nombre de la pieza admite como máximo 200 caracteres.");
+        }
+        if (pieza.getCosto() == null || !Double.isFinite(pieza.getCosto()) || pieza.getCosto() < 0) {
+            throw new IllegalArgumentException("El costo debe ser un valor no negativo.");
+        }
+        if (pieza.getPrecioVenta() == null || !Double.isFinite(pieza.getPrecioVenta()) || pieza.getPrecioVenta() < 0) {
+            throw new IllegalArgumentException("El precio de venta debe ser un valor no negativo.");
+        }
+        if (pieza.getCosto() > IMPORTE_MAXIMO || pieza.getPrecioVenta() > IMPORTE_MAXIMO) {
+            throw new IllegalArgumentException("El costo y el precio no pueden pasar de C$ 10,000,000.");
+        }
+        if (pieza.getPrecioVenta() <= 0) {
+            throw new IllegalArgumentException("El precio de venta debe ser mayor que cero.");
+        }
+        if (pieza.getPrecioVenta() < pieza.getCosto()) {
+            throw new IllegalArgumentException("El precio de venta no puede ser menor que el costo.");
+        }
+        if (pieza.getMaterial() != null && pieza.getMaterial().length() > 50) {
+            throw new IllegalArgumentException("El material admite como máximo 50 caracteres.");
+        }
+        if (pieza.getQuilates() != null && (pieza.getQuilates() < 1 || pieza.getQuilates() > 24)) {
+            throw new IllegalArgumentException("Los quilates deben estar entre 1 y 24.");
+        }
+        if (pieza.getPesoGramos() != null && (pieza.getPesoGramos().signum() <= 0
+                || pieza.getPesoGramos().compareTo(new java.math.BigDecimal("999999.99")) > 0)) {
+            throw new IllegalArgumentException("El peso debe ser mayor que cero y menor que 1,000,000 g.");
+        }
+        if (pieza.getExistencias() == null || pieza.getExistencias() < 0) {
+            throw new IllegalArgumentException("Las existencias no pueden ser negativas.");
+        }
+        if (pieza.getExistencias() > EXISTENCIAS_MAXIMAS) {
+            throw new IllegalArgumentException("Las existencias no pueden pasar de 100,000 unidades.");
+        }
+        if (pieza.getCategoria() == null || pieza.getCategoria().getId() == null) {
+            throw new IllegalArgumentException("La pieza debe tener una categoría asignada.");
+        }
+    }
+
+    private boolean esDuplicado(Exception e) {
+        Throwable causa = e;
+        while (causa != null) {
+            if (causa instanceof ConstraintViolationException cve) {
+                String msg = cve.getMessage() != null ? cve.getMessage().toLowerCase() : "";
+                return msg.contains("unique") || msg.contains("uk_pieza_codigo_barras");
+            }
+            causa = causa.getCause();
+        }
+        return false;
+    }
+
+    private boolean esFKViolation(Exception e) {
+        Throwable causa = e;
+        while (causa != null) {
+            if (causa instanceof ConstraintViolationException cve) {
+                String msg = cve.getMessage() != null ? cve.getMessage().toLowerCase() : "";
+                return msg.contains("foreign key") || msg.contains("fk_");
+            }
+            causa = causa.getCause();
+        }
+        return false;
+    }
+}

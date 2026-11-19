@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="analisis_resumen" pageWidth="595" pageHeight="842" orientation="Portrait" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" whenNoDataType="NoPages">
+	<style name="Base" isDefault="true" fontName="Open Sans" fontSize="9" forecolor="#3E2C2A"/>
+	<style name="Marca" fontName="Open Sans" fontSize="10" isBold="true" forecolor="#8C6A60"/>
+	<style name="Titulo" fontName="Open Sans" fontSize="15" isBold="true" forecolor="#3E2C2A"/>
+	<style name="Subtitulo" fontName="Open Sans" fontSize="9" forecolor="#7A6A66"/>
+	<style name="Columna" mode="Opaque" backcolor="#4A3B38" forecolor="#FFFFFF" fontName="Open Sans" fontSize="8" isBold="true" vTextAlign="Middle"/>
+	<style name="Grupo" mode="Opaque" backcolor="#EFE7E2" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9" isBold="true" vTextAlign="Middle"/>
+	<style name="Total" fontName="Open Sans" fontSize="9" isBold="true" forecolor="#3E2C2A" vTextAlign="Middle"/>
+	<style name="Etiqueta" fontName="Open Sans" fontSize="8" isBold="true" forecolor="#8C6A60" vTextAlign="Middle"/>
+	<parameter name="p_simbolo" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C$"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="p_tasa" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[java.math.BigDecimal.ONE]]></defaultValueExpression>
+	</parameter>
+	<parameter name="p_desde" class="java.sql.Timestamp"/>
+	<parameter name="p_hasta" class="java.sql.Timestamp"/>
+	<parameter name="p_periodo" class="java.lang.String"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT COUNT(DISTINCT v.id_venta) AS ventas, SUM(d.cantidad) AS unidades,
+       SUM(d.cantidad * (d.precio_unitario - d.descuento_aplicado)) AS ingreso,
+       SUM(d.cantidad * d.costo_unitario_venta) AS costo,
+       SUM(d.cantidad * d.descuento_aplicado) AS descuentos
+FROM detalle_venta d JOIN venta v ON v.id_venta = d.id_venta
+WHERE v.estado = 'CONFIRMADA' AND v.fecha_hora >= $P{p_desde} AND v.fecha_hora < $P{p_hasta}
+HAVING COUNT(*) > 0]]>
+	</queryString>
+	<field name="ventas" class="java.lang.Long"/>
+	<field name="unidades" class="java.lang.Long"/>
+	<field name="ingreso" class="java.math.BigDecimal"/>
+	<field name="costo" class="java.math.BigDecimal"/>
+	<field name="descuentos" class="java.math.BigDecimal"/>
+	<title>
+		<band height="66" splitType="Stretch">
+			<staticText>
+				<reportElement style="Marca" x="0" y="0" width="535" height="16"/>
+				<text><![CDATA[JOYERÍA QUILATE - MANAGUA]]></text>
+			</staticText>
+			<textField>
+				<reportElement style="Titulo" x="0" y="18" width="535" height="22"/>
+				<textFieldExpression><![CDATA["Resumen de ventas del período"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Subtitulo" x="0" y="40" width="535" height="14"/>
+				<textFieldExpression><![CDATA[$P{p_periodo} + " · Emitido el " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="60" width="535" height="1" forecolor="#BA9A90"/>
+			</line>
+		</band>
+	</title>
+	<detail>
+		<band height="168" splitType="Stretch">
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="0" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[VENTAS CONFIRMADAS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="0" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{ventas}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="24" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[UNIDADES VENDIDAS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="24" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{unidades}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="48" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[INGRESOS NETOS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="48" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{ingreso}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="72" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[COSTO DE LO VENDIDO]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="72" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{costo}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="96" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[GANANCIA BRUTA]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="96" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{ingreso}.subtract($F{costo}), $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="120" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[MARGEN BRUTO]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="120" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[($F{ingreso}.signum() == 0 ? "0.00 %" : $F{ingreso}.subtract($F{costo}).multiply(new java.math.BigDecimal("100")).divide($F{ingreso}, 2, java.math.RoundingMode.HALF_UP) + " %")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement style="Etiqueta" x="0" y="144" width="170" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<text><![CDATA[DESCUENTOS OTORGADOS]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="170" y="144" width="365" height="22"/>
+				<box leftPadding="4" rightPadding="4"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{descuentos}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement style="Subtitulo" x="0" y="4" width="330" height="14"/>
+				<textFieldExpression><![CDATA["US$".equals($P{p_simbolo}) ? "Importes en dólares · tasa C$ " + $P{p_tasa}.stripTrailingZeros().toPlainString() + " por US$ 1" : "Importes en córdobas (C$)"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER} + " de "]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement style="Subtitulo" x="495" y="4" width="40" height="14"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

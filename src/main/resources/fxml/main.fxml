@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Circle?>
+<?import com.quilate.ui.MarcaQuilate?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:id="raiz" fx:controller="com.quilate.controller.MainController" styleClass="menu-principal">
+    <left>
+        <VBox fx:id="lateral" styleClass="lateral" prefWidth="224" minWidth="224">
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <MarcaQuilate/>
+                <VBox spacing="1">
+                    <Label text="Quilate" styleClass="marca"/>
+                    <Label text="GESTIÓN DE JOYERÍA" styleClass="marca-detalle"/>
+                </VBox>
+            </HBox>
+            <Label text="ESPACIO DE TRABAJO" styleClass="nav-seccion"/>
+            <Button text="Vista general" styleClass="nav-inicio" maxWidth="Infinity" onAction="#irInicio"/>
+            <VBox fx:id="navegacion" spacing="5"/>
+            <Region VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    <center>
+        <BorderPane>
+            <top>
+                <HBox styleClass="encabezado" alignment="CENTER_LEFT">
+                    <VBox spacing="4">
+                        <Label text="JOYERÍA QUILATE" styleClass="eyebrow"/>
+                        <Label text="Vista general" styleClass="page-title"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="14" alignment="CENTER_RIGHT">
+                        <Label fx:id="lblFecha" styleClass="fecha"/>
+                        <StackPane fx:id="selectorMoneda"/>
+                    </HBox>
+                </HBox>
+            </top>
+            <center>
+                <ScrollPane fx:id="scroll" fitToWidth="true" hbarPolicy="NEVER" styleClass="menu-scroll">
+                    <VBox fx:id="contenedorSecciones" styleClass="menu-contenido">
+                        <HBox styleClass="hero" spacing="20" alignment="CENTER_LEFT">
+                            <VBox spacing="12" HBox.hgrow="ALWAYS">
+                                <Label text="Joyería Quilate" styleClass="hero-title" wrapText="true"/>
+                                <Label text="Gestiona ventas, inventario y pedidos personalizados desde un solo lugar." styleClass="hero-subtitle" wrapText="true"/>
+                                <Button text="Registrar una venta  →" styleClass="boton-oro" onAction="#abrirVentas"/>
+                            </VBox>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="module-toolbar">
+                            <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                <Label text="Módulos" styleClass="saludo"/>
+                            </VBox>
+                            <TextField fx:id="busqueda" promptText="Buscar módulo…" prefWidth="240"/>
+                        </HBox>
+                        <Label fx:id="sinResultados" text="No encontramos ese módulo. Prueba con ventas, clientes o taller." styleClass="mensaje" visible="false" managed="false" wrapText="true"/>
+                    </VBox>
+                </ScrollPane>
+            </center>
+            <bottom>
+                <HBox styleClass="barra-estado">
+                    <Circle fx:id="indicadorConexion" radius="4" styleClass="indicador"/>
+                    <Label fx:id="lblEstado" maxWidth="600"/>
+                </HBox>
+            </bottom>
+        </BorderPane>
+    </center>
+</BorderPane>
