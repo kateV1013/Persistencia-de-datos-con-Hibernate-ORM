@@ -427,4 +427,14 @@ public class VentaController {
     private void reporteVentasPorEstado() {
         DialogoPeriodo.abrirReporte("/reportes/ventas_por_estado.jrxml", "Ventas por estado y pago", true);
     }
+
+    @FXML
+    private void reporteDescuentos() {
+        DialogoPeriodo.abrirReporte("/reportes/ventas_descuentos.jrxml", "Descuentos aplicados", true);
+    }
+
+    @FXML
+    private void reporteAnuladas() {
+        DialogoPeriodo.abrirReporte("/reportes/ventas_anuladas.jrxml", "Ventas anuladas", true);
+    }
 }

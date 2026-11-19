@@ -49,6 +49,7 @@
                     <Button text="Activos" onAction="#reporteActivos" styleClass="secundario"/>
                     <Button text="Comprobante" onAction="#reporteComprobante" styleClass="secundario"/>
                     <Button text="Por estado" onAction="#reportePorEstado" styleClass="secundario"/>
+                    <Button text="Convertidos en venta" onAction="#reporteConvertidos" styleClass="secundario"/>
                 </FlowPane>
             </VBox>
         </ScrollPane>

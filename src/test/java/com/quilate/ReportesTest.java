@@ -275,4 +275,48 @@ class ReportesTest {
         resumen.putAll(ReporteUtil.parametrosMoneda(true, tasa));
         contiene(llenar("analisis_resumen", resumen), "US$ 15.84", "US$ 10.38", "US$ 5.46", "34.48 %");
     }
+
+    @Test
+    void reportesPorRequerimientoFaltantes() {
+        Ids ids = cargarMovimientos();
+        Map<String, Object> noviembre = ReporteUtil.rangoFechaHora(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30));
+
+        // Códigos de barras: todas las piezas, ordenadas por código.
+        List<String> codigos = llenar("inventario_codigos", Map.of());
+        contiene(codigos, "A-1", "B-1", "2 pieza(s) con código");
+        assertTrue(codigos.indexOf("A-1") < codigos.indexOf("B-1"), codigos.toString());
+
+        // Descuentos: la venta 1 tiene 2 argollas con C$ 10 de descuento (10 %, quedan C$ 30 de margen).
+        contiene(llenar("ventas_descuentos", noviembre),
+                "1 línea(s) con descuento · total descontado", "C$ 20.00", "10.00 %", "C$ 30.00", "Argolla");
+
+        // Anuladas: una venta de C$ 300 con 1 pieza devuelta al inventario.
+        contiene(llenar("ventas_anuladas", noviembre), "1 venta(s) anulada(s)", "C$ 300.00");
+
+        // Apartados convertidos: se agrega uno convertido en venta para este caso.
+        Long[] conversion = Transaccion.ejecutar(em -> {
+            Cliente ana = em.find(Cliente.class, ids.ana());
+            Pieza cadena = em.createQuery("from Pieza p where p.codigoBarras = 'B-1'", Pieza.class).getSingleResult();
+            Apartado apartado = new Apartado(ana, cadena, 1);
+            apartado.setFecha(LocalDateTime.of(2026, 11, 3, 9, 0));
+            apartado.setEstado(EstadoApartado.COMPLETADO);
+            em.persist(apartado);
+            Venta venta = new Venta(ana, LocalDateTime.of(2026, 11, 13, 15, 0), "EFECTIVO", EstadoVenta.CONFIRMADA);
+            venta.agregarDetalle(new DetalleVenta(cadena, 1, new BigDecimal("300.00"), new BigDecimal("200.00"), BigDecimal.ZERO));
+            venta.setTotal(new BigDecimal("300.00"));
+            venta.setApartadoOrigen(apartado);
+            venta.setInventarioComprometido(true);
+            em.persist(venta);
+            em.flush();
+            return new Long[]{apartado.getId(), venta.getId()};
+        });
+        List<String> convertidos = llenar("apartados_convertidos", noviembre);
+        contiene(convertidos, "1 apartado(s) convertido(s) · total vendido", "C$ 300.00", "Ana Lopez",
+                String.valueOf(conversion[0]), String.valueOf(conversion[1]));
+
+        // Ocupación: semana del 16/11 con 2 pedidos activos (el cancelado no cuenta) de un cupo de 20.
+        List<String> ocupacion = llenar("pedidos_ocupacion",
+                ReporteUtil.rangoFecha(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30)));
+        contiene(ocupacion, "Del 16/11/2026 al 22/11/2026", "2", "18", "10 %", "2 pedido(s) activo(s) en el período");
+    }
 }

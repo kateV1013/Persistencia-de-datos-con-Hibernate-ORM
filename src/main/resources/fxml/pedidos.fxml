@@ -84,6 +84,7 @@
                     <Button text="Agenda semanal" onAction="#onReporteAgenda" styleClass="secundario"/>
                     <Button text="Orden de trabajo" onAction="#onReporteOrden" styleClass="secundario"/>
                     <Button text="Por estado" onAction="#onReportePorEstado" styleClass="secundario"/>
+                    <Button text="Ocupación del taller" onAction="#onReporteOcupacion" styleClass="secundario"/>
                 </FlowPane>
                 <Label fx:id="lblMensaje" wrapText="true" styleClass="mensaje"/>
             </VBox>

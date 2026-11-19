@@ -30,6 +30,7 @@
                 <Button text="Por categoría" onAction="#onReportePorCategoria" styleClass="secundario"/>
                 <Button text="Stock bajo" onAction="#onReporteStockBajo" styleClass="secundario"/>
                 <Button text="Ficha de la pieza" onAction="#onReporteFicha" styleClass="secundario"/>
+                <Button text="Códigos de barras" onAction="#onReporteCodigos" styleClass="secundario"/>
             </FlowPane>
             <Label fx:id="lblEstado" wrapText="true" styleClass="mensaje"/>
         </VBox>

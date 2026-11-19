@@ -332,4 +332,9 @@ public class PedidoController {
     private void onReportePorEstado() {
         com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/pedidos_por_estado.jrxml", "Pedidos por estado", false);
     }
+
+    @FXML
+    private void onReporteOcupacion() {
+        com.quilate.ui.DialogoPeriodo.abrirReporte("/reportes/pedidos_ocupacion.jrxml", "Ocupación del taller", false);
+    }
 }
