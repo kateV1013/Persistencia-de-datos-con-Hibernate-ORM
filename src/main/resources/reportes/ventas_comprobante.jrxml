@@ -8,6 +8,12 @@
 	<style name="Grupo" mode="Opaque" backcolor="#EFE7E2" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9" isBold="true" vTextAlign="Middle"/>
 	<style name="Total" fontName="Open Sans" fontSize="9" isBold="true" forecolor="#3E2C2A" vTextAlign="Middle"/>
 	<style name="Etiqueta" fontName="Open Sans" fontSize="8" isBold="true" forecolor="#8C6A60" vTextAlign="Middle"/>
+	<parameter name="p_simbolo" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C$"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="p_tasa" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[java.math.BigDecimal.ONE]]></defaultValueExpression>
+	</parameter>
 	<parameter name="p_venta_id" class="java.lang.Long"/>
 	<queryString language="SQL">
 		<![CDATA[SELECT v.id_venta, v.fecha_hora, TRIM(CONCAT(c.nombre, ' ', COALESCE(c.apellido, ''))) AS cliente, v.metodo_pago, v.estado,
@@ -170,28 +176,35 @@ ORDER BY d.id_detalle]]>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{cantidad}]]></textFieldExpression>
 			</textField>
-			<textField pattern="C$ #,##0.00" isBlankWhenNull="true">
+			<textField isBlankWhenNull="true">
 				<reportElement x="330" y="0" width="70" height="18"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{precio_unitario}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{precio_unitario}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
 			</textField>
-			<textField pattern="C$ #,##0.00" isBlankWhenNull="true">
+			<textField isBlankWhenNull="true">
 				<reportElement x="400" y="0" width="60" height="18"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{descuento_aplicado}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{descuento_aplicado}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
 			</textField>
-			<textField pattern="C$ #,##0.00" isBlankWhenNull="true">
+			<textField isBlankWhenNull="true">
 				<reportElement x="460" y="0" width="75" height="18"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{subtotal}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{subtotal}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
 			</textField>
 		</band>
 	</detail>
 	<pageFooter>
 		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement style="Subtitulo" x="0" y="4" width="330" height="14"/>
+				<textFieldExpression><![CDATA["US$".equals($P{p_simbolo}) ? "Importes en dólares · tasa C$ " + $P{p_tasa}.stripTrailingZeros().toPlainString() + " por US$ 1" : "Importes en córdobas (C$)"]]></textFieldExpression>
+			</textField>
 			<textField>
 				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14"/>
 				<textElement textAlignment="Right"/>
@@ -211,11 +224,12 @@ ORDER BY d.id_detalle]]>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA["Total de la venta"]]></textFieldExpression>
 			</textField>
-			<textField pattern="C$ #,##0.00">
+			<textField>
 				<reportElement style="Total" x="460" y="0" width="75" height="26"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$V{suma_total}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($V{suma_total}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
 			</textField>
 		</band>
 	</summary>

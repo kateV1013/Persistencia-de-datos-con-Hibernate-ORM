@@ -8,6 +8,12 @@
 	<style name="Grupo" mode="Opaque" backcolor="#EFE7E2" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9" isBold="true" vTextAlign="Middle"/>
 	<style name="Total" fontName="Open Sans" fontSize="9" isBold="true" forecolor="#3E2C2A" vTextAlign="Middle"/>
 	<style name="Etiqueta" fontName="Open Sans" fontSize="8" isBold="true" forecolor="#8C6A60" vTextAlign="Middle"/>
+	<parameter name="p_simbolo" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C$"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="p_tasa" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[java.math.BigDecimal.ONE]]></defaultValueExpression>
+	</parameter>
 	<parameter name="p_desde" class="java.sql.Timestamp"/>
 	<parameter name="p_hasta" class="java.sql.Timestamp"/>
 	<parameter name="p_periodo" class="java.lang.String"/>
@@ -109,16 +115,21 @@ ORDER BY v.fecha_hora, v.id_venta]]>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[($F{metodo_pago} == null ? null : $F{metodo_pago}.substring(0, 1) + $F{metodo_pago}.substring(1).toLowerCase().replace("_", " "))]]></textFieldExpression>
 			</textField>
-			<textField pattern="C$ #,##0.00" isBlankWhenNull="true">
+			<textField isBlankWhenNull="true">
 				<reportElement x="425" y="0" width="110" height="18"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{total}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
 			</textField>
 		</band>
 	</detail>
 	<pageFooter>
 		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement style="Subtitulo" x="0" y="4" width="330" height="14"/>
+				<textFieldExpression><![CDATA["US$".equals($P{p_simbolo}) ? "Importes en dólares · tasa C$ " + $P{p_tasa}.stripTrailingZeros().toPlainString() + " por US$ 1" : "Importes en córdobas (C$)"]]></textFieldExpression>
+			</textField>
 			<textField>
 				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14"/>
 				<textElement textAlignment="Right"/>
@@ -138,11 +149,12 @@ ORDER BY v.fecha_hora, v.id_venta]]>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + " venta(s) confirmada(s)"]]></textFieldExpression>
 			</textField>
-			<textField pattern="C$ #,##0.00">
+			<textField>
 				<reportElement style="Total" x="425" y="0" width="110" height="26"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$V{suma_total}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($V{suma_total}, $P{p_tasa})]]></textFieldExpression>
+				<patternExpression><![CDATA[$P{p_simbolo} + " #,##0.00"]]></patternExpression>
 			</textField>
 		</band>
 	</summary>

@@ -252,4 +252,27 @@ class ReportesTest {
         }
         return Stream.of(elemento);
     }
+
+    @Test
+    void losReportesSalenEnLaMonedaElegida() {
+        cargarMovimientos();
+        Map<String, Object> noviembre = ReporteUtil.rangoFechaHora(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30));
+        BigDecimal tasa = new BigDecimal("36.6243");
+
+        // Córdobas (por defecto): igual que siempre.
+        List<String> enCordobas = llenar("ventas_por_fechas", noviembre);
+        contiene(enCordobas, "C$ 580.00", "Importes en córdobas (C$)");
+
+        // Dólares: C$ 580.00 / 36.6243 = US$ 15.84, y el pie indica la tasa usada.
+        Map<String, Object> enDolares = new java.util.HashMap<>(noviembre);
+        enDolares.putAll(ReporteUtil.parametrosMoneda(true, tasa));
+        List<String> textos = llenar("ventas_por_fechas", enDolares);
+        contiene(textos, "US$ 15.84", "Importes en dólares · tasa C$ 36.6243 por US$ 1");
+        assertTrue(textos.stream().noneMatch(t -> t.startsWith("C$ ")), "Quedó un importe en córdobas: " + textos);
+
+        // Un reporte de ficha y uno de totales también convierten.
+        Map<String, Object> resumen = new java.util.HashMap<>(noviembre);
+        resumen.putAll(ReporteUtil.parametrosMoneda(true, tasa));
+        contiene(llenar("analisis_resumen", resumen), "US$ 15.84", "US$ 10.38", "US$ 5.46", "34.48 %");
+    }
 }

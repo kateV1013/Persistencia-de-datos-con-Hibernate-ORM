@@ -13,6 +13,7 @@ import org.hibernate.Session;
 import javax.swing.SwingUtilities;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -47,7 +48,10 @@ public final class ReporteUtil {
      * @param titulo     título de la ventana del visor
      */
     public static void mostrarReporte(String rutaJrxml, Map<String, Object> parametros, String titulo) {
-        Tareas.ejecutar(() -> llenar(rutaJrxml, parametros), impreso -> {
+        // Los reportes salen en la misma moneda que el usuario eligió para las pantallas.
+        Map<String, Object> conMoneda = new HashMap<>(parametros);
+        conMoneda.putAll(parametrosMoneda(com.quilate.ui.MonedaVista.enDolares(), com.quilate.ui.MonedaVista.tasa()));
+        Tareas.ejecutar(() -> llenar(rutaJrxml, conMoneda), impreso -> {
             if (impreso.getPages().isEmpty()) {
                 AlertUtil.info("El reporte «" + titulo + "» no tiene datos para mostrar.");
                 return;
@@ -122,6 +126,25 @@ public final class ReporteUtil {
         if (desde == null) return "Hasta el " + Formatos.fecha(hasta);
         if (hasta == null) return "Desde el " + Formatos.fecha(desde);
         return "Del " + Formatos.fecha(desde) + " al " + Formatos.fecha(hasta);
+    }
+
+    /**
+     * Parámetros de moneda de los reportes. Los importes se guardan en córdobas;
+     * en dólares se dividen entre la tasa (córdobas por US$ 1).
+     */
+    public static Map<String, Object> parametrosMoneda(boolean dolares, BigDecimal tasa) {
+        Map<String, Object> valores = new HashMap<>();
+        valores.put("p_simbolo", dolares ? "US$" : "C$");
+        valores.put("p_tasa", dolares ? tasa : BigDecimal.ONE);
+        return valores;
+    }
+
+    /** Convierte un importe en córdobas a la moneda del reporte; lo usan los .jrxml. */
+    public static BigDecimal monto(Object cordobas, BigDecimal tasa) {
+        if (cordobas == null) return null;
+        BigDecimal valor = cordobas instanceof BigDecimal b ? b : new BigDecimal(cordobas.toString());
+        BigDecimal divisor = tasa == null || tasa.signum() <= 0 ? BigDecimal.ONE : tasa;
+        return valor.divide(divisor, 2, java.math.RoundingMode.HALF_UP);
     }
 
     /** Compila el .jrxml una sola vez por ejecución y reutiliza el resultado. */

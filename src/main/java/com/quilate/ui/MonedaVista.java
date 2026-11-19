@@ -29,6 +29,16 @@ public final class MonedaVista {
 
     private MonedaVista() { }
 
+    /** true si el usuario eligió ver los importes en dólares. */
+    public static boolean enDolares() {
+        return PREFERENCIA.get().dolares();
+    }
+
+    /** Córdobas por US$ 1 que se usan para convertir. */
+    public static BigDecimal tasa() {
+        return PREFERENCIA.get().tasa();
+    }
+
     public static String formatear(BigDecimal cordobas) {
         Preferencia p = PREFERENCIA.get();
         return formatear(cordobas, p.dolares(), p.tasa());
