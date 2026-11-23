@@ -46,7 +46,8 @@ public final class FormulariosVisuales {
                 t.contains("buscar")?BUSCAR:t.contains("diseñar")?Iconos.DIAMANTE:null;
             if(icono!=null) {
                 boolean claro=b.getStyleClass().contains("secundario")||b.getStyleClass().contains("peligro");
-                b.setGraphic(Iconos.crear(icono,13,Color.web(b.getStyleClass().contains("peligro")?"#A43F42":claro?"#5D111B":"#FFFFFF")));
+                b.setGraphic(Iconos.crear(icono,13,Color.web(b.getStyleClass().contains("peligro")?"#A43F42":
+                        claro || b.getStyleClass().contains("confirmar") ? "#5D111B" : "#FFFFFF")));
                 b.setGraphicTextGap(7);
             }
         }

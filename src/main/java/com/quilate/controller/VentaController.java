@@ -372,7 +372,7 @@ public class VentaController {
     private void actualizarTotal() {
         BigDecimal total = CalculadoraVenta.calcularTotal(
                 carrito.stream().map(LineaCarrito::subtotal).toList());
-        lblTotal.setText("Total: " + com.quilate.ui.MonedaVista.formatear(total));
+        lblTotal.setText(com.quilate.ui.MonedaVista.formatear(total));
         BigDecimal costo = carrito.stream().map(l -> l.costo().multiply(BigDecimal.valueOf(l.cantidad())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal descuentos = carrito.stream().map(l -> l.descuento().multiply(BigDecimal.valueOf(l.cantidad())))

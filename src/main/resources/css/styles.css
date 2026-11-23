@@ -52,7 +52,7 @@
     -fx-background-position: left center;
     -fx-background-repeat: no-repeat;
 }
-.hero-sombra { -fx-background-color: linear-gradient(to right, #3B0710 0%, #3B071000 18%); }
+.hero-sombra { -fx-background-color: linear-gradient(to right, #3B0710 8%, #3B071000 33%); }
 .hero-contenido { -fx-padding: 22 45; }
 .fecha-hero { -fx-font: 15px "Georgia"; -fx-text-fill: -q-marfil; }
 .hero-title { -fx-font: 53px "Georgia"; -fx-text-fill: -q-marfil; }
@@ -135,14 +135,15 @@
 .formulario, .panel { -fx-background-color: white; -fx-background-radius: 12; -fx-border-color: -q-borde; -fx-border-radius: 12; -fx-padding: 18; }
 .formulario { -fx-spacing: 8; }
 .titulo-seccion { -fx-font: 18px "Georgia"; -fx-text-fill: -q-tinta; }
-.campo-label { -fx-font-size: 10; -fx-font-weight: bold; -fx-text-fill: -q-texto-suave; }
+.campo-label { -fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: -q-texto-suave; }
 .ayuda { -fx-font-size: 11; -fx-text-fill: -q-texto-suave; -fx-line-spacing: 3; }
 .barra-filtros { -fx-alignment: center-left; -fx-padding: 0 0 10 0; }
 .mensaje { -fx-text-fill: -q-texto-suave; -fx-font-size: 11; }
 .cupo { -fx-text-fill: -q-exito; -fx-font-size: 11; }
 .cupo-lleno { -fx-text-fill: -q-peligro; -fx-font-weight: bold; }
-.total-venta { -fx-font-size: 23; -fx-font-family: "Georgia"; -fx-text-fill: -q-tinta; }
-.resumen-venta { -fx-background-color: -q-suave; -fx-padding: 14; -fx-background-radius: 9; }
+.total-venta { -fx-font: 32px "Georgia"; -fx-text-fill: -q-marfil; }
+.total-venta-etiqueta { -fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: #F0D5A9; }
+.resumen-venta { -fx-background-color: -q-degradado; -fx-padding: 12 16; -fx-background-radius: 9; }
 /* Acciones con una jerarquía constante */
 .button { -fx-background-color: -q-tinta; -fx-text-fill: white; -fx-background-radius: 7; -fx-background-insets: 0; -fx-border-color: transparent; -fx-border-radius: 7; -fx-padding: 9 14; -fx-cursor: hand; -fx-font-size: 11; }
 .button:hover { -fx-background-color: -q-tinta-clara; }
@@ -153,10 +154,18 @@
 .button.secundario:hover { -fx-background-color: -q-suave; }
 .button.peligro { -fx-background-color: #FCF1EF; -fx-border-color: #EECFCA; -fx-text-fill: -q-peligro; }
 .button.peligro:hover { -fx-background-color: #F6DEDA; }
-.button.confirmar { -fx-background-color: -q-tinta-clara; -fx-text-fill: white; -fx-font-weight: bold; }
-.button.confirmar:hover { -fx-background-color: -q-tinta; }
+.button.confirmar {
+    -fx-background-color: #F4DBB8;
+    -fx-text-fill: -q-tinta;
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+    -fx-padding: 11 16;
+}
+.button.confirmar:hover { -fx-background-color: #FFF0DB; }
+.button.confirmar:focused { -fx-border-color: -q-tinta; }
 /* Campos y selección */
-.text-field, .text-area, .combo-box-base, .spinner { -fx-background-color: -q-borde, -q-superficie; -fx-background-insets: 0, 1; -fx-background-radius: 7, 6; -fx-font-size: 12; }
+.text-field, .text-area, .combo-box-base, .spinner { -fx-background-color: -q-borde, -q-superficie; -fx-background-insets: 0, 1; -fx-background-radius: 7, 6; -fx-font-size: 13; }
+.buscador .text-field { -fx-font-size: 12; }
 .text-field { -fx-padding: 9 10; -fx-prompt-text-fill: -q-texto-suave; }
 .combo-box-base, .spinner { -fx-min-height: 36; }
 .text-field:focused, .text-area:focused, .combo-box-base:focused { -fx-background-color: -q-oro, white; -fx-background-insets: 0, 2; }
@@ -174,12 +183,12 @@
 .table-view { -fx-background-color: white; -fx-border-color: -q-borde; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 1; -fx-control-inner-background: white; -fx-control-inner-background-alt: #FBF6EF; -fx-table-cell-border-color: transparent; }
 .table-view .column-header-background { -fx-background-color: -q-suave; -fx-background-radius: 7 7 0 0; }
 .table-view .column-header, .table-view .filler { -fx-background-color: transparent; -fx-size: 39; -fx-border-color: transparent; }
-.table-view .column-header .label { -fx-text-fill: -q-tinta; -fx-font-size: 10; -fx-font-weight: bold; -fx-alignment: center-left; -fx-padding: 0 10; }
+.table-view .column-header .label { -fx-text-fill: -q-tinta; -fx-font-size: 11; -fx-font-weight: bold; -fx-alignment: center-left; -fx-padding: 0 8; }
 .table-view .column-header .arrow { -fx-background-color: -q-tinta; }
 .table-row-cell { -fx-cell-size: 39; -fx-background-insets: 0; }
 .table-row-cell:filled:hover { -fx-background-color: -q-fondo; }
 .table-row-cell:filled:selected { -fx-background-color: -q-seleccion; }
-.table-cell { -fx-padding: 10; -fx-text-fill: -q-texto; -fx-border-color: transparent transparent #F1E6D9 transparent; -fx-font-size: 11; }
+.table-cell { -fx-padding: 10 8; -fx-text-fill: -q-texto; -fx-border-color: transparent transparent #F1E6D9 transparent; -fx-font-size: 12; }
 .table-row-cell:filled:selected .table-cell { -fx-text-fill: -q-tinta-oscura; }
 .table-row-cell:empty .table-cell { -fx-border-color: transparent; }
 .table-view .placeholder .label { -fx-text-fill: -q-texto-suave; -fx-font-size: 12; }
@@ -214,7 +223,7 @@
 
 .date-picker > .arrow-button, .spinner > .increment-arrow-button, .spinner > .decrement-arrow-button { -fx-background-color: -q-suave; -fx-background-radius: 0 6 6 0; }
 /* Atelier y formularios · segunda edición */
-.formulario { -fx-padding: 20; -fx-spacing: 12; -fx-background-color: #FFFFFF; -fx-border-color: -q-borde; -fx-background-radius: 16; -fx-border-radius: 16; -fx-effect: dropshadow(gaussian, #5D111B0A, 10, 0, 0, 3); }
+.formulario { -fx-padding: 20; -fx-spacing: 12; -fx-font-size: 13; -fx-background-color: #FFFFFF; -fx-border-color: -q-borde; -fx-background-radius: 16; -fx-border-radius: 16; -fx-effect: dropshadow(gaussian, #5D111B0A, 10, 0, 0, 3); }
 .form-head { -fx-padding: 0 0 14 0; -fx-border-color: transparent transparent -q-borde transparent; }
 .form-emblema { -fx-background-color: -q-tinta; -fx-background-radius: 11; }
 .formulario .text-field, .formulario .combo-box-base, .formulario .date-picker { -fx-min-height: 39; }
@@ -238,10 +247,19 @@
 .profit-box .titulo-seccion { -fx-font-size: 13; }
 .client-insights { -fx-padding: 14; -fx-background-color: -q-suave; -fx-background-radius: 10; }
 .insight-value { -fx-font-size: 18; -fx-font-family: "Georgia"; }
-.preview-panel { -fx-padding: 12; -fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: -q-borde; -fx-border-radius: 14; }
+.preview-panel {
+    -fx-padding: 12;
+    -fx-background-color: linear-gradient(to right, -q-superficie 45%, -q-suave);
+    -fx-background-radius: 14;
+    -fx-border-color: -q-borde;
+    -fx-border-radius: 14;
+}
+.preview-datos { -fx-padding: 0 12 0 18; -fx-border-color: transparent transparent transparent -q-oro; }
+.preview-descripcion { -fx-font-size: 13; -fx-text-fill: -q-texto; -fx-line-spacing: 3; }
 .preview-caption { -fx-font-size: 10; -fx-text-fill: -q-oro-oscuro; }
 .atelier-preview { -fx-padding: 20; -fx-background-color: -q-superficie; -fx-background-radius: 16; -fx-border-color: -q-borde; -fx-border-radius: 16; }
 .atelier-title { -fx-font-family: "Georgia"; -fx-font-size: 28; -fx-text-fill: -q-tinta; }
+.preview-datos .atelier-title { -fx-font-size: 25; }
 .mensaje-error { -fx-text-fill: #A43F42; -fx-font-size: 11; }
 
 
@@ -266,8 +284,8 @@
 .ranking-titulo { -fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: -q-tinta; }
 .ranking-panel .scroll-pane, .ranking-panel .scroll-pane > .viewport { -fx-background-color: transparent; }
 .ranking-lista { -fx-padding: 2 5 2 0; }
-.ranking-nombre { -fx-font-size: 11; -fx-text-fill: -q-texto; }
-.ranking-valor { -fx-font-size: 11; -fx-font-weight: bold; -fx-text-fill: -q-tinta; }
+.ranking-nombre { -fx-font-size: 12; -fx-text-fill: -q-texto; }
+.ranking-valor { -fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: -q-tinta; }
 .ranking-pista { -fx-background-color: -q-suave; -fx-background-radius: 8; }
 .ranking-relleno {
     -fx-background-color: linear-gradient(to right, -q-tinta, #A15359);
