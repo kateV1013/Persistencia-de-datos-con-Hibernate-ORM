@@ -66,7 +66,7 @@ public final class MonedaVista {
     public static MenuButton selector() {
         MenuButton menu = new MenuButton();
         menu.textProperty().bind(Bindings.createStringBinding(() ->
-                PREFERENCIA.get().dolares() ? "Vista en dólares" : "Vista en córdobas", PREFERENCIA));
+                PREFERENCIA.get().dolares() ? "Dólares (US$)" : "Córdobas (C$)", PREFERENCIA));
         menu.setAccessibleText("Moneda de visualización");
         menu.getStyleClass().add("selector-moneda");
 

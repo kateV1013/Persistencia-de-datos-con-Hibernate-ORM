@@ -24,7 +24,7 @@ public final class PresentacionTablas {
             Label ayuda = new Label(detalle);
             ayuda.setWrapText(true);
             ayuda.getStyleClass().add("empty-detail");
-            VBox vacio = new VBox(10, Iconos.crear(Iconos.DIAMANTE, 30, Color.web("#B8C6B6")), titulo, ayuda);
+            VBox vacio = new VBox(10, Iconos.crear(Iconos.DIAMANTE, 30, Color.web("#B89362")), titulo, ayuda);
             vacio.setAlignment(Pos.CENTER);
             vacio.getStyleClass().add("empty-state");
             tabla.setPlaceholder(vacio);

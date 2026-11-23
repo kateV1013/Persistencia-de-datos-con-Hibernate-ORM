@@ -13,6 +13,9 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -63,7 +66,6 @@ public final class Ventanas {
         BorderPane raiz = new BorderPane(contenido);
         raiz.setTop(encabezado(modulo));
         raiz.getStyleClass().add("ventana-modulo");
-        raiz.setStyle(modulo.estiloAcento());
 
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
         double ancho = Math.min(1340, pantalla.getWidth() - 40);
@@ -146,12 +148,14 @@ public final class Ventanas {
         Label descripcion = new Label(modulo.descripcion());
         descripcion.getStyleClass().add("encabezado-modulo-descripcion");
 
-        HBox encabezado = new HBox(14, Iconos.enCirculo(modulo.icono(), 44), new VBox(2, titulo, descripcion));
-        javafx.scene.layout.Region espacio = new javafx.scene.layout.Region();
-        HBox.setHgrow(espacio, javafx.scene.layout.Priority.ALWAYS);
-        Label marca = new Label("JOYERÍA QUILATE");
+        StackPane emblema = new StackPane(Iconos.trazo(modulo.icono(), 26));
+        emblema.getStyleClass().add("emblema-modulo");
+        Region espacio = new Region();
+        HBox.setHgrow(espacio, Priority.ALWAYS);
+        Label marca = new Label("Quilate");
         marca.getStyleClass().add("modulo-marca");
-        encabezado.getChildren().addAll(espacio, new MarcaQuilate(32), marca);
+        HBox encabezado = new HBox(14, emblema, new VBox(2, titulo, descripcion),
+                espacio, new MarcaQuilate(32), marca);
         encabezado.setAlignment(Pos.CENTER_LEFT);
         encabezado.getStyleClass().add("encabezado-modulo");
         return encabezado;

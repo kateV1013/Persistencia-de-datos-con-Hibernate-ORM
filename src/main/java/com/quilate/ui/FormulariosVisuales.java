@@ -24,10 +24,8 @@ public final class FormulariosVisuales {
             box.getProperties().put("quilate-form",true);
             if(!box.getChildren().isEmpty() && box.getChildren().getFirst() instanceof Label titulo && titulo.getStyleClass().contains("titulo-seccion")) {
                 box.getChildren().remove(titulo);
-                Label detalle=new Label("DATOS DEL REGISTRO");detalle.getStyleClass().add("form-kicker");
-                VBox textos=new VBox(3,detalle,titulo);
                 StackPane emblema=Iconos.enCirculo(Iconos.DIAMANTE,36);emblema.getStyleClass().add("form-emblema");
-                HBox cabecera=new HBox(11,emblema,textos);cabecera.setAlignment(Pos.CENTER_LEFT);cabecera.getStyleClass().add("form-head");
+                HBox cabecera=new HBox(11,emblema,titulo);cabecera.setAlignment(Pos.CENTER_LEFT);cabecera.getStyleClass().add("form-head");
                 box.getChildren().add(0,cabecera);
             }
         }
@@ -40,7 +38,7 @@ public final class FormulariosVisuales {
             });
             fecha.setPromptText("dd/mm/aaaa");
         }
-        if(n instanceof Button b && b.getGraphic()==null && !b.getStyleClass().contains("nav-inicio")) {
+        if(n instanceof Button b && b.getGraphic()==null) {
             String t=b.getText()==null?"":b.getText().toLowerCase(Locale.ROOT);
             String icono=t.contains("guardar")?GUARDAR:t.contains("eliminar")||t.contains("anular")||t.contains("cancelar")||t.contains("quitar")?BORRAR:
                 t.contains("nuev")||t.contains("agregar")||t.contains("añadir")||t.contains("crear")?MAS:
@@ -48,7 +46,7 @@ public final class FormulariosVisuales {
                 t.contains("buscar")?BUSCAR:t.contains("diseñar")?Iconos.DIAMANTE:null;
             if(icono!=null) {
                 boolean claro=b.getStyleClass().contains("secundario")||b.getStyleClass().contains("peligro");
-                b.setGraphic(Iconos.crear(icono,13,Color.web(b.getStyleClass().contains("peligro")?"#A43F42":claro?"#315D4B":"#FFFFFF")));
+                b.setGraphic(Iconos.crear(icono,13,Color.web(b.getStyleClass().contains("peligro")?"#A43F42":claro?"#5D111B":"#FFFFFF")));
                 b.setGraphicTextGap(7);
             }
         }
