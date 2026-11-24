@@ -99,6 +99,7 @@ public final class MonedaVista {
         panel.lookupButton(aplicar).disableProperty().bind(
                 Bindings.createBooleanBinding(() -> leerTasa(campo.getText()) == null, campo.textProperty()));
         dialogo.setResultConverter(boton -> boton == aplicar ? leerTasa(campo.getText()) : null);
+        Dialogos.preparar(dialogo);
         dialogo.showAndWait().ifPresent(valor ->
                 PREFERENCIA.set(new Preferencia(PREFERENCIA.get().dolares(), valor)));
     }

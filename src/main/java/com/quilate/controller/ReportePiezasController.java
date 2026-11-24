@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /** Centro de análisis con filtros de fecha y datos históricos de ventas confirmadas. */
-public class ReportePiezasController {
+public class ReportePiezasController implements com.quilate.ui.Actualizable {
     @FXML private DatePicker dpDesde, dpHasta;
     @FXML private Label lblMensaje, lblIngresos, lblGanancia, lblDescuentos, lblVentas;
     @FXML private TabPane reportes;
@@ -39,6 +39,8 @@ public class ReportePiezasController {
         catch (RuntimeException e) { lblMensaje.setText("Escribe fechas válidas o selecciónalas en el calendario."); return; }
         cargarAnalisis();
     }
+    /** Vuelve a calcular el análisis del período elegido (incluye ventas recién confirmadas). */
+    @Override public void actualizarAlVolver() { cargarAnalisis(); }
     private void cargarAnalisis() {
         LocalDate desde=dpDesde.getValue(), hasta=dpHasta.getValue();
         if(desde!=null && hasta!=null && desde.isAfter(hasta)) { lblMensaje.setText("La fecha inicial no puede ser posterior a la final."); return; }

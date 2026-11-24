@@ -43,11 +43,8 @@ public final class AlertUtil {
         alert.showAndWait();
     }
 
-    /** Los dialogos usan la misma paleta que el resto de la aplicacion. */
+    /** Ventana dueña, paleta de la app y alto según el texto (ver {@link com.quilate.ui.Dialogos}). */
     private static void aplicarEstilos(Alert alert) {
-        var css = AlertUtil.class.getResource("/css/styles.css");
-        if (css != null) {
-            alert.getDialogPane().getStylesheets().add(css.toExternalForm());
-        }
+        com.quilate.ui.Dialogos.preparar(alert);
     }
 }

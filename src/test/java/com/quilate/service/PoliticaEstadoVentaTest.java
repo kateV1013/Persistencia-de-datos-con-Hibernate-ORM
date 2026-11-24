@@ -28,6 +28,14 @@ class PoliticaEstadoVentaTest {
     }
 
     @Test
+    void confirmarDosVecesDiceQueYaEstaConfirmada() {
+        assertEquals("Esta venta ya fue confirmada.", assertThrows(ReglaNegocioException.class,
+                () -> PoliticaEstadoVenta.confirmar(EstadoVenta.CONFIRMADA)).getMessage());
+        assertEquals("Esta venta está anulada; no se puede confirmar.", assertThrows(ReglaNegocioException.class,
+                () -> PoliticaEstadoVenta.confirmar(EstadoVenta.ANULADA)).getMessage());
+    }
+
+    @Test
     void soloAnulaVentasConfirmadas() {
         assertEquals(
                 EstadoVenta.ANULADA,

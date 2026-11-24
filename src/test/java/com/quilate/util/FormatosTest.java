@@ -35,4 +35,11 @@ class FormatosTest {
     void rechazaTextoQueNoEsUnMonto(String texto) {
         assertThrows(ReglaNegocioException.class, () -> Formatos.leerDinero(texto, "precio"));
     }
+
+    @ParameterizedTest(name = "«{0}» se rechaza por separadores mal puestos")
+    @ValueSource(strings = {"12..5", "1,50,0", "1.5.0", "1,500.50.3", "1.500,50,3", "5.", "1,,500", "15,00.50"})
+    void rechazaSeparadoresMalColocados(String texto) {
+        ReglaNegocioException e = assertThrows(ReglaNegocioException.class, () -> Formatos.leerDinero(texto, "precio"));
+        assertEquals("El precio tiene separadores mal colocados; escríbelo como 1,500.00", e.getMessage());
+    }
 }

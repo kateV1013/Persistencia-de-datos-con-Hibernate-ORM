@@ -7,7 +7,7 @@ import com.quilate.util.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-public class ApartadosController {
+public class ApartadosController implements com.quilate.ui.Actualizable {
     @FXML private TableView<Apartado> tabla;
     @FXML private ComboBox<Cliente> cliente;
     @FXML private ComboBox<Pieza> pieza;
@@ -28,6 +28,20 @@ public class ApartadosController {
             cliente.setDisable(true); pieza.setDisable(true);
         });
         recargar();
+    }
+    /** Tabla y listas al día, conservando el cliente y la pieza elegidos en el formulario. */
+    @Override public void actualizarAlVolver() {
+        Long clienteId = cliente.getValue() == null ? null : cliente.getValue().getId();
+        Long piezaId = pieza.getValue() == null ? null : pieza.getValue().getId();
+        Tareas.ejecutar(servicio::listar, r -> tabla.getItems().setAll(r), e -> mensaje.setText(Tareas.mensajeCorto(e)));
+        Tareas.ejecutar(() -> new ClienteDAO().listar(), r -> {
+            cliente.getItems().setAll(r);
+            if (clienteId != null) r.stream().filter(c -> c.getId().equals(clienteId)).findFirst().ifPresent(cliente::setValue);
+        }, e -> mensaje.setText(Tareas.mensajeCorto(e)));
+        Tareas.ejecutar(() -> new PiezaDAO().listarTodas(), r -> {
+            pieza.getItems().setAll(r);
+            if (piezaId != null) r.stream().filter(p -> p.getId().equals(piezaId)).findFirst().ifPresent(pieza::setValue);
+        }, e -> mensaje.setText(Tareas.mensajeCorto(e)));
     }
     @FXML private void recargar() {
         Tareas.ejecutar(servicio::listar, r -> tabla.getItems().setAll(r), e -> mensaje.setText(Tareas.mensajeCorto(e)));
