@@ -134,6 +134,21 @@ class InventarioDAOTest {
         assertNotNull(piezas.guardar(new Pieza("QL-001", "Anillo", 60.0, 10_000_000.0, 100_000, categoria)).getId());
     }
 
+    @Test void elCodigoDeBarrasNoDistingueMayusculas() {
+        Pieza p = piezas.guardar(new Pieza("ql-007", "Anillo", 60.0, 100.0, 1, categoria));
+        assertEquals("QL-007", p.getCodigoBarras(), "se guarda en mayúsculas");
+        assertEquals(p.getId(), piezas.buscarPorCodigoBarras(" ql-007 ").orElseThrow().getId());
+        assertTrue(piezas.existeCodigoBarras("Ql-007", null));
+
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> piezas.guardar(new Pieza("QL-007", "Otro anillo", 60.0, 100.0, 1, categoria)));
+        assertEquals("Ya existe una pieza con el código de barras: QL-007", e.getMessage());
+        Pieza otra = piezas.guardar(new Pieza("QL-008", "Otro anillo", 60.0, 100.0, 1, categoria));
+        Pieza formulario = formularioDesfasado(otra, 1);
+        formulario.setCodigoBarras("ql-007");
+        assertThrows(IllegalArgumentException.class, () -> piezas.actualizarDatos(formulario, 1));
+    }
+
     @Test void noRepiteCategoriasAunqueCambienLasMayusculas() {
         assertThrows(IllegalArgumentException.class, () -> categorias.guardar(new Categoria("ANILLOS", null)));
         assertThrows(IllegalArgumentException.class, () -> categorias.guardar(new Categoria("  anillos  ", null)));

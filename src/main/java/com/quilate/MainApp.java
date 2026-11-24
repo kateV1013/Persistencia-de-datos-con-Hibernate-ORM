@@ -20,8 +20,8 @@ public class MainApp extends Application {
         Rectangle2D pantalla = Screen.getPrimary().getVisualBounds();
         double alto = Math.min(680, pantalla.getHeight() - 40);
         stage.setScene(Ventanas.crearEscena(loader.load(), Math.min(1020, pantalla.getWidth() - 40), alto));
-        stage.setMinWidth(900);
-        stage.setMinHeight(650);
+        stage.setMinWidth(Math.min(900, pantalla.getWidth() - 20));
+        stage.setMinHeight(Math.min(650, pantalla.getHeight() - 20));
         // Al cerrar el menu principal se cierran tambien las ventanas de los modulos.
         stage.setOnHidden(e -> {
             Ventanas.cerrarTodas();
@@ -36,6 +36,9 @@ public class MainApp extends Application {
     }
 
     public static void main(String[] args) {
+        // Botones de diálogo («Aceptar», «Cancelar», «Sí») y calendario en español aunque
+        // Windows o macOS estén en otro idioma. Los importes ya usan su formato fijo (C$ 1,500.00).
+        java.util.Locale.setDefault(java.util.Locale.forLanguageTag("es-NI"));
         launch(args);
     }
 }

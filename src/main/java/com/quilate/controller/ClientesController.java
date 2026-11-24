@@ -6,7 +6,7 @@ import com.quilate.util.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
-public class ClientesController {
+public class ClientesController implements com.quilate.ui.Actualizable {
     @FXML private TableView<Cliente> tabla;
     @FXML private TableView<HistorialCompra> historial;
     @FXML private TextField nombre, apellido, telefono, correo;
@@ -46,6 +46,8 @@ public class ClientesController {
         });
         recargar();
     }
+    /** Solo la tabla: el formulario y el perfil abierto se conservan. */
+    @Override public void actualizarAlVolver() { recargar(); }
     @FXML private void recargar() {
         Tareas.ejecutar(servicio::listar, filas -> tabla.getItems().setAll(filas),
             e -> mensaje.setText(Tareas.mensajeCorto(e)));

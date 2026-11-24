@@ -144,7 +144,7 @@ public class VentaService {
     private Venta confirmarInterno(Long ventaId, Long apartadoId, boolean inventarioYaReservado) {
         return enTransaccion(em -> {
             Venta venta = requerirVenta(em, ventaId, LockModeType.PESSIMISTIC_WRITE);
-            PoliticaEstadoVenta.validarModificable(venta.getEstado());
+            PoliticaEstadoVenta.validarConfirmable(venta.getEstado());
             if (venta.getDetalles().isEmpty()) {
                 throw new ReglaNegocioException("La venta debe contener al menos una pieza.");
             }

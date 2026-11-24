@@ -56,6 +56,7 @@ public class PiezaDAO {
      */
     public Pieza guardar(Pieza pieza) {
         validarPieza(pieza);
+        verificarCodigoLibre(pieza);
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -135,15 +136,13 @@ public class PiezaDAO {
 
         EntityManager em = JPAUtil.getEntityManager();
         try {
+            // "ql-001" escrito a mano encuentra la pieza "QL-001".
             TypedQuery<Pieza> q = em.createQuery(
                     "SELECT p FROM Pieza p LEFT JOIN FETCH p.categoria " +
-                    "WHERE p.codigoBarras = :codigo",
+                    "WHERE upper(p.codigoBarras) = :codigo ORDER BY p.id",
                     Pieza.class);
-            q.setParameter("codigo", codigoBarras.trim());
-            Pieza pieza = q.getSingleResult();
-            return Optional.of(pieza);
-        } catch (NoResultException e) {
-            return Optional.empty();
+            q.setParameter("codigo", normalizarCodigo(codigoBarras));
+            return q.setMaxResults(1).getResultStream().findFirst();
         } finally {
             em.close();
         }
@@ -217,14 +216,18 @@ public class PiezaDAO {
      * @return {@code true} si el código ya está en uso por otra pieza
      */
     public boolean existeCodigoBarras(String codigoBarras, Long idExcluir) {
+        if (codigoBarras == null || codigoBarras.isBlank()) {
+            return false;
+        }
         EntityManager em = JPAUtil.getEntityManager();
         try {
+            // upper(): también detecta piezas antiguas guardadas en minúsculas.
             String jpql = (idExcluir == null)
-                    ? "SELECT COUNT(p) FROM Pieza p WHERE p.codigoBarras = :codigo"
-                    : "SELECT COUNT(p) FROM Pieza p WHERE p.codigoBarras = :codigo AND p.id <> :excluir";
+                    ? "SELECT COUNT(p) FROM Pieza p WHERE upper(p.codigoBarras) = :codigo"
+                    : "SELECT COUNT(p) FROM Pieza p WHERE upper(p.codigoBarras) = :codigo AND p.id <> :excluir";
 
             var query = em.createQuery(jpql, Long.class)
-                    .setParameter("codigo", codigoBarras);
+                    .setParameter("codigo", normalizarCodigo(codigoBarras));
             if (idExcluir != null) {
                 query.setParameter("excluir", idExcluir);
             }
@@ -248,6 +251,7 @@ public class PiezaDAO {
      */
     public Pieza actualizar(Pieza pieza) {
         validarPieza(pieza);
+        verificarCodigoLibre(pieza);
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -288,6 +292,7 @@ public class PiezaDAO {
      */
     public Pieza actualizarDatos(Pieza datos, int existenciasVistas) {
         validarPieza(datos);
+        verificarCodigoLibre(datos);
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -464,6 +469,8 @@ public class PiezaDAO {
             throw new IllegalArgumentException("El código de barras admite hasta 50 caracteres: "
                     + "letras sin tilde, números y guion (por ejemplo QL-001).");
         }
+        // Un código es el mismo escrito en mayúsculas o minúsculas: se guarda siempre en mayúsculas.
+        pieza.setCodigoBarras(normalizarCodigo(pieza.getCodigoBarras()));
         if (pieza.getNombre() == null || pieza.getNombre().isBlank()) {
             throw new IllegalArgumentException("El nombre de la pieza es obligatorio.");
         }
@@ -503,6 +510,18 @@ public class PiezaDAO {
         }
         if (pieza.getCategoria() == null || pieza.getCategoria().getId() == null) {
             throw new IllegalArgumentException("La pieza debe tener una categoría asignada.");
+        }
+    }
+
+    static String normalizarCodigo(String codigo) {
+        return codigo.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    /** Revisa antes de escribir; la restricción UNIQUE de la BD queda como segunda defensa. */
+    private void verificarCodigoLibre(Pieza pieza) {
+        if (existeCodigoBarras(pieza.getCodigoBarras(), pieza.getId())) {
+            throw new IllegalArgumentException(
+                    "Ya existe una pieza con el código de barras: " + pieza.getCodigoBarras());
         }
     }
 

@@ -47,6 +47,8 @@
                 </VBox>
             </FlowPane>
             <Label fx:id="lblDescuentoMaximo" styleClass="mensaje"/>
+            <!-- Arriba y no al pie: al pie quedaba fuera de la vista y no se notaba que se guardó. -->
+            <Label fx:id="lblMensaje" wrapText="true" styleClass="mensaje"/>
         </VBox>
     </top>
     <center>
@@ -109,12 +111,5 @@
             </VBox>
         </SplitPane>
     </center>
-    <bottom>
-        <Label fx:id="lblMensaje" styleClass="mensaje">
-            <padding>
-                <Insets top="5" right="10" bottom="5" left="10"/>
-            </padding>
-        </Label>
-    </bottom>
 </BorderPane></content>
 </ScrollPane>

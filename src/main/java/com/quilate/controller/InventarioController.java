@@ -38,7 +38,7 @@ import java.util.ResourceBundle;
  *
  * <p>Vista: {@code /fxml/inventario.fxml}, integrada en la ventana principal.</p>
  */
-public class InventarioController implements Initializable {
+public class InventarioController implements Initializable, com.quilate.ui.Actualizable {
 
     // ──────────────────────────────────────────────────────────────────────
     //  Inyecciones FXML – Sección "Búsqueda por código de barras"
@@ -134,6 +134,26 @@ public class InventarioController implements Initializable {
                 }, e -> mostrarEstado(com.quilate.util.Tareas.mensajeCorto(e), true));
     }
 
+    /**
+     * Stock y categorías al día (por ejemplo tras vender o anular en otra ventana), sin tocar
+     * el formulario ni el mensaje que el usuario está viendo. Editar una pieza sigue siendo
+     * seguro: {@code actualizarDatos} solo aplica el ajuste de existencias que hizo el usuario.
+     */
+    @Override
+    public void actualizarAlVolver() {
+        Categoria elegida = cmbCategoria.getValue();
+        com.quilate.util.Tareas.ejecutar(categoriaDAO::listarTodas, categorias -> {
+            cmbCategoria.getItems().setAll(categorias);
+            if (elegida != null) {
+                categorias.stream().filter(c -> c.getId().equals(elegida.getId()))
+                        .findFirst().ifPresent(cmbCategoria::setValue);
+            }
+            actualizarFiltroCategorias(categorias);
+        }, e -> mostrarEstado(com.quilate.util.Tareas.mensajeCorto(e), true));
+        com.quilate.util.Tareas.ejecutar(piezaDAO::listarTodas, listaPiezas::setAll,
+                e -> mostrarEstado(com.quilate.util.Tareas.mensajeCorto(e), true));
+    }
+
     @FXML
     public void onActualizarCategoria() {
         Categoria actual = cmbCategoria.getValue();
@@ -207,8 +227,7 @@ public class InventarioController implements Initializable {
         dialogo.setTitle("Stock bajo");
         dialogo.setHeaderText(null);
         dialogo.setContentText("Mostrar piezas con existencias menores o iguales a:");
-        var css = getClass().getResource("/css/styles.css");
-        if (css != null) dialogo.getDialogPane().getStylesheets().add(css.toExternalForm());
+        com.quilate.ui.Dialogos.preparar(dialogo);
         Optional<String> respuesta = dialogo.showAndWait();
         if (respuesta.isEmpty()) return;
         int limite;
@@ -413,15 +432,8 @@ public class InventarioController implements Initializable {
         }
 
         // Confirmación del usuario
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Eliminar la pieza '" + seleccionada.getNombre() + "'?\n" +
-                "Esta acción no se puede deshacer.",
-                ButtonType.YES, ButtonType.NO);
-        confirmacion.setTitle("Confirmar eliminación");
-        confirmacion.setHeaderText(null);
-        Optional<ButtonType> respuesta = confirmacion.showAndWait();
-
-        if (respuesta.isEmpty() || respuesta.get() != ButtonType.YES) return;
+        if (!AlertUtil.confirmar("¿Eliminar la pieza '" + seleccionada.getNombre() + "'?\n"
+                + "Esta acción no se puede deshacer.")) return;
 
         try {
             piezaDAO.eliminar(seleccionada.getId());
@@ -481,15 +493,8 @@ public class InventarioController implements Initializable {
             return;
         }
 
-        Alert confirmacion = new Alert(Alert.AlertType.CONFIRMATION,
-                "¿Eliminar la categoría '" + seleccionada.getNombre() + "'?\n" +
-                "Solo se puede eliminar si no tiene piezas asociadas.",
-                ButtonType.YES, ButtonType.NO);
-        confirmacion.setTitle("Confirmar eliminación");
-        confirmacion.setHeaderText(null);
-        Optional<ButtonType> respuesta = confirmacion.showAndWait();
-
-        if (respuesta.isEmpty() || respuesta.get() != ButtonType.YES) return;
+        if (!AlertUtil.confirmar("¿Eliminar la categoría '" + seleccionada.getNombre() + "'?\n"
+                + "Solo se puede eliminar si no tiene piezas asociadas.")) return;
 
         try {
             categoriaDAO.eliminar(seleccionada.getId());
@@ -661,10 +666,7 @@ public class InventarioController implements Initializable {
 
     private void mostrarError(String mensaje) {
         mostrarEstado(mensaje, true);
-        Alert alert = new Alert(Alert.AlertType.ERROR, mensaje, ButtonType.OK);
-        alert.setTitle("Error de validación");
-        alert.setHeaderText(null);
-        alert.showAndWait();
+        AlertUtil.error(mensaje);
     }
 
     @FXML private void onEtiqueta() {

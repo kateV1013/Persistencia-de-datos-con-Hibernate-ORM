@@ -76,10 +76,6 @@ public class PedidoService {
         if (datos.getEstado() == null) {
             throw new ReglaNegocioException("Selecciona el estado del pedido.");
         }
-        if (datos.getEstado() == EstadoPedido.CANCELADO) {
-            throw new ReglaNegocioException("Para cancelar un pedido usa el botón \"Cancelar pedido\".");
-        }
-
         return Transaccion.ejecutar(em -> {
             PedidoPersonalizado actual = em.find(PedidoPersonalizado.class, datos.getId());
             if (actual == null) {
@@ -90,6 +86,10 @@ public class PedidoService {
             }
             if (actual.getEstado() == EstadoPedido.ENTREGADO) {
                 throw new ReglaNegocioException("Un pedido entregado ya no se puede modificar.");
+            }
+            // Después de revisar el estado guardado: editar un pedido ya cancelado debe decir eso.
+            if (datos.getEstado() == EstadoPedido.CANCELADO) {
+                throw new ReglaNegocioException("Para cancelar un pedido usa el botón \"Cancelar pedido\".");
             }
             validarTransicion(actual.getEstado(), datos.getEstado());
             if (datos.getEstado() == EstadoPedido.ENTREGADO

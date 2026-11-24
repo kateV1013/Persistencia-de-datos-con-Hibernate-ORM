@@ -15,6 +15,13 @@ class TareasTest {
     }
 
     @Test
+    void muestraElMensajeDeLaAppAunqueTraigaUnErrorTecnicoComoCausa() {
+        var tecnico = new RuntimeException("ERROR: duplicate key value violates unique constraint \"piezas_codigo_barras_key\"");
+        var error = new IllegalArgumentException("Ya existe una pieza con el código de barras: QL-001", tecnico);
+        assertEquals("Ya existe una pieza con el código de barras: QL-001", Tareas.mensajeCorto(error));
+    }
+
+    @Test
     void losDemasErroresConservanSuMensaje() {
         var error = new RuntimeException("envoltura", new IllegalArgumentException("El código de barras es obligatorio."));
         assertEquals("El código de barras es obligatorio.", Tareas.mensajeCorto(error));

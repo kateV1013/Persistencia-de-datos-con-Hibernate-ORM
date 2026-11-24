@@ -17,7 +17,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 /** Pantalla CRUD de tipos de servicio (grabado, reparacion, ajuste de talla...). */
-public class TipoServicioController {
+public class TipoServicioController implements com.quilate.ui.Actualizable {
 
     @FXML private TableView<TipoServicio> tabla;
     @FXML private TableColumn<TipoServicio, String> colNombre;
@@ -47,6 +47,12 @@ public class TipoServicioController {
         });
 
         limpiar();
+        cargar();
+    }
+
+    /** Solo la tabla: lo escrito en el formulario se conserva. */
+    @Override
+    public void actualizarAlVolver() {
         cargar();
     }
 

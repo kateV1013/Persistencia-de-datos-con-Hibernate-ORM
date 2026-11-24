@@ -84,6 +84,18 @@ class PedidoServiceTest {
     }
 
     @Test
+    void editarUnPedidoCanceladoDiceQueEstaCancelado() {
+        PedidoPersonalizado p = service.registrar(nuevo(lunes));
+        service.cancelar(p.getId());
+        PedidoPersonalizado cargado = service.listar(true).stream()
+                .filter(x -> x.getId().equals(p.getId())).findFirst().orElseThrow();
+        cargado.setPrecio(new BigDecimal("400.00"));
+
+        ReglaNegocioException e = assertThrows(ReglaNegocioException.class, () -> service.modificar(cargado));
+        assertEquals("Un pedido cancelado no se puede modificar.", e.getMessage());
+    }
+
+    @Test
     void cambiarFechaASemanaLlenaSeBloquea() {
         llenarSemana(lunes);
         PedidoPersonalizado otro = service.registrar(nuevo(lunes.plusWeeks(1)));

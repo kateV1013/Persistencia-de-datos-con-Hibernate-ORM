@@ -70,7 +70,7 @@ public final class EditorGrabado {
         HBox contenido=new HBox(22,izquierda,scroll);contenido.setAlignment(Pos.TOP_LEFT);contenido.setPrefSize(890,580);HBox.setHgrow(izquierda,Priority.ALWAYS);
         dialogo.getDialogPane().setContent(contenido);dialogo.setResultConverter(b -> b==aplicar?d.copia():null);
         FormulariosVisuales.aplicar(contenido);
-        actualizar.run();return dialogo.showAndWait();
+        actualizar.run();Dialogos.preparar(dialogo);return dialogo.showAndWait();
     }
     private static ComboBox<String> combo(String... valores){ComboBox<String> c=new ComboBox<>();c.getItems().setAll(valores);c.setMaxWidth(Double.MAX_VALUE);return c;}
     private static VBox campo(String nombre,javafx.scene.Node control){Label l=new Label(nombre);l.getStyleClass().add("campo-label");return new VBox(5,l,control);}

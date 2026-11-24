@@ -35,7 +35,7 @@ import java.util.List;
  * Registro de grabados, reparaciones y otros trabajos personalizados:
  * crear, consultar, modificar y cancelar pedidos, mostrando el cupo semanal.
  */
-public class PedidoController {
+public class PedidoController implements com.quilate.ui.Actualizable {
 
     @FXML private CheckBox chkCancelados;
     @FXML private TableView<PedidoPersonalizado> tabla;
@@ -135,6 +135,12 @@ public class PedidoController {
     }
 
     // ---------- carga de datos ----------
+
+    /** Clientes, servicios y pedidos nuevos; el pedido que se esté escribiendo se conserva. */
+    @Override
+    public void actualizarAlVolver() {
+        cargar();
+    }
 
     private void cargar() {
         boolean incluirCancelados = chkCancelados.isSelected();

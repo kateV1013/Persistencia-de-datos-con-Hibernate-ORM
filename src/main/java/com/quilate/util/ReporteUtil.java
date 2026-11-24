@@ -60,7 +60,13 @@ public final class ReporteUtil {
                 // false: cerrar el visor no debe cerrar la aplicación JavaFX.
                 JasperViewer visor = new JasperViewer(impreso, false);
                 visor.setTitle(titulo + " · Joyería Quilate");
+                // Mismo tamaño y posición en Windows y macOS: centrado y sin salirse de la pantalla.
+                java.awt.Rectangle area = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment()
+                        .getMaximumWindowBounds();
+                visor.setSize(Math.min(1100, area.width - 40), Math.min(820, area.height - 40));
+                visor.setLocationRelativeTo(null);
                 visor.setVisible(true);
+                visor.toFront();
             });
         }, Tareas::mostrarError);
     }

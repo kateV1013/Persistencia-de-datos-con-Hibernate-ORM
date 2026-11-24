@@ -291,3 +291,9 @@
     -fx-background-color: linear-gradient(to right, -q-tinta, #A15359);
     -fx-background-radius: 8;
 }
+
+/* Diálogos: encabezado con la tipografía de la marca y botones con aire (Windows y macOS). */
+.dialog-pane:header .header-panel .label { -fx-font: 16px "Georgia"; -fx-text-fill: -q-tinta; -fx-wrap-text: true; }
+.dialog-pane > .button-bar > .container { -fx-padding: 4 14 14 14; }
+.dialog-pane .button { -fx-min-width: 86; }
+.button.atajo-periodo { -fx-padding: 5 10; -fx-font-size: 11; -fx-min-width: 0; }

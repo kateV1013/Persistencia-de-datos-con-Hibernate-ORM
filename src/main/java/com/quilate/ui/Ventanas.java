@@ -54,9 +54,12 @@ public final class Ventanas {
         }
 
         Parent contenido;
+        Object controlador;
         try {
-            contenido = FXMLLoader.load(Objects.requireNonNull(
+            FXMLLoader cargador = new FXMLLoader(Objects.requireNonNull(
                     Ventanas.class.getResource(modulo.fxml()), modulo.fxml()));
+            contenido = cargador.load();
+            controlador = cargador.getController();
         } catch (Exception e) {
             AlertUtil.error(e);
             return;
@@ -75,18 +78,25 @@ public final class Ventanas {
         ventana.getIcons().add(com.quilate.ui.MarcaQuilate.imagen(32));
         ventana.setTitle(modulo.titulo() + " · Joyería Quilate");
         ventana.setScene(crearEscena(raiz, ancho, alto));
-        ventana.setMinWidth(1040);
-        ventana.setMinHeight(680);
+        // En pantallas pequeñas (por ejemplo 1366×768 con escala 125 % en Windows) el mínimo
+        // no puede pasar del área visible, o la parte de abajo quedaría fuera de la pantalla.
+        ventana.setMinWidth(Math.min(1040, pantalla.getWidth() - 20));
+        ventana.setMinHeight(Math.min(680, pantalla.getHeight() - 20));
         ventana.setOnHidden(e -> ABIERTAS.remove(modulo));
         atajosDeVentana(ventana);
+        if (controlador instanceof Actualizable actualizable) {
+            recargarAlVolver(ventana, modulo, actualizable);
+        }
+        // La pantalla ya cargó sus datos al abrirse: no hace falta recargarla al recibir el foco.
+        ultimoModulo = modulo;
 
         int yaAbiertas = ABIERTAS.size();
         ABIERTAS.put(modulo, ventana);
         ventana.show();
-        ventana.setX(Math.min(ventana.getX() + DESPLAZAMIENTO_CASCADA * yaAbiertas,
-                pantalla.getMaxX() - ventana.getWidth()));
-        ventana.setY(Math.min(ventana.getY() + DESPLAZAMIENTO_CASCADA * yaAbiertas,
-                pantalla.getMaxY() - ventana.getHeight()));
+        ventana.setX(Math.max(pantalla.getMinX(), Math.min(ventana.getX() + DESPLAZAMIENTO_CASCADA * yaAbiertas,
+                pantalla.getMaxX() - ventana.getWidth())));
+        ventana.setY(Math.max(pantalla.getMinY(), Math.min(ventana.getY() + DESPLAZAMIENTO_CASCADA * yaAbiertas,
+                pantalla.getMaxY() - ventana.getHeight())));
 
         Animaciones.entrada(contenido, Duration.millis(60));
     }
@@ -110,6 +120,28 @@ public final class Ventanas {
     }
 
     /** Cierra todas las ventanas de modulos (al cerrar el menu principal). */
+    /** Último módulo en el que estuvo el usuario; los diálogos y el menú no lo cambian. */
+    private static Modulo ultimoModulo;
+
+    /**
+     * Al volver a esta ventana desde OTRO módulo, la pantalla relee sus datos. Volver de un
+     * diálogo propio, del visor de reportes o de otra aplicación no recarga nada.
+     */
+    private static void recargarAlVolver(Stage ventana, Modulo modulo, Actualizable pantalla) {
+        ventana.focusedProperty().addListener((obs, antes, enfocada) -> {
+            if (!enfocada) return;
+            if (debeRecargar(ultimoModulo, modulo)) {
+                pantalla.actualizarAlVolver();
+            }
+            ultimoModulo = modulo;
+        });
+    }
+
+    /** Solo al llegar desde otro módulo; volver a la misma ventana (tras un diálogo) no recarga. */
+    static boolean debeRecargar(Modulo anterior, Modulo actual) {
+        return anterior != null && anterior != actual;
+    }
+
     public static void cerrarTodas() {
         for (Stage ventana : new ArrayList<>(ABIERTAS.values())) {
             ventana.close();
