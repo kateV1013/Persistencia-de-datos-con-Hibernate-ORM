@@ -269,6 +269,5 @@ Las vistas **Preview** se ejecutaron con datos ficticios de una base local.
 
 **Integrantes:** Kate Ramirez, Erick Arana, Reynolds Rodriguez y Francisco Cuadra.
 
-- [Guion para los cuatro integrantes](docs/entrega/DEFENSA.md).
 - [Reportes compilados y PDF de muestra](docs/entrega/reportes/).
 - [Configuración y scripts para MySQL](database/mysql/README.md).
