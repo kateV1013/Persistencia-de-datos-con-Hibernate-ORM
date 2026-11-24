@@ -236,18 +236,16 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 
 ## 7. Evidencias
 
-Las capturas se generaron con datos ficticios de la prueba visual.
-
 1. **Inicio y estado de conexión.**
-   ![Pantalla de inicio y estado de conexión](evidencias/01-inicio.png)
+   ![Pantalla de inicio y estado de conexión](evidencias/01-inicio-interfaz-quilate.png)
 2. **CRUD de inventario.**
-   ![Inventario y formulario de piezas](evidencias/02-inventario.png)
+   ![Inventario y formulario de piezas](evidencias/02-inventario-interfaz-quilate.png)
 3. **Venta y sus detalles.**
-   ![Formulario y detalle de venta](evidencias/03-ventas.png)
+   ![Formulario y detalle de venta](evidencias/03-ventas-interfaz-quilate.png)
 4. **Pedidos asociados a clientes y servicios.**
-   ![Listado de pedidos y formulario del taller](evidencias/04-pedidos.png)
+   ![Listado de pedidos y formulario del taller](evidencias/04-pedidos-interfaz-quilate.png)
 5. **Reporte de piezas más vendidas.**
-   ![Reporte de piezas más vendidas](evidencias/05-reporte.png)
+   ![Reporte de piezas más vendidas](evidencias/05-reporte-interfaz-quilate.png)
 
 ### Reportes en Jaspersoft Studio 6.21.3
 
