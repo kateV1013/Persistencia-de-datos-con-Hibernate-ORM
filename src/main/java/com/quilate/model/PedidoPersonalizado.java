@@ -48,6 +48,7 @@ public class PedidoPersonalizado {
     private BigDecimal precio;
 
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.VARCHAR)
     @Column(name = "estado", nullable = false, length = 20)
     private EstadoPedido estado = EstadoPedido.PENDIENTE;
 

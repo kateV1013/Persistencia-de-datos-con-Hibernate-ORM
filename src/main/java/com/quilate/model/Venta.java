@@ -45,6 +45,7 @@ public class Venta {
     private BigDecimal total = BigDecimal.ZERO.setScale(2);
 
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.VARCHAR)
     @Column(nullable = false, length = 20)
     private EstadoVenta estado = EstadoVenta.PREPARACION;
 

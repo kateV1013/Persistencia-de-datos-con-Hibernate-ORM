@@ -248,3 +248,29 @@ Las capturas se generaron con datos ficticios de la prueba visual.
    ![Listado de pedidos y formulario del taller](evidencias/04-pedidos.png)
 5. **Reporte de piezas más vendidas.**
    ![Reporte de piezas más vendidas](evidencias/05-reporte.png)
+
+### Reportes en Jaspersoft Studio 6.21.3
+
+Las vistas **Preview** se ejecutaron con datos ficticios de una base local.
+
+**Inventario general**
+
+- **Design**
+  ![Diseño de Inventario general en Jaspersoft Studio](evidencias/06-studio-inventario-design.png)
+- **Preview**
+  ![Vista previa de Inventario general con tres piezas](evidencias/07-studio-inventario-preview.png)
+
+**Ventas por fechas**
+
+- **Design**
+  ![Diseño de Ventas por fechas en Jaspersoft Studio](evidencias/08-studio-ventas-design.png)
+- **Preview**
+  ![Vista previa de Ventas por fechas con dos ventas confirmadas](evidencias/09-studio-ventas-preview.png)
+
+## Entrega y defensa
+
+**Integrantes:** Kate Ramirez, Erick Arana, Reynolds Rodriguez y Francisco Cuadra.
+
+- [Guion para los cuatro integrantes](docs/entrega/DEFENSA.md).
+- [Reportes compilados y PDF de muestra](docs/entrega/reportes/).
+- [Configuración y scripts para MySQL](database/mysql/README.md).

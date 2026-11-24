@@ -18,12 +18,12 @@
 	<parameter name="p_hasta" class="java.sql.Timestamp"/>
 	<parameter name="p_periodo" class="java.lang.String"/>
 	<queryString language="SQL">
-		<![CDATA[SELECT 'Por estado' AS agrupacion, CAST(v.estado AS VARCHAR(20)) AS valor, COUNT(*) AS ventas, SUM(v.total) AS monto
+		<![CDATA[SELECT 'Por estado' AS agrupacion, v.estado AS valor, COUNT(*) AS ventas, SUM(v.total) AS monto
 FROM venta v
 WHERE v.fecha_hora >= $P{p_desde} AND v.fecha_hora < $P{p_hasta}
 GROUP BY v.estado
 UNION ALL
-SELECT 'Por método de pago (solo confirmadas)', CAST(v.metodo_pago AS VARCHAR(20)), COUNT(*), SUM(v.total)
+SELECT 'Por método de pago (solo confirmadas)', v.metodo_pago, COUNT(*), SUM(v.total)
 FROM venta v
 WHERE v.estado = 'CONFIRMADA' AND v.fecha_hora >= $P{p_desde} AND v.fecha_hora < $P{p_hasta}
 GROUP BY v.metodo_pago

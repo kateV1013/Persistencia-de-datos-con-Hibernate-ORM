@@ -17,7 +17,7 @@
 	<parameter name="p_pieza_id" class="java.lang.Long"/>
 	<queryString language="SQL">
 		<![CDATA[SELECT p.codigo_barras, p.nombre, p.material,
-       CAST(p.quilates AS INTEGER) AS quilates, p.peso_gramos,
+       p.quilates AS quilates, p.peso_gramos,
        p.costo, p.precio_venta, p.existencias,
        p.precio_venta * p.existencias AS valor,
        COALESCE(c.nombre, 'Sin categoría') AS categoria,
