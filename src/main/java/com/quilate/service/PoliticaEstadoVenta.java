@@ -18,8 +18,20 @@ public final class PoliticaEstadoVenta {
     }
 
     public static EstadoVenta confirmar(EstadoVenta estadoActual) {
-        validarModificable(estadoActual);
+        validarConfirmable(estadoActual);
         return EstadoVenta.CONFIRMADA;
+    }
+
+    /** Como {@link #validarModificable}, pero con un mensaje que dice por qué no se confirma. */
+    public static void validarConfirmable(EstadoVenta estadoActual) {
+        validarEstado(estadoActual);
+        if (estadoActual == EstadoVenta.CONFIRMADA) {
+            throw new ReglaNegocioException("Esta venta ya fue confirmada.");
+        }
+        if (estadoActual == EstadoVenta.ANULADA) {
+            throw new ReglaNegocioException("Esta venta está anulada; no se puede confirmar.");
+        }
+        validarModificable(estadoActual);
     }
 
     public static EstadoVenta anular(EstadoVenta estadoActual) {

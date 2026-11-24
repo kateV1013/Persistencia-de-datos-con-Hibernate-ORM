@@ -24,7 +24,7 @@ public final class PresentacionTablas {
             Label ayuda = new Label(detalle);
             ayuda.setWrapText(true);
             ayuda.getStyleClass().add("empty-detail");
-            VBox vacio = new VBox(10, Iconos.crear(Iconos.DIAMANTE, 30, Color.web("#B8C6B6")), titulo, ayuda);
+            VBox vacio = new VBox(10, Iconos.crear(Iconos.DIAMANTE, 30, Color.web("#B89362")), titulo, ayuda);
             vacio.setAlignment(Pos.CENTER);
             vacio.getStyleClass().add("empty-state");
             tabla.setPlaceholder(vacio);
@@ -88,7 +88,7 @@ public final class PresentacionTablas {
                     setText(MonedaVista.formatear(new BigDecimal(numero.toString())));
                 } else if (estado) {
                     String codigo = valor.toString().toUpperCase(Locale.ROOT);
-                    Label insignia = new Label(codigo.substring(0, 1) + codigo.substring(1).toLowerCase(Locale.ROOT).replace('_', ' '));
+                    Label insignia = new Label(textoEstado(valor));
                     insignia.getStyleClass().add("estado-chip");
                     if (codigo.contains("CANCEL") || codigo.contains("ANULA")) insignia.getStyleClass().add("estado-cancelado");
                     else if (codigo.contains("PEND") || codigo.contains("PREPAR")) insignia.getStyleClass().add("estado-pendiente");
@@ -102,5 +102,12 @@ public final class PresentacionTablas {
                 setTooltip(new Tooltip(getText() == null ? valor.toString() : getText()));
             }
         });
+    }
+
+    /** Texto de la insignia de estado: "PREPARACION" → "En preparación", "EN_PROCESO" → "En proceso". */
+    static String textoEstado(Object valor) {
+        String codigo = valor.toString().toUpperCase(Locale.ROOT);
+        if (codigo.equals("PREPARACION")) return "En preparación";
+        return codigo.substring(0, 1) + codigo.substring(1).toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 }

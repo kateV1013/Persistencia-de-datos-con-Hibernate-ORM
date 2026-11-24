@@ -62,10 +62,25 @@ public final class Tareas {
         if (esFallaDeConexion(e)) {
             return "No hay conexión con la base de datos. Revisa que PostgreSQL esté encendido y pulsa Actualizar.";
         }
+        // Si la app ya explicó el error (por ejemplo "Ya existe una pieza con el código…"),
+        // se muestra ese texto y no el de PostgreSQL que viene como causa.
+        for (Throwable c = e; c != null; c = c.getCause() == c ? null : c.getCause()) {
+            if (esMensajeDeLaApp(c) && c.getMessage() != null && !c.getMessage().isBlank()) {
+                return c.getMessage();
+            }
+        }
         Throwable causa = e;
         while (causa.getCause() != null && causa.getCause() != causa) {
             causa = causa.getCause();
         }
         return causa.getMessage() != null ? causa.getMessage() : causa.getClass().getSimpleName();
+    }
+
+    private static boolean esMensajeDeLaApp(Throwable c) {
+        return c instanceof ReglaNegocioException
+                || c instanceof com.quilate.exception.ValidacionException
+                || c instanceof com.quilate.exception.EntidadConDependenciasException
+                || c instanceof com.quilate.exception.ExistenciasInsuficientesException
+                || c instanceof IllegalArgumentException;
     }
 }

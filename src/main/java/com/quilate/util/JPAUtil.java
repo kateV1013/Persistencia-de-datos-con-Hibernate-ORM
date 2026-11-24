@@ -47,6 +47,11 @@ public final class JPAUtil {
     private static SessionFactory crearFabrica(Map<String, Object> propiedades) {
         var builder = new StandardServiceRegistryBuilder().configure("hibernate.cfg.xml");
         builder.applySettings(propiedades);
+        if (!propiedades.containsKey("jakarta.persistence.jdbc.driver")
+                && propiedades.get("jakarta.persistence.jdbc.url") instanceof String url
+                && url.startsWith("jdbc:mysql:")) {
+            builder.applySetting("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
+        }
         copiarConexion(builder, propiedades, "driver", "driver_class");
         copiarConexion(builder, propiedades, "url", "url");
         copiarConexion(builder, propiedades, "user", "username");

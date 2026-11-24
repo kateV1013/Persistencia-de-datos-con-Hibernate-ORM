@@ -57,6 +57,7 @@ public final class EtiquetaBarras {
             if(ok) ok=trabajo.endJob();else trabajo.cancelJob();
             estado.setText(ok?"Etiqueta enviada a la impresora.":"No se pudo completar la impresión.");
         });
+        Dialogos.preparar(dialogo);
         dialogo.showAndWait();
     }
 }

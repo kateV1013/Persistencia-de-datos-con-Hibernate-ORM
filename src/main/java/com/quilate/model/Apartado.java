@@ -37,6 +37,7 @@ public class Apartado {
     private LocalDateTime fecha;
 
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.VARCHAR)
     @Column(nullable = false, length = 20)
     private EstadoApartado estado = EstadoApartado.ACTIVO;
 

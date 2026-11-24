@@ -30,7 +30,7 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class VentaController {
+public class VentaController implements com.quilate.ui.Actualizable {
 
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -65,6 +65,8 @@ public class VentaController {
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final PiezaDAO piezaDAO = new PiezaDAO();
     private Long ventaEnEdicionId;
+    /** Mensaje que se muestra cuando termina de cargarse la venta recién seleccionada. */
+    private String avisoTrasCargar;
     /** Evita lanzar dos guardados o confirmaciones a la vez con un doble clic. */
     private boolean ocupado;
 
@@ -190,8 +192,9 @@ public class VentaController {
         if (solicitud == null) return;
         ejecutarOcupado(() -> guardar(solicitud), venta -> {
             ventaEnEdicionId = venta.getId();
-            recargarVentas();
-            mensaje("Venta " + venta.getId() + " guardada en preparación.");
+            // Se marca en la lista para que se vea dónde quedó el borrador.
+            recargarVentas(venta.getId(), "Venta " + venta.getId()
+                    + " guardada en preparación. Aún no descuenta existencias; confírmala cuando el cliente pague.");
         });
     }
 
@@ -201,14 +204,17 @@ public class VentaController {
             AlertUtil.advertencia("Selecciona una venta en preparación para eliminarla.");
             return;
         }
-        Long id = ventaEnEdicionId;
-        if (!AlertUtil.confirmar("¿Eliminar el borrador de la venta " + id + "? No afecta las existencias.")) {
+        eliminarBorrador(ventaEnEdicionId,
+                "¿Eliminar el borrador de la venta " + ventaEnEdicionId + "? No afecta las existencias.");
+    }
+
+    private void eliminarBorrador(Long id, String pregunta) {
+        if (!AlertUtil.confirmar(pregunta)) {
             return;
         }
         ejecutarOcupado(() -> { ventaService.eliminarBorrador(id); return id; }, eliminado -> {
             nuevaVenta();
-            recargarVentas();
-            mensaje("Borrador de la venta " + eliminado + " eliminado.");
+            recargarVentas(null, "Borrador de la venta " + eliminado + " eliminado.");
         });
     }
 
@@ -232,24 +238,35 @@ public class VentaController {
     private void anularVenta() {
         Venta seleccionada = tablaVentas.getSelectionModel().getSelectedItem();
         if (seleccionada == null) {
-            AlertUtil.advertencia("Selecciona una venta confirmada.");
-            return;
-        }
-        if (!AlertUtil.confirmar("Anular la venta " + seleccionada.getId()
-                + " y devolver sus existencias?")) {
+            AlertUtil.advertencia("Selecciona en la lista la venta confirmada que deseas anular.");
             return;
         }
         Long id = seleccionada.getId();
+        if (seleccionada.getEstado() == EstadoVenta.ANULADA) {
+            AlertUtil.advertencia("La venta " + id + " ya está anulada; sus existencias ya se devolvieron.");
+            return;
+        }
+        if (seleccionada.getEstado() == EstadoVenta.PREPARACION) {
+            // Un borrador no descontó existencias: no se anula, se elimina.
+            eliminarBorrador(id, "La venta " + id + " todavía es un borrador: no descontó existencias, "
+                    + "así que no hay nada que anular.\n\n¿Quieres eliminar el borrador?");
+            return;
+        }
+        if (!AlertUtil.confirmar("¿Anular la venta " + id + " y devolver sus existencias?")) {
+            return;
+        }
         ejecutarOcupado(() -> ventaService.anular(id), anulada -> {
             recargar();
             nuevaVenta();
-            AlertUtil.info("Venta anulada. Las existencias fueron reintegradas una sola vez.");
+            mensaje("Venta " + id + " anulada. Sus existencias volvieron al inventario.");
+            AlertUtil.info("Venta " + id + " anulada. Las existencias fueron reintegradas una sola vez.");
         });
     }
 
     @FXML
     private void nuevaVenta() {
         ventaHistorica = false;
+        avisoTrasCargar = null;
         txtCodigoVenta.clear();
         ventaEnEdicionId = null;
         carrito.clear();
@@ -276,6 +293,12 @@ public class VentaController {
                     tablaVentas.setItems(FXCollections.observableArrayList(datos.ventas()));
                 },
                 error -> mensaje("No se pudieron cargar los datos: " + Tareas.mensajeCorto(error)));
+    }
+
+    /** Clientes, piezas (con su stock) y lista de ventas; el carrito en preparación se conserva. */
+    @Override
+    public void actualizarAlVolver() {
+        recargar();
     }
 
     private static <T> void seleccionarPorId(ComboBox<T> combo, Long id,
@@ -337,9 +360,13 @@ public class VentaController {
             cmbMetodoPago.setValue(venta.getMetodoPago());
             carrito.setAll(venta.getDetalles().stream().map(this::aLinea).toList());
             actualizarTotal();
-            mensaje(venta.getEstado() == EstadoVenta.PREPARACION
-                    ? "Venta en preparación cargada para editar."
-                    : "Venta histórica: " + venta.getEstado().name().charAt(0) + venta.getEstado().name().substring(1).toLowerCase() + ".");
+            String aviso = avisoTrasCargar;
+            avisoTrasCargar = null;
+            mensaje(aviso != null ? aviso
+                    : venta.getEstado() == EstadoVenta.PREPARACION
+                    ? "Venta " + venta.getId() + " en preparación cargada para editar."
+                    : "Venta " + venta.getId() + " " + (venta.getEstado() == EstadoVenta.ANULADA ? "anulada" : "confirmada")
+                    + ": es histórica y no se modifica. Pulsa Nueva venta para registrar otra.");
         });
     }
 
@@ -349,10 +376,23 @@ public class VentaController {
                 detalle.getDescuentoAplicado(), detalle.getSubtotal());
     }
 
-    private void recargarVentas() {
-        Tareas.ejecutar(ventaService::listar,
-                ventas -> tablaVentas.setItems(FXCollections.observableArrayList(ventas)),
-                error -> mensaje("No se pudieron cargar las ventas: " + Tareas.mensajeCorto(error)));
+    /**
+     * Recarga la lista de ventas. Si se indica una venta, la selecciona y la muestra;
+     * el aviso se escribe después de cargarla para que no lo tape otro mensaje.
+     */
+    private void recargarVentas(Long seleccionar, String aviso) {
+        Tareas.ejecutar(ventaService::listar, ventas -> {
+            tablaVentas.setItems(FXCollections.observableArrayList(ventas));
+            Venta encontrada = seleccionar == null ? null
+                    : ventas.stream().filter(v -> v.getId().equals(seleccionar)).findFirst().orElse(null);
+            if (encontrada != null) {
+                avisoTrasCargar = aviso;
+                tablaVentas.getSelectionModel().select(encontrada);
+                tablaVentas.scrollTo(encontrada);
+            } else if (aviso != null) {
+                mensaje(aviso);
+            }
+        }, error -> mensaje("No se pudieron cargar las ventas: " + Tareas.mensajeCorto(error)));
     }
 
     private void mostrarDescuentoMaximo(Pieza pieza) {
@@ -372,7 +412,7 @@ public class VentaController {
     private void actualizarTotal() {
         BigDecimal total = CalculadoraVenta.calcularTotal(
                 carrito.stream().map(LineaCarrito::subtotal).toList());
-        lblTotal.setText("Total: " + com.quilate.ui.MonedaVista.formatear(total));
+        lblTotal.setText(com.quilate.ui.MonedaVista.formatear(total));
         BigDecimal costo = carrito.stream().map(l -> l.costo().multiply(BigDecimal.valueOf(l.cantidad())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal descuentos = carrito.stream().map(l -> l.descuento().multiply(BigDecimal.valueOf(l.cantidad())))

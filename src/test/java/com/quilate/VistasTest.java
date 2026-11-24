@@ -34,11 +34,11 @@ class VistasTest {
             List<Parent> vistas = cargadas.get(30, TimeUnit.SECONDS);
             assertEquals(Modulo.values().length + 1, vistas.size());
             Parent menu = vistas.get(0);
-            CompletableFuture<Integer> tarjetas = new CompletableFuture<>();
+            CompletableFuture<Integer> filas = new CompletableFuture<>();
             // Sin escena, lookupAll no entra al contenido de un ScrollPane: se busca desde su contenido.
-            Platform.runLater(() -> tarjetas.complete(((ScrollPane) menu.lookup(".menu-scroll"))
-                    .getContent().lookupAll(".tarjeta-modulo").size()));
-            assertEquals(Modulo.values().length, tarjetas.get(10, TimeUnit.SECONDS));
+            Platform.runLater(() -> filas.complete(((ScrollPane) menu.lookup(".menu-scroll"))
+                    .getContent().lookupAll(".fila-modulo").size()));
+            assertEquals(Modulo.values().length, filas.get(10, TimeUnit.SECONDS));
         } finally {
             for (Thread hilo : Thread.getAllStackTraces().keySet()) {
                 if (hilo.getName().equals("quilate-bd") || hilo.getName().equals("conexion-bd")) {

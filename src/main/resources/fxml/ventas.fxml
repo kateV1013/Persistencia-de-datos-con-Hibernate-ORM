@@ -47,6 +47,8 @@
                 </VBox>
             </FlowPane>
             <Label fx:id="lblDescuentoMaximo" styleClass="mensaje"/>
+            <!-- Arriba y no al pie: al pie quedaba fuera de la vista y no se notaba que se guardó. -->
+            <Label fx:id="lblMensaje" wrapText="true" styleClass="mensaje"/>
         </VBox>
     </top>
     <center>
@@ -65,16 +67,23 @@
                         <TableColumn fx:id="colSubtotal" text="Subtotal" prefWidth="90"/>
                     </columns>
                 </TableView>
-                <FlowPane hgap="8" vgap="8" alignment="CENTER_RIGHT">
+                <FlowPane hgap="8" vgap="8" alignment="CENTER_LEFT">
                     <Button text="Quitar pieza" onAction="#quitarDetalle" styleClass="peligro"/>
-                    <Label fx:id="lblTotal" text="Total: C$ 0.00" styleClass="total-venta"/>
-                </FlowPane>
-                <VBox spacing="4" styleClass="profit-box"><Label fx:id="lblGanancia" styleClass="titulo-seccion"/><Label fx:id="lblAhorro" styleClass="ayuda"/><Label fx:id="lblMargen" styleClass="ayuda" wrapText="true"/></VBox>
-<FlowPane hgap="8" vgap="8" alignment="CENTER_RIGHT">
                     <Button text="Eliminar borrador" onAction="#eliminarBorrador" styleClass="peligro"/>
                     <Button text="Guardar borrador" onAction="#guardarPreparacion" styleClass="secundario"/>
-                    <Button text="Confirmar venta" onAction="#confirmarVenta" styleClass="confirmar"/>
                 </FlowPane>
+                <VBox spacing="4" styleClass="profit-box">
+                    <Label fx:id="lblGanancia" styleClass="titulo-seccion"/>
+                    <Label fx:id="lblAhorro" styleClass="ayuda"/>
+                    <Label fx:id="lblMargen" styleClass="ayuda" wrapText="true"/>
+                </VBox>
+                <HBox spacing="18" alignment="CENTER_LEFT" styleClass="resumen-venta">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="TOTAL DE LA VENTA" styleClass="total-venta-etiqueta"/>
+                        <Label fx:id="lblTotal" text="C$ 0.00" styleClass="total-venta"/>
+                    </VBox>
+                    <Button text="Confirmar venta" onAction="#confirmarVenta" styleClass="confirmar"/>
+                </HBox>
             </VBox>
             <VBox spacing="12" styleClass="panel">
                 <padding>
@@ -102,12 +111,5 @@
             </VBox>
         </SplitPane>
     </center>
-    <bottom>
-        <Label fx:id="lblMensaje" styleClass="mensaje">
-            <padding>
-                <Insets top="5" right="10" bottom="5" left="10"/>
-            </padding>
-        </Label>
-    </bottom>
 </BorderPane></content>
 </ScrollPane>

@@ -38,15 +38,29 @@ class DisenoVisualTest {
         Stage principal = fx(() -> {
             Parent root = FXMLLoader.load(getClass().getResource("/fxml/main.fxml"));
             Stage stage = new Stage();
-            stage.setScene(Ventanas.crearEscena(root, 1360, 880)); stage.show();
+            stage.setScene(Ventanas.crearEscena(root, 1020, 680)); stage.show();
             root.applyCss(); root.layout();
             TextField filtro = (TextField) root.lookup("#busqueda");
             filtro.setText("INVENTARIO");
-            assertEquals(1, root.lookupAll(".tarjeta-modulo").stream().filter(n -> n.isManaged()).count());
+            assertEquals(1, root.lookupAll(".fila-modulo").stream().filter(n -> n.isManaged()).count());
             filtro.setText("zzzzz");
             assertTrue(root.lookup("#sinResultados").isVisible());
             filtro.clear();
-            assertEquals(7, root.lookupAll(".tarjeta-modulo").stream().filter(n -> n.isManaged()).count());
+            assertEquals(7, root.lookupAll(".fila-modulo").stream().filter(n -> n.isManaged()).count());
+            ToggleButton tienda = (ToggleButton) root.lookup("#vistaTienda");
+            ToggleButton taller = (ToggleButton) root.lookup("#vistaTaller");
+            tienda.fire();
+            assertEquals(4, root.lookupAll(".fila-modulo").stream().filter(n -> n.isManaged()).count());
+            assertFalse(root.lookup("#divisorSecciones").isManaged());
+            taller.fire();
+            taller.fire();
+            assertTrue(taller.isSelected());
+            assertEquals(3, root.lookupAll(".fila-modulo").stream().filter(n -> n.isManaged()).count());
+            filtro.setText("inventario");
+            assertTrue(root.lookup("#sinResultados").isVisible());
+            ((ToggleButton) root.lookup("#vistaGeneral")).fire();
+            assertEquals(7, root.lookupAll(".fila-modulo").stream().filter(n -> n.isManaged()).count());
+            assertTrue(root.lookup("#divisorSecciones").isManaged());
             return stage;
         });
         try {
@@ -55,13 +69,21 @@ class DisenoVisualTest {
             int numero = 2;
             for (Modulo modulo : Modulo.values()) {
                 Stage ventana = fx(() -> {
-                    Ventanas.abrir(modulo);
+                    Button fila = principal.getScene().getRoot().lookupAll(".fila-modulo").stream()
+                            .filter(n -> ("Abrir " + modulo.titulo()).equals(n.getAccessibleText()))
+                            .map(Button.class::cast).findFirst().orElseThrow();
+                    fila.fire();
                     Stage abierta = Window.getWindows().stream().filter(w -> w instanceof Stage)
                             .map(w -> (Stage) w).filter(w -> (modulo.titulo() + " · Joyería Quilate").equals(w.getTitle()))
                             .findFirst().orElseThrow();
                     assertNotNull(abierta.getScene().getRoot());
                     // Abrir el mismo módulo no crea otra ventana.
-                    int cantidad = Window.getWindows().size(); Ventanas.abrir(modulo);
+                    int cantidad = Window.getWindows().size();
+                    if (modulo == Modulo.VENTAS) {
+                        ((Button) principal.getScene().lookup("#registrarVenta")).fire();
+                    } else {
+                        fila.fire();
+                    }
                     assertEquals(cantidad, Window.getWindows().size());
                     return abierta;
                 });
@@ -149,7 +171,11 @@ class DisenoVisualTest {
             if (capturar) {
                 fx(() -> { principal.setWidth(920); principal.setHeight(700); return null; });
                 Thread.sleep(250);
-                fx(() -> { captura(principal, "09-inicio-compacto"); assertFalse(principal.getScene().getRoot().lookup("#lateral").isManaged()); return null; });
+                fx(() -> {
+                    assertTrue(principal.getScene().lookup("#vistaGeneral").isVisible());
+                    captura(principal, "09-inicio-compacto");
+                    return null;
+                });
             }
         } finally {
             fx(() -> { Ventanas.cerrarTodas(); principal.close(); return null; });

@@ -236,15 +236,38 @@ En IntelliJ: clic derecho sobre `src/test/java` → **Run 'All Tests'**.
 
 ## 7. Evidencias
 
-Las capturas se generaron con datos ficticios de la prueba visual.
-
 1. **Inicio y estado de conexión.**
-   ![Pantalla de inicio y estado de conexión](evidencias/01-inicio.png)
+   ![Pantalla de inicio y estado de conexión](evidencias/01-inicio-interfaz-quilate.png)
 2. **CRUD de inventario.**
-   ![Inventario y formulario de piezas](evidencias/02-inventario.png)
+   ![Inventario y formulario de piezas](evidencias/02-inventario-interfaz-quilate.png)
 3. **Venta y sus detalles.**
-   ![Formulario y detalle de venta](evidencias/03-ventas.png)
+   ![Formulario y detalle de venta](evidencias/03-ventas-interfaz-quilate.png)
 4. **Pedidos asociados a clientes y servicios.**
-   ![Listado de pedidos y formulario del taller](evidencias/04-pedidos.png)
+   ![Listado de pedidos y formulario del taller](evidencias/04-pedidos-interfaz-quilate.png)
 5. **Reporte de piezas más vendidas.**
-   ![Reporte de piezas más vendidas](evidencias/05-reporte.png)
+   ![Reporte de piezas más vendidas](evidencias/05-reporte-interfaz-quilate.png)
+
+### Reportes en Jaspersoft Studio 6.21.3
+
+Las vistas **Preview** se ejecutaron con datos ficticios de una base local.
+
+**Inventario general**
+
+- **Design**
+  ![Diseño de Inventario general en Jaspersoft Studio](evidencias/06-studio-inventario-design.png)
+- **Preview**
+  ![Vista previa de Inventario general con tres piezas](evidencias/07-studio-inventario-preview.png)
+
+**Ventas por fechas**
+
+- **Design**
+  ![Diseño de Ventas por fechas en Jaspersoft Studio](evidencias/08-studio-ventas-design.png)
+- **Preview**
+  ![Vista previa de Ventas por fechas con dos ventas confirmadas](evidencias/09-studio-ventas-preview.png)
+
+## Entrega y defensa
+
+**Integrantes:** Kate Ramirez, Erick Arana, Reynolds Rodriguez y Francisco Cuadra.
+
+- [Reportes compilados y PDF de muestra](docs/entrega/reportes/).
+- [Configuración y scripts para MySQL](database/mysql/README.md).

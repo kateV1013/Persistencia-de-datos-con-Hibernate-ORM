@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ventas_por_fechas" pageWidth="595" pageHeight="842" orientation="Portrait" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" whenNoDataType="NoPages">
-	<style name="Base" isDefault="true" fontName="Open Sans" fontSize="9" forecolor="#3E2C2A"/>
-	<style name="Marca" fontName="Open Sans" fontSize="10" isBold="true" forecolor="#8C6A60"/>
-	<style name="Titulo" fontName="Open Sans" fontSize="15" isBold="true" forecolor="#3E2C2A"/>
-	<style name="Subtitulo" fontName="Open Sans" fontSize="9" forecolor="#7A6A66"/>
-	<style name="Columna" mode="Opaque" backcolor="#4A3B38" forecolor="#FFFFFF" fontName="Open Sans" fontSize="8" isBold="true" vTextAlign="Middle"/>
-	<style name="Grupo" mode="Opaque" backcolor="#EFE7E2" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9" isBold="true" vTextAlign="Middle"/>
-	<style name="Total" fontName="Open Sans" fontSize="9" isBold="true" forecolor="#3E2C2A" vTextAlign="Middle"/>
-	<style name="Etiqueta" fontName="Open Sans" fontSize="8" isBold="true" forecolor="#8C6A60" vTextAlign="Middle"/>
+<!-- Created with Jaspersoft Studio version 6.21.3.final using JasperReports Library version 6.21.3-4a3078d20785ebe464f18037d738d12fc98c13cf  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ventas_por_fechas" pageWidth="595" pageHeight="842" whenNoDataType="NoPages" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" uuid="32bcb36c-fbbb-4bea-a9ac-ce4dc04870e5">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Quilate - Datos de demostracion"/>
+	<style name="Base" isDefault="true" forecolor="#3E2C2A" fontName="Open Sans" fontSize="9"/>
+	<style name="Marca" forecolor="#8C6A60" fontName="Open Sans" fontSize="10" isBold="true"/>
+	<style name="Titulo" forecolor="#3E2C2A" fontName="Open Sans" fontSize="15" isBold="true"/>
+	<style name="Subtitulo" forecolor="#7A6A66" fontName="Open Sans" fontSize="9"/>
+	<style name="Columna" mode="Opaque" forecolor="#FFFFFF" backcolor="#4A3B38" vTextAlign="Middle" fontName="Open Sans" fontSize="8" isBold="true"/>
+	<style name="Grupo" mode="Opaque" forecolor="#3E2C2A" backcolor="#EFE7E2" vTextAlign="Middle" fontName="Open Sans" fontSize="9" isBold="true"/>
+	<style name="Total" forecolor="#3E2C2A" vTextAlign="Middle" fontName="Open Sans" fontSize="9" isBold="true"/>
+	<style name="Etiqueta" forecolor="#8C6A60" vTextAlign="Middle" fontName="Open Sans" fontSize="8" isBold="true"/>
 	<parameter name="p_simbolo" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["C$"]]></defaultValueExpression>
 	</parameter>
@@ -34,50 +36,50 @@ ORDER BY v.fecha_hora, v.id_venta]]>
 	<title>
 		<band height="66" splitType="Stretch">
 			<staticText>
-				<reportElement style="Marca" x="0" y="0" width="535" height="16"/>
+				<reportElement style="Marca" x="0" y="0" width="535" height="16" uuid="3981b66c-9b9e-4309-8edb-d87f3c95bb62"/>
 				<text><![CDATA[JOYERÍA QUILATE - MANAGUA]]></text>
 			</staticText>
 			<textField>
-				<reportElement style="Titulo" x="0" y="18" width="535" height="22"/>
+				<reportElement style="Titulo" x="0" y="18" width="535" height="22" uuid="ca172bab-594e-4a49-9ea6-aed1cffcfc9b"/>
 				<textFieldExpression><![CDATA["Ventas confirmadas por fechas"]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Subtitulo" x="0" y="40" width="535" height="14"/>
+				<reportElement style="Subtitulo" x="0" y="40" width="535" height="14" uuid="39aaf51c-2e97-469f-be78-1655057d678b"/>
 				<textFieldExpression><![CDATA[$P{p_periodo} + " · Emitido el " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></textFieldExpression>
 			</textField>
 			<line>
-				<reportElement x="0" y="60" width="535" height="1" forecolor="#BA9A90"/>
+				<reportElement x="0" y="60" width="535" height="1" forecolor="#BA9A90" uuid="979dfcca-80b0-41ae-b070-6ebab4ee9db0"/>
 			</line>
 		</band>
 	</title>
 	<columnHeader>
 		<band height="20" splitType="Stretch">
 			<staticText>
-				<reportElement style="Columna" x="0" y="0" width="45" height="20"/>
+				<reportElement style="Columna" x="0" y="0" width="45" height="20" uuid="11ff8fb8-3fb5-4250-ae24-a8e53a4a7df1"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<text><![CDATA[N.º]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Columna" x="45" y="0" width="110" height="20"/>
+				<reportElement style="Columna" x="45" y="0" width="110" height="20" uuid="a3f689c5-4065-4ab2-9bfe-c0166a4d7212"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<text><![CDATA[Fecha y hora]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Columna" x="155" y="0" width="180" height="20"/>
+				<reportElement style="Columna" x="155" y="0" width="180" height="20" uuid="6151a276-c0c0-40f0-ada8-b78650d2525d"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<text><![CDATA[Cliente]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Columna" x="335" y="0" width="90" height="20"/>
+				<reportElement style="Columna" x="335" y="0" width="90" height="20" uuid="d916d81d-5c2c-4feb-a2bd-ffb4e2137f0f"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<text><![CDATA[Pago]]></text>
 			</staticText>
 			<staticText>
-				<reportElement style="Columna" x="425" y="0" width="110" height="20"/>
+				<reportElement style="Columna" x="425" y="0" width="110" height="20" uuid="3fd2c961-dae2-4b49-80b8-48a1a731ccaf"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<text><![CDATA[Total]]></text>
@@ -87,36 +89,36 @@ ORDER BY v.fecha_hora, v.id_venta]]>
 	<detail>
 		<band height="18" splitType="Stretch">
 			<frame>
-				<reportElement mode="Opaque" x="0" y="0" width="535" height="18" backcolor="#F8F4F1">
+				<reportElement mode="Opaque" x="0" y="0" width="535" height="18" backcolor="#F8F4F1" uuid="7be3f6c4-cb4f-499e-ae59-6c6eedaee5ed">
 					<printWhenExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></printWhenExpression>
 				</reportElement>
 			</frame>
 			<textField isBlankWhenNull="true">
-				<reportElement x="0" y="0" width="45" height="18"/>
+				<reportElement x="0" y="0" width="45" height="18" uuid="a16b3a24-752f-49f0-9f54-987dc7b722ad"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{id_venta}]]></textFieldExpression>
 			</textField>
 			<textField pattern="dd/MM/yyyy HH:mm" isBlankWhenNull="true">
-				<reportElement x="45" y="0" width="110" height="18"/>
+				<reportElement x="45" y="0" width="110" height="18" uuid="be5caac5-e13f-4c57-8ea6-7d6c2332d12f"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{fecha_hora}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="155" y="0" width="180" height="18"/>
+				<reportElement x="155" y="0" width="180" height="18" uuid="4e01e576-6f7b-4bfc-8591-c7f533bd1c02"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="335" y="0" width="90" height="18"/>
+				<reportElement x="335" y="0" width="90" height="18" uuid="076166a9-5fc1-4d88-b08f-084f348bdc79"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[($F{metodo_pago} == null ? null : $F{metodo_pago}.substring(0, 1) + $F{metodo_pago}.substring(1).toLowerCase().replace("_", " "))]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="425" y="0" width="110" height="18"/>
+				<reportElement x="425" y="0" width="110" height="18" uuid="5355a00e-dc34-4003-92b4-8264de26621c"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($F{total}, $P{p_tasa})]]></textFieldExpression>
@@ -127,16 +129,16 @@ ORDER BY v.fecha_hora, v.id_venta]]>
 	<pageFooter>
 		<band height="20" splitType="Stretch">
 			<textField>
-				<reportElement style="Subtitulo" x="0" y="4" width="330" height="14"/>
+				<reportElement style="Subtitulo" x="0" y="4" width="330" height="14" uuid="2f6b94ff-529f-4173-8c61-ef59ca25f9e6"/>
 				<textFieldExpression><![CDATA["US$".equals($P{p_simbolo}) ? "Importes en dólares · tasa C$ " + $P{p_tasa}.stripTrailingZeros().toPlainString() + " por US$ 1" : "Importes en córdobas (C$)"]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14"/>
+				<reportElement style="Subtitulo" x="335" y="4" width="160" height="14" uuid="4c119ef4-821d-4578-b5a3-fd7a920edd34"/>
 				<textElement textAlignment="Right"/>
 				<textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER} + " de "]]></textFieldExpression>
 			</textField>
 			<textField evaluationTime="Report">
-				<reportElement style="Subtitulo" x="495" y="4" width="40" height="14"/>
+				<reportElement style="Subtitulo" x="495" y="4" width="40" height="14" uuid="c771308e-e5e3-4412-a6b7-4a1f95316cf6"/>
 				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
 			</textField>
 		</band>
@@ -144,13 +146,13 @@ ORDER BY v.fecha_hora, v.id_venta]]>
 	<summary>
 		<band height="26" splitType="Stretch">
 			<textField>
-				<reportElement style="Total" x="0" y="0" width="425" height="26"/>
+				<reportElement style="Total" x="0" y="0" width="425" height="26" uuid="68641955-6a14-446e-893c-5a27a442bbbf"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[$V{REPORT_COUNT} + " venta(s) confirmada(s)"]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement style="Total" x="425" y="0" width="110" height="26"/>
+				<reportElement style="Total" x="425" y="0" width="110" height="26" uuid="16305b84-1309-40ba-8a64-f83c4384e2ca"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[com.quilate.util.ReporteUtil.monto($V{suma_total}, $P{p_tasa})]]></textFieldExpression>
