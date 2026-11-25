@@ -1,56 +1,85 @@
 package com.quilate.ui;
 
+import com.quilate.service.FrankfurterCliente;
+import com.quilate.util.Tareas;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.SeparatorMenuItem;
 
 /** Moneda de presentación para la sesión. Los importes del modelo se mantienen en NIO. */
 public final class MonedaVista {
-    private record Preferencia(boolean dolares, BigDecimal tasa) { }
 
-    // Tipo de cambio oficial publicado por el BCN para 2026: https://bcn.gob.ni/node/10376
-    private static final SimpleObjectProperty<Preferencia> PREFERENCIA =
-            new SimpleObjectProperty<>(new Preferencia(false, new BigDecimal("36.6243")));
+    public record Moneda(String codigo, String nombre, String simbolo) {
+        @Override
+        public String toString() {
+            return nombre + " (" + simbolo + ")";
+        }
+    }
+
+    public static final Moneda CORDOBA = new Moneda("NIO", "Córdobas", "C$");
+    public static final List<Moneda> MONEDAS = List.of(
+            CORDOBA, new Moneda("USD", "Dólares", "US$"), new Moneda("EUR", "Euros", "€"));
+
+    private record Preferencia(Moneda moneda, Map<String, BigDecimal> tasas, boolean enLinea) { }
+
+    // Sin internet se usa el tipo de cambio oficial del BCN para 2026: https://bcn.gob.ni/node/10376
+    private static final SimpleObjectProperty<Preferencia> PREFERENCIA = new SimpleObjectProperty<>(
+            new Preferencia(CORDOBA, Map.of("NIO", BigDecimal.ONE, "USD", new BigDecimal("36.6243")), false));
 
     private MonedaVista() { }
 
-    /** true si el usuario eligió ver los importes en dólares. */
-    public static boolean enDolares() {
-        return PREFERENCIA.get().dolares();
+    public static Moneda moneda() {
+        return PREFERENCIA.get().moneda();
     }
 
-    /** Córdobas por US$ 1 que se usan para convertir. */
+    /** Córdobas que vale una unidad de la moneda elegida. */
     public static BigDecimal tasa() {
-        return PREFERENCIA.get().tasa();
+        return tasa(moneda().codigo());
+    }
+
+    private static BigDecimal tasa(String codigo) {
+        return PREFERENCIA.get().tasas().get(codigo);
+    }
+
+    public static BigDecimal dolaresACordobas(BigDecimal dolares) {
+        return dolares.multiply(tasa("USD"));
+    }
+
+    public static void cargarTasas() {
+        Tareas.ejecutar(() -> {
+            FrankfurterCliente frankfurter = new FrankfurterCliente();
+            Map<String, BigDecimal> tasas = new HashMap<>();
+            for (Moneda m : MONEDAS) {
+                tasas.put(m.codigo(), m == CORDOBA ? BigDecimal.ONE : frankfurter.tasa(m.codigo(), "NIO"));
+            }
+            return Map.copyOf(tasas);
+        }, tasas -> PREFERENCIA.set(new Preferencia(moneda(), tasas, true)), error -> { });
     }
 
     public static String formatear(BigDecimal cordobas) {
-        Preferencia p = PREFERENCIA.get();
-        return formatear(cordobas, p.dolares(), p.tasa());
+        return formatear(cordobas, moneda(), tasa());
     }
 
-    static String formatear(BigDecimal cordobas, boolean dolares, BigDecimal tasa) {
+    static String formatear(BigDecimal cordobas, Moneda moneda, BigDecimal tasa) {
         if (cordobas == null) return "";
         var formato = NumberFormat.getNumberInstance(Locale.US);
         formato.setMinimumFractionDigits(2);
         formato.setMaximumFractionDigits(2);
-        BigDecimal importe = dolares ? cordobas.divide(tasa, 2, RoundingMode.HALF_UP) : cordobas;
-        return (dolares ? "US$ " : "C$ ") + formato.format(importe);
+        return moneda.simbolo() + " " + formato.format(cordobas.divide(tasa, 2, RoundingMode.HALF_UP));
     }
 
     public static StringBinding importe(BigDecimal cordobas) {
@@ -65,49 +94,29 @@ public final class MonedaVista {
 
     public static MenuButton selector() {
         MenuButton menu = new MenuButton();
-        menu.textProperty().bind(Bindings.createStringBinding(() ->
-                PREFERENCIA.get().dolares() ? "Dólares (US$)" : "Córdobas (C$)", PREFERENCIA));
+        menu.textProperty().bind(Bindings.createStringBinding(() -> moneda().toString(), PREFERENCIA));
         menu.setAccessibleText("Moneda de visualización");
         menu.getStyleClass().add("selector-moneda");
 
-        MenuItem cordobas = new MenuItem("Córdobas (C$)");
-        cordobas.setOnAction(e -> PREFERENCIA.set(new Preferencia(false, PREFERENCIA.get().tasa())));
-        MenuItem dolares = new MenuItem("Dólares (US$)");
-        dolares.setOnAction(e -> PREFERENCIA.set(new Preferencia(true, PREFERENCIA.get().tasa())));
-        MenuItem tasa = new MenuItem();
-        tasa.textProperty().bind(Bindings.createStringBinding(
-                () -> "Cambiar tasa · C$ " + PREFERENCIA.get().tasa().toPlainString() + " por US$ 1", PREFERENCIA));
-        tasa.setOnAction(e -> editarTasa(menu));
-        menu.getItems().addAll(cordobas, dolares, tasa);
+        for (Moneda m : MONEDAS) {
+            MenuItem opcion = new MenuItem();
+            opcion.textProperty().bind(Bindings.createStringBinding(() -> etiqueta(m), PREFERENCIA));
+            opcion.disableProperty().bind(Bindings.createBooleanBinding(() -> tasa(m.codigo()) == null, PREFERENCIA));
+            opcion.setOnAction(e -> PREFERENCIA.set(new Preferencia(m, PREFERENCIA.get().tasas(), PREFERENCIA.get().enLinea())));
+            menu.getItems().add(opcion);
+        }
+        MenuItem origen = new MenuItem();
+        origen.setDisable(true);
+        origen.textProperty().bind(Bindings.createStringBinding(() -> PREFERENCIA.get().enLinea()
+                ? "Tasas del día · Frankfurter" : "Sin conexión · tasa fija del BCN", PREFERENCIA));
+        menu.getItems().addAll(new SeparatorMenuItem(), origen);
         return menu;
     }
 
-    private static void editarTasa(MenuButton menu) {
-        Dialog<BigDecimal> dialogo = new Dialog<>();
-        dialogo.initOwner(menu.getScene().getWindow());
-        dialogo.setTitle("Tipo de cambio");
-        dialogo.setHeaderText("Córdobas por US$ 1");
-        TextField campo = new TextField(PREFERENCIA.get().tasa().toPlainString());
-        Label ayuda = new Label("Esta tasa se usa para mostrar equivalencias durante la sesión.");
-        VBox contenido = new VBox(10, campo, ayuda);
-        contenido.setPrefWidth(365);
-        var panel = dialogo.getDialogPane();
-        panel.setContent(contenido);
-        panel.getStylesheets().add(Ventanas.hojaEstilos());
-        ButtonType aplicar = new ButtonType("Aplicar", ButtonBar.ButtonData.OK_DONE);
-        panel.getButtonTypes().addAll(aplicar, ButtonType.CANCEL);
-        panel.lookupButton(aplicar).disableProperty().bind(
-                Bindings.createBooleanBinding(() -> leerTasa(campo.getText()) == null, campo.textProperty()));
-        dialogo.setResultConverter(boton -> boton == aplicar ? leerTasa(campo.getText()) : null);
-        Dialogos.preparar(dialogo);
-        dialogo.showAndWait().ifPresent(valor ->
-                PREFERENCIA.set(new Preferencia(PREFERENCIA.get().dolares(), valor)));
-    }
-
-    static BigDecimal leerTasa(String texto) {
-        String valor = texto.strip().replace(',', '.');
-        if (!valor.matches("[0-9]{1,6}(?:[.][0-9]{1,6})?")) return null;
-        BigDecimal tasa = new BigDecimal(valor);
-        return tasa.signum() > 0 ? tasa : null;
+    private static String etiqueta(Moneda m) {
+        if (m == CORDOBA) return m.toString();
+        BigDecimal tasa = tasa(m.codigo());
+        if (tasa == null) return m + " · sin conexión";
+        return m + " · C$ " + tasa.setScale(4, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     }
 }

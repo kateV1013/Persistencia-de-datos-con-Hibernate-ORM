@@ -1,5 +1,6 @@
 package com.quilate;
 
+import com.quilate.ui.MonedaVista;
 import com.quilate.ui.Ventanas;
 import com.quilate.util.JPAUtil;
 import javafx.application.Application;
@@ -28,6 +29,7 @@ public class MainApp extends Application {
             Platform.exit();
         });
         stage.show();
+        MonedaVista.cargarTasas();
     }
 
     @Override
