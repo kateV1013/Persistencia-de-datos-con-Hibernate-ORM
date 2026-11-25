@@ -13,7 +13,6 @@
                 <Label text="01 / Preparar la venta" styleClass="titulo-seccion"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="Nueva venta" onAction="#nuevaVenta" styleClass="secundario"/>
-                <Button text="Actualizar" onAction="#recargar" styleClass="secundario"/>
             </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT" styleClass="scan-bar">
  <Label text="LECTOR DE BARRAS" styleClass="campo-label"/>

@@ -9,7 +9,6 @@
             <HBox spacing="8">
                 <TextField fx:id="txtCodigoBarrasBuscar" promptText="Escanea o escribe un código de barras" HBox.hgrow="ALWAYS"/>
                 <Button text="Buscar" onAction="#onCodigoBarrasBuscar"/>
-                <Button text="Actualizar" onAction="#onRecargar" styleClass="secundario"/>
                 <Button text="Ver código / etiqueta" onAction="#onEtiqueta" styleClass="secundario"/>
             </HBox>
             <TableView fx:id="tablaPiezas" VBox.vgrow="ALWAYS">

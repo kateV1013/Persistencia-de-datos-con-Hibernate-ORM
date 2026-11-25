@@ -158,6 +158,21 @@ class DisenoVisualTest {
                         Thread.sleep(100);
                         if(capturar) fx(() -> { captura(ventana,"10-reporte-"+indice); return null; });
                     }
+                    fx(() -> {
+                        var escena = ventana.getScene();
+                        LocalDate manana = LocalDate.now().plusDays(1);
+                        ((DatePicker) escena.lookup("#dpHasta")).setValue(manana);
+                        ((DatePicker) escena.lookup("#dpDesde")).setValue(manana);
+                        return null;
+                    });
+                    esperar(() -> "0".equals(((Label) ventana.getScene().lookup("#lblVentas")).getText()));
+                    fx(() -> {
+                        var escena = ventana.getScene();
+                        ((DatePicker) escena.lookup("#dpDesde")).setValue(LocalDate.now().minusDays(29));
+                        ((DatePicker) escena.lookup("#dpHasta")).setValue(LocalDate.now());
+                        return null;
+                    });
+                    esperar(() -> Integer.parseInt(((Label) ventana.getScene().lookup("#lblVentas")).getText()) > 0);
                 }
                 // Esc cierra la ventana del módulo (y la quita de las abiertas).
                 fx(() -> {

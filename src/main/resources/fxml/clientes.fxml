@@ -8,7 +8,6 @@
             <HBox alignment="CENTER_LEFT">
                 <Label text="Directorio de clientes" styleClass="titulo-seccion"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Actualizar" onAction="#recargar" styleClass="secundario"/>
             </HBox>
             <Label text="Selecciona un cliente para consultar sus datos y compras." styleClass="ayuda"/>
             <TableView fx:id="tabla" VBox.vgrow="ALWAYS" minHeight="150"/>

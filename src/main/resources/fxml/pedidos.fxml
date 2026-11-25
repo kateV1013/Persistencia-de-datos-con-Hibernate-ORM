@@ -26,7 +26,6 @@
             </BorderPane.margin>
             <Label text="Pedidos personalizados" styleClass="titulo-seccion"/>
             <CheckBox fx:id="chkCancelados" text="Mostrar cancelados" onAction="#onRefrescar"/>
-            <Button text="Actualizar" onAction="#onRefrescar"/>
         </HBox>
     </top>
     <center>
