@@ -161,6 +161,10 @@ hace falta una clave de [goldapi.io](https://www.goldapi.io): variable `GOLDAPI_
 | GET | `/api/clientes` | Clientes |
 | POST | `/api/clientes` | Crea un cliente |
 
+En la app de escritorio, el selector de moneda permite ver los importes en C$, US$ o € con las tasas de
+Frankfurter (sin internet usa la tasa fija del BCN). El menú principal muestra el precio del gramo de oro
+10k, 14k y 18k, e Inventario muestra el valor del oro de la pieza seleccionada (quilates × peso).
+
 ### Pruebas automáticas
 
 Las pruebas usan H2, incluida una base temporal en disco para comprobar la recuperación de datos después de cerrar y volver a abrir Hibernate:
