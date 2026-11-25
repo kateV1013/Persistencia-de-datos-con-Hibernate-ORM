@@ -50,7 +50,7 @@ public final class ReporteUtil {
     public static void mostrarReporte(String rutaJrxml, Map<String, Object> parametros, String titulo) {
         // Los reportes salen en la misma moneda que el usuario eligió para las pantallas.
         Map<String, Object> conMoneda = new HashMap<>(parametros);
-        conMoneda.putAll(parametrosMoneda(com.quilate.ui.MonedaVista.enDolares(), com.quilate.ui.MonedaVista.tasa()));
+        conMoneda.putAll(parametrosMoneda(com.quilate.ui.MonedaVista.moneda().simbolo(), com.quilate.ui.MonedaVista.tasa()));
         Tareas.ejecutar(() -> llenar(rutaJrxml, conMoneda), impreso -> {
             if (impreso.getPages().isEmpty()) {
                 AlertUtil.info("El reporte «" + titulo + "» no tiene datos para mostrar.");
@@ -139,9 +139,13 @@ public final class ReporteUtil {
      * en dólares se dividen entre la tasa (córdobas por US$ 1).
      */
     public static Map<String, Object> parametrosMoneda(boolean dolares, BigDecimal tasa) {
+        return dolares ? parametrosMoneda("US$", tasa) : parametrosMoneda("C$", BigDecimal.ONE);
+    }
+
+    public static Map<String, Object> parametrosMoneda(String simbolo, BigDecimal tasa) {
         Map<String, Object> valores = new HashMap<>();
-        valores.put("p_simbolo", dolares ? "US$" : "C$");
-        valores.put("p_tasa", dolares ? tasa : BigDecimal.ONE);
+        valores.put("p_simbolo", simbolo);
+        valores.put("p_tasa", tasa);
         return valores;
     }
 

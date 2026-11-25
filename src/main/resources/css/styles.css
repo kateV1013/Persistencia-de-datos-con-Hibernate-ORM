@@ -100,6 +100,7 @@
     -fx-stroke-line-join: round;
 }
 .sello-de-fondo { -fx-opacity: .14; -fx-translate-y: 23; }
+.precio-oro { -fx-font-size: 13; -fx-text-fill: -q-tinta; }
 .mensaje-busqueda { -fx-font-size: 13; -fx-text-fill: -q-texto-suave; -fx-padding: 12 0; }
 .barra-estado {
     -fx-border-color: -q-borde transparent transparent transparent;

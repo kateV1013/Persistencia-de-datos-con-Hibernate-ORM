@@ -14,12 +14,28 @@
         <javafx.version>21.0.5</javafx.version>
         <hibernate.version>6.6.4.Final</hibernate.version>
         <postgresql.version>42.7.4</postgresql.version>
-        <junit.version>5.11.4</junit.version>
+        <spring-boot.version>3.5.7</spring-boot.version>
         <jasperreports.version>6.21.3</jasperreports.version>
         <main.class>com.quilate.Launcher</main.class>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency><groupId>com.google.zxing</groupId><artifactId>core</artifactId><version>3.5.4</version></dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -50,7 +66,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.4.14</version>
         </dependency>
         <!-- Reportes: compila .jrxml, los llena con la conexión de Hibernate y exporta a PDF -->
         <dependency>
@@ -61,7 +76,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -94,6 +108,7 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>21</release>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
             <plugin>
@@ -107,6 +122,14 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>${main.class}</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>com.quilate.api.QuilateApiApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

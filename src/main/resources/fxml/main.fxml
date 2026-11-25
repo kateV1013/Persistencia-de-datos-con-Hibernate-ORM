@@ -52,7 +52,9 @@
                         <MarcaQuilate pixels="118"/>
                     </StackPane>
                     <VBox alignment="TOP_LEFT" spacing="10">
-                        <HBox alignment="CENTER_RIGHT">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Label fx:id="lblOro" styleClass="precio-oro" wrapText="true"/>
+                            <Region HBox.hgrow="ALWAYS"/>
                             <StackPane styleClass="buscador">
                                 <TextField fx:id="busqueda" promptText="Buscar módulo" accessibleText="Buscar módulo"
                                            prefWidth="224"/>
