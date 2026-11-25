@@ -140,6 +140,27 @@ En Windows: `mvnw.cmd javafx:run`.
 
 La barra inferior de la ventana indica si la conexión con PostgreSQL fue exitosa.
 
+### API REST (Spring Boot)
+
+Usa la misma conexión de `db.properties` o de las variables de entorno. Para el precio del oro
+hace falta una clave de [goldapi.io](https://www.goldapi.io): variable `GOLDAPI_KEY` o
+`goldapi.key` en `db.properties`. El tipo de cambio USD → NIO sale de [Frankfurter](https://frankfurter.dev).
+
+```bash
+./mvnw spring-boot:run
+```
+
+| Método | Ruta | Devuelve |
+|---|---|---|
+| GET | `/api/cambio` | Córdobas por US$ 1 |
+| GET | `/api/oro` | Precio del gramo de oro 10k, 14k, 18k y 24k en US$ y C$ |
+| GET | `/api/plata` | Precio del gramo de plata en US$ y C$ |
+| GET | `/api/piezas` | Inventario con precio en C$ y US$ |
+| GET | `/api/piezas/{id}` | Una pieza |
+| GET | `/api/piezas/{id}/valor-oro` | Valor del oro de la pieza (peso × quilates) |
+| GET | `/api/clientes` | Clientes |
+| POST | `/api/clientes` | Crea un cliente |
+
 ### Pruebas automáticas
 
 Las pruebas usan H2, incluida una base temporal en disco para comprobar la recuperación de datos después de cerrar y volver a abrir Hibernate:
