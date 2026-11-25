@@ -1,0 +1,101 @@
+{
+    "info":  {
+                 "name":  "Quilate - API REST Spring Boot",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "variable":  [
+                     {
+                         "key":  "baseUrl",
+                         "value":  "http://127.0.0.1:8080"
+                     }
+                 ],
+    "item":  [
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/api/oro",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Accept",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Precio del oro",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027HTTP 200\u0027, () =\u003e pm.response.to.have.status(200));",
+                                                                   "pm.test(\u0027JSON con metal, fecha y precios por gramo\u0027, () =\u003e {",
+                                                                   "  const datos = pm.response.json();",
+                                                                   "  pm.expect(datos.metal).to.eql(\u0027XAU\u0027);",
+                                                                   "  pm.expect(datos.consultado).to.be.a(\u0027string\u0027);",
+                                                                   "  for (const k of [\u002710k\u0027, \u002714k\u0027, \u002718k\u0027, \u002724k\u0027]) {",
+                                                                   "    pm.expect(datos.precioPorGramo[k].usd).to.be.above(0);",
+                                                                   "    pm.expect(datos.precioPorGramo[k].nio).to.be.above(0);",
+                                                                   "  }",
+                                                                   "});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/api/cambio",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Accept",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Tipo de cambio USD a NIO",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027HTTP 200\u0027, () =\u003e pm.response.to.have.status(200));",
+                                                                   "pm.test(\u0027JSON con monedas correctas y tasa positiva\u0027, () =\u003e {",
+                                                                   "  const datos = pm.response.json();",
+                                                                   "  pm.expect(datos.de).to.eql(\u0027USD\u0027);",
+                                                                   "  pm.expect(datos.a).to.eql(\u0027NIO\u0027);",
+                                                                   "  pm.expect(datos.tasa).to.be.above(0);",
+                                                                   "});"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 },
+                 {
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/api/piezas/abc",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Accept",
+                                                        "value":  "application/json"
+                                                    }
+                                                ]
+                                 },
+                     "name":  "Identificador de pieza inválido",
+                     "event":  [
+                                   {
+                                       "script":  {
+                                                      "exec":  [
+                                                                   "pm.test(\u0027HTTP 400 para un ID no numérico\u0027, () =\u003e pm.response.to.have.status(400));"
+                                                               ],
+                                                      "type":  "text/javascript"
+                                                  },
+                                       "listen":  "test"
+                                   }
+                               ]
+                 }
+             ]
+}
