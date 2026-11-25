@@ -83,6 +83,7 @@
                         <TextField fx:id="txtPeso" promptText="Ej. 3.50" maxWidth="Infinity"/>
                     </VBox>
                 </HBox>
+                <Label fx:id="lblValorOro" styleClass="ayuda" wrapText="true"/>
                 <VBox spacing="5">
                     <Label text="CATEGORÍA *" styleClass="campo-label"/>
                     <ComboBox fx:id="cmbCategoria" promptText="Selecciona una categoría" maxWidth="Infinity"/>

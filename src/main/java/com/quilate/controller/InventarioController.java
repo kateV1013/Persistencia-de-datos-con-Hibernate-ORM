@@ -5,9 +5,12 @@ import com.quilate.dao.PiezaDAO;
 import com.quilate.exception.EntidadConDependenciasException;
 import com.quilate.model.Categoria;
 import com.quilate.model.Pieza;
+import com.quilate.service.GoldApiCliente;
+import com.quilate.ui.MonedaVista;
 import com.quilate.util.AlertUtil;
 import com.quilate.util.Formatos;
 import com.quilate.util.ReporteUtil;
+import com.quilate.util.Tareas;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -88,6 +91,7 @@ public class InventarioController implements Initializable, com.quilate.ui.Actua
     // ──────────────────────────────────────────────────────────────────────
 
     @FXML private Label lblEstado;
+    @FXML private Label lblValorOro;
 
     // ──────────────────────────────────────────────────────────────────────
     //  DAOs y estado interno
@@ -634,6 +638,7 @@ public class InventarioController implements Initializable, com.quilate.ui.Actua
         txtMaterial.setText(pieza.getMaterial() == null ? "" : pieza.getMaterial());
         txtQuilates.setText(pieza.getQuilates() == null ? "" : pieza.getQuilates().toString());
         txtPeso.setText(pieza.getPesoGramos() == null ? "" : pieza.getPesoGramos().toPlainString());
+        mostrarValorOro(pieza);
 
         // Seleccionar la categoría correspondiente en el ComboBox
         cmbCategoria.setValue(null);
@@ -641,6 +646,20 @@ public class InventarioController implements Initializable, com.quilate.ui.Actua
                 .filter(c -> c.getId().equals(pieza.getCategoria().getId()))
                 .findFirst()
                 .ifPresent(cmbCategoria::setValue);
+    }
+
+    private void mostrarValorOro(Pieza pieza) {
+        if (pieza.getQuilates() == null || pieza.getPesoGramos() == null) {
+            lblValorOro.setText("");
+            return;
+        }
+        lblValorOro.setText("Consultando el precio del oro…");
+        Tareas.ejecutar(() -> new GoldApiCliente().oro(), precio -> {
+            if (pieza != piezaEnEdicion) return;
+            BigDecimal dolares = precio.gramoUsd(pieza.getQuilates()).multiply(pieza.getPesoGramos());
+            lblValorOro.setText("Valor del oro: " + MonedaVista.formatear(MonedaVista.dolaresACordobas(dolares))
+                    + " (" + pieza.getQuilates() + "k × " + pieza.getPesoGramos().toPlainString() + " g, precio internacional)");
+        }, error -> lblValorOro.setText("Valor del oro no disponible: " + error.getMessage()));
     }
 
     private void limpiarFormularioPieza() {
@@ -652,6 +671,7 @@ public class InventarioController implements Initializable, com.quilate.ui.Actua
         txtMaterial.clear();
         txtQuilates.clear();
         txtPeso.clear();
+        lblValorOro.setText("");
         cmbCategoria.setValue(null);
         tablaPiezas.getSelectionModel().clearSelection();
         piezaEnEdicion = null;
