@@ -1,10 +1,12 @@
 package com.quilate.controller;
 
+import com.quilate.service.GoldApiCliente;
 import com.quilate.ui.Iconos;
 import com.quilate.ui.Modulo;
 import com.quilate.ui.MonedaVista;
 import com.quilate.ui.Ventanas;
 import com.quilate.util.JPAUtil;
+import com.quilate.util.Tareas;
 import javafx.beans.binding.Bindings;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -37,7 +39,7 @@ public class MainController {
     private static final DateTimeFormatter FORMATO_FECHA =
             DateTimeFormatter.ofPattern("EEEE d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("es"));
 
-    @FXML private Label lblFecha, lblEstado, sinResultados;
+    @FXML private Label lblFecha, lblEstado, sinResultados, lblOro;
     @FXML private StackPane selectorMoneda, iconoBusqueda, portada, artePortada;
     @FXML private VBox seccionTienda, seccionTaller;
     @FXML private Region divisorSecciones;
@@ -69,6 +71,24 @@ public class MainController {
         }
         busqueda.textProperty().addListener((o, a, b) -> filtrar());
         verificarConexion();
+        cargarPrecioOro();
+    }
+
+    private void cargarPrecioOro() {
+        lblOro.setText("Consultando el precio del oro…");
+        Tareas.ejecutar(() -> new GoldApiCliente().oro(), precio -> {
+            mostrarPrecioOro(precio);
+            MonedaVista.observar(lblOro, () -> mostrarPrecioOro(precio));
+        }, error -> lblOro.setText("Precio del oro no disponible: " + error.getMessage()));
+    }
+
+    private void mostrarPrecioOro(GoldApiCliente.PrecioMetal precio) {
+        StringBuilder texto = new StringBuilder("Oro hoy por gramo");
+        for (int quilates : new int[]{10, 14, 18}) {
+            texto.append("  ·  ").append(quilates).append("k ")
+                    .append(MonedaVista.formatear(MonedaVista.dolaresACordobas(precio.gramoUsd(quilates))));
+        }
+        lblOro.setText(texto.toString());
     }
 
     @FXML
