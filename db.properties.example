@@ -10,3 +10,6 @@ jakarta.persistence.jdbc.password=CAMBIAR
 # validate = comprueba que las entidades coincidan con las tablas existentes (no modifica la BD)
 # update   = crea/ajusta tablas automaticamente (solo en desarrollo)
 hibernate.hbm2ddl.auto=validate
+
+# Clave de goldapi.io (precio internacional del oro)
+goldapi.key=CAMBIAR
