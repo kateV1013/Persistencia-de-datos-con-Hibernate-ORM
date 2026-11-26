@@ -96,4 +96,9 @@ public final class Formatos {
     public static String fecha(LocalDate fecha) {
         return fecha == null ? "" : fecha.format(FECHA);
     }
+
+    public static String telefono(String valor) {
+        if (valor == null) return "";
+        return valor.replaceFirst("^([0-9]{4})[ -]*([0-9]{4})$", "$1-$2");
+    }
 }

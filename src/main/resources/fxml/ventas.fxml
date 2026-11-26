@@ -13,7 +13,6 @@
                 <Label text="01 / Preparar la venta" styleClass="titulo-seccion"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="Nueva venta" onAction="#nuevaVenta" styleClass="secundario"/>
-                <Button text="Actualizar" onAction="#recargar" styleClass="secundario"/>
             </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT" styleClass="scan-bar">
  <Label text="LECTOR DE BARRAS" styleClass="campo-label"/>
@@ -38,7 +37,7 @@
                     <TextField fx:id="txtCantidad"/>
                 </VBox>
                 <VBox spacing="5" prefWidth="145">
-                    <Label text="DESCUENTO / UNIDAD (C$)" styleClass="campo-label"/>
+                    <Label fx:id="lblMonedaDescuento" text="DESCUENTO/U. (C$)" styleClass="campo-label"/>
                     <TextField fx:id="txtDescuento"/>
                 </VBox>
                 <VBox spacing="5">
@@ -72,11 +71,7 @@
                     <Button text="Eliminar borrador" onAction="#eliminarBorrador" styleClass="peligro"/>
                     <Button text="Guardar borrador" onAction="#guardarPreparacion" styleClass="secundario"/>
                 </FlowPane>
-                <VBox spacing="4" styleClass="profit-box">
-                    <Label fx:id="lblGanancia" styleClass="titulo-seccion"/>
-                    <Label fx:id="lblAhorro" styleClass="ayuda"/>
-                    <Label fx:id="lblMargen" styleClass="ayuda" wrapText="true"/>
-                </VBox>
+                <Label fx:id="lblAhorro" styleClass="ayuda"/>
                 <HBox spacing="18" alignment="CENTER_LEFT" styleClass="resumen-venta">
                     <VBox spacing="2" HBox.hgrow="ALWAYS">
                         <Label text="TOTAL DE LA VENTA" styleClass="total-venta-etiqueta"/>

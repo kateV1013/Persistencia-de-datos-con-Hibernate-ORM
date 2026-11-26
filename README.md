@@ -23,16 +23,20 @@ src/main/java/com/quilate/
 ├── Launcher.java        ← punto de entrada (ejecutar este)
 ├── MainApp.java         ← aplicación JavaFX
 ├── model/               ← entidades @Entity (Cliente, Pieza, Venta, DetalleVenta, TipoServicio, PedidoPersonalizado…)
-├── dao/                 ← GenericDAO (CRUD) + un DAO por entidad y ReporteDAO (consultas HQL)
-├── dto/                 ← resultados de consultas (PiezaMasVendida)
+├── dao/                 ← operaciones de persistencia y consultas HQL
+├── dto/                 ← resultados de consultas (por ejemplo, HistorialCompra)
 ├── service/             ← reglas de negocio y validaciones (cupo semanal, etc.)
 ├── controller/          ← controladores de las vistas FXML
+├── ui/                  ← componentes compartidos de JavaFX
+├── api/                 ← entrada y controladores HTTP de Spring Boot
 ├── exception/           ← ReglaNegocioException
 └── util/                ← JPAUtil (EntityManagerFactory), Transaccion, Tareas, AlertUtil, Formatos
 src/main/resources/
 ├── hibernate.cfg.xml
-├── fxml/                ← vistas (main, ventas, pedidos, servicios, reporte_piezas)
-└── css/styles.css
+├── fxml/                ← menú y siete módulos de escritorio
+├── css/styles.css       ← estilos de JavaFX
+├── reportes/            ← definiciones JasperReports usadas en ejecución
+└── fonts/, imagenes/    ← recursos visuales incluidos en la aplicación
 src/test/java/           ← pruebas automáticas con H2 en memoria
 database/
 ├── 01_quilate_bd_inicial.sql       ← inventario, clientes, apartados, ventas y categorías base
@@ -40,6 +44,11 @@ database/
 ├── 03_diseno_personalizado.sql     ← columnas del diseño de cada pedido
 └── 04_reemplazar_datos_demo.sql    ← datos ficticios (borra y reemplaza los existentes)
 ```
+
+La [guía de diseño](DISENO_QUILATE.md) describe la interfaz y sus recursos.
+La [guía de personalización](docs/PERSONALIZACION.md) explica cómo se guarda el
+grabado. La [plantilla de JasperReports](docs/plantillas/plantilla_base.jrxml)
+sirve como punto de partida al crear un reporte.
 
 ## 2. Instalación y ejecución
 
@@ -60,6 +69,7 @@ database/
    ```
    ```bash
    psql -U postgres -d quilate -f database/02_pedidos_y_estado_venta.sql
+   psql -U postgres -d quilate -f database/03_diseno_personalizado.sql
    ```
 3. (Recomendado) Crear un usuario solo para la aplicación en lugar de usar `postgres`:
    ```sql
@@ -70,7 +80,7 @@ database/
    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO quilate_app;
    ```
 
-Los cambios al esquema se agregan como un archivo nuevo (`03_...sql`) con `ALTER TABLE`;
+Los cambios posteriores al esquema se agregan en un archivo SQL numerado nuevo;
 no se editan los scripts que ya se ejecutaron.
 
 ### Configurar la conexión con variables de entorno
@@ -82,6 +92,8 @@ La aplicación **no tiene credenciales en el código**. `JPAUtil` las lee de est
 | `DB_URL` | `jdbc:postgresql://localhost:5432/quilate` |
 | `DB_USER` | `quilate_app` |
 | `DB_PASSWORD` | *(tu contraseña local)* |
+
+[`.env.example`](.env.example) sirve como referencia para copiar las variables a la configuración de ejecución.
 
 ### En IntelliJ IDEA
 
@@ -142,13 +154,17 @@ La barra inferior de la ventana indica si la conexión con PostgreSQL fue exitos
 
 ### API REST (Spring Boot)
 
-Usa la misma conexión de `db.properties` o de las variables de entorno. Para el precio del oro
-hace falta una clave de [goldapi.io](https://www.goldapi.io): variable `GOLDAPI_KEY` o
-`goldapi.key` en `db.properties`. El tipo de cambio USD → NIO sale de [Frankfurter](https://frankfurter.dev).
+La API usa la misma conexión de la aplicación de escritorio. Configura PostgreSQL mediante
+`db.properties` o las variables de entorno indicadas en la sección 2. Para consultar los precios
+de oro y plata, configura una clave de [GoldAPI](https://www.goldapi.io) mediante `GOLDAPI_KEY`
+o `goldapi.key` en `db.properties`. La API consulta el tipo de cambio USD → NIO en
+[Frankfurter](https://frankfurter.dev).
 
 ```bash
 ./mvnw spring-boot:run
 ```
+
+En Windows, ejecuta `mvnw.cmd spring-boot:run`. La URL base es `http://localhost:8080`.
 
 | Método | Ruta | Devuelve |
 |---|---|---|
@@ -156,10 +172,73 @@ hace falta una clave de [goldapi.io](https://www.goldapi.io): variable `GOLDAPI_
 | GET | `/api/oro` | Precio del gramo de oro 10k, 14k, 18k y 24k en US$ y C$ |
 | GET | `/api/plata` | Precio del gramo de plata en US$ y C$ |
 | GET | `/api/piezas` | Inventario con precio en C$ y US$ |
-| GET | `/api/piezas/{id}` | Una pieza |
-| GET | `/api/piezas/{id}/valor-oro` | Valor del oro de la pieza (peso × quilates) |
-| GET | `/api/clientes` | Clientes |
-| POST | `/api/clientes` | Crea un cliente |
+| GET | `/api/piezas/{id}` | Una pieza por su identificador numérico |
+| GET | `/api/piezas/{id}/valor-oro` | Valor estimado en US$ y C$, calculado como el precio por gramo según los quilates multiplicado por el peso en gramos |
+| GET | `/api/clientes` | Lista de clientes |
+| POST | `/api/clientes` | Registra un cliente y devuelve `201 Created` con su identificador |
+
+Ejemplos con `curl` (en Windows, usa `curl.exe`):
+
+```bash
+curl http://localhost:8080/api/piezas
+curl http://localhost:8080/api/cambio
+curl http://localhost:8080/api/oro
+```
+
+Para crear un cliente desde Postman, envía `POST http://localhost:8080/api/clientes` con
+`Content-Type: application/json` y un cuerpo como este:
+
+```json
+{
+  "nombre": "Ana",
+  "apellido": "López",
+  "telefono": "88881234",
+  "correo": "ana@example.com"
+}
+```
+
+#### Pruebas de la API con Postman
+
+La [colección de Postman](evidencias/rest/quilate-spring.postman_collection.json) se ejecutó el **25 de noviembre de 2026** contra el servidor local con **Newman 6.2.3**, el ejecutor de colecciones de Postman. Resultado **3 solicitudes y 5 comprobaciones aprobadas**.
+
+| Solicitud | Resultado observado | Comprobación |
+|---|---|---|
+| `GET /api/oro` | `200 OK` | Metal `XAU`, fecha de consulta y precios positivos por gramo para 10k, 14k, 18k y 24k en USD y NIO. |
+| `GET /api/cambio` | `200 OK` | Moneda de origen `USD`, moneda de destino `NIO` y tasa positiva. |
+| `GET /api/piezas/abc` | `400 Bad Request` | La API rechaza un identificador de pieza que no es numérico. |
+
+Fragmentos del JSON devuelto en esa ejecución:
+
+```json
+{"metal":"XAU","precioPorGramo":{"24k":{"usd":112.56,"nio":4122.25}}}
+{"de":"USD","a":"NIO","tasa":36.624}
+{"status":400,"error":"Bad Request","path":"/api/piezas/abc"}
+```
+
+Para repetir la prueba, ejecuta `QuilateApiApplication`, importa la colección en Postman Desktop y pulsa **Send** en cada solicitud. Los resultados aparecen en **Test Results**. También puedes ejecutar la colección completa desde la raíz del proyecto:
+
+```powershell
+npx.cmd --yes newman@6.2.3 run evidencias/rest/quilate-spring.postman_collection.json
+```
+
+Los importes registrados son una muestra de la ejecución. La colección toma los datos del servidor al ejecutar cada solicitud y no contiene credenciales.
+
+**Precio del oro · HTTP 200**
+
+![Postman muestra el JSON del precio del oro y dos comprobaciones aprobadas](evidencias/rest/postman-oro.png)
+
+**Tipo de cambio USD a NIO · HTTP 200**
+
+![Postman muestra el JSON del tipo de cambio y dos comprobaciones aprobadas](evidencias/rest/postman-cambio.png)
+
+**Identificador de pieza inválido · HTTP 400**
+
+![Postman muestra la respuesta HTTP 400 y la comprobación aprobada](evidencias/rest/postman-error-id.png)
+
+Una pieza inexistente devuelve `404`. Si la pieza no tiene quilates o peso, la valoración devuelve
+`400`. Si falla un servicio externo requerido, la API devuelve `502`. En el listado y detalle de
+piezas, si Frankfurter no está disponible, `precioDolares` queda en `null` y el precio en córdobas
+sigue disponible.
 
 En la app de escritorio, el selector de moneda permite ver los importes en C$, US$ o € con las tasas de
 Frankfurter (sin internet usa la tasa fija del BCN). El menú principal muestra el precio del gramo de oro

@@ -6,8 +6,10 @@ import com.quilate.service.AnalisisService.Grupo;
 import com.quilate.service.AnalisisService.Resumen;
 import com.quilate.ui.PresentacionTablas;
 import com.quilate.ui.MonedaVista;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.util.Duration;
 import java.math.BigDecimal;
 import com.quilate.util.*;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -25,32 +27,41 @@ public class ReportePiezasController implements com.quilate.ui.Actualizable {
     @FXML private DatePicker dpDesde, dpHasta;
     @FXML private Label lblMensaje, lblIngresos, lblGanancia, lblDescuentos, lblVentas;
     @FXML private TabPane reportes;
-    @FXML private Button btnGenerar;
     @FXML private StackPane selectorMoneda;
+    private final PauseTransition esperaFiltros = new PauseTransition(Duration.millis(250));
     private long solicitud;
     @FXML private void initialize() {
         selectorMoneda.getChildren().add(MonedaVista.selector());
         dpDesde.setValue(LocalDate.now().minusDays(29)); dpHasta.setValue(LocalDate.now());
+        esperaFiltros.setOnFinished(e -> cargarAnalisis());
+        dpDesde.valueProperty().addListener((obs, antes, fecha) -> programarAnalisis());
+        dpHasta.valueProperty().addListener((obs, antes, fecha) -> programarAnalisis());
         cargarAnalisis();
     }
-    @FXML private void todoElHistorial() { dpDesde.setValue(null); dpHasta.setValue(null); onGenerar(); }
-    @FXML private void onGenerar() {
-        try { dpDesde.commitValue(); dpHasta.commitValue(); }
-        catch (RuntimeException e) { lblMensaje.setText("Escribe fechas válidas o selecciónalas en el calendario."); return; }
-        cargarAnalisis();
+    @FXML private void todoElHistorial() {
+        dpDesde.setValue(null);
+        dpHasta.setValue(null);
+        programarAnalisis();
+    }
+    private void programarAnalisis() {
+        solicitud++;
+        esperaFiltros.playFromStart();
     }
     /** Vuelve a calcular el análisis del período elegido (incluye ventas recién confirmadas). */
-    @Override public void actualizarAlVolver() { cargarAnalisis(); }
+    @Override public void actualizarAlVolver() {
+        esperaFiltros.stop();
+        cargarAnalisis();
+    }
     private void cargarAnalisis() {
         LocalDate desde=dpDesde.getValue(), hasta=dpHasta.getValue();
         if(desde!=null && hasta!=null && desde.isAfter(hasta)) { lblMensaje.setText("La fecha inicial no puede ser posterior a la final."); return; }
         long turno=++solicitud;
-        btnGenerar.setDisable(true); lblMensaje.setText("Consultando ventas confirmadas…");
+        lblMensaje.setText("Consultando ventas confirmadas…");
         Tareas.ejecutar(() -> new AnalisisService().consultar(desde,hasta), resumen -> {
             if(turno!=solicitud) return;
-            mostrar(resumen); btnGenerar.setDisable(false);
+            mostrar(resumen);
             lblMensaje.setText(resumen.total().ventas()==0 ? "No hay ventas confirmadas en este período." : "Actualizado · " + resumen.total().ventas()+" ventas confirmadas");
-        }, error -> { if(turno==solicitud) { btnGenerar.setDisable(false); lblMensaje.setText("No se pudo cargar: "+Tareas.mensajeCorto(error)); } });
+        }, error -> { if(turno==solicitud) { lblMensaje.setText("No se pudo cargar: "+Tareas.mensajeCorto(error)); } });
     }
     private void mostrar(Resumen r) {
         int seleccion=Math.max(0,reportes.getSelectionModel().getSelectedIndex());

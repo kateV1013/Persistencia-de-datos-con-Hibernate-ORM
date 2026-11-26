@@ -3,9 +3,7 @@ package com.quilate.service;
 import com.quilate.dao.ApartadoDAO;
 import com.quilate.exception.ValidacionException;
 import com.quilate.model.Apartado;
-import com.quilate.model.HistorialCompra;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class ApartadoService {
@@ -32,15 +30,6 @@ public class ApartadoService {
 
     public List<Apartado> listar() {
         return dao.listar();
-    }
-
-    public List<HistorialCompra> historial(Long clienteId) {
-        if (clienteId == null) throw new ValidacionException("Selecciona un cliente.");
-        return dao.historialPorCliente(clienteId);
-    }
-
-    public BigDecimal totalHistorial(List<HistorialCompra> historial) {
-        return historial.stream().map(HistorialCompra::total).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private void validarCantidad(int cantidad) {

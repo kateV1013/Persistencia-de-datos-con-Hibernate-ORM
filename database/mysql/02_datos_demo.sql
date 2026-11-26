@@ -5,7 +5,8 @@ SET @categoria = LAST_INSERT_ID();
 INSERT INTO piezas (codigo_barras, nombre, costo, precio_venta, existencias, categoria_id)
 VALUES ('DEMO-001', 'Anillo Aurora', 900.00, 1800.00, 9, @categoria);
 SET @pieza = LAST_INSERT_ID();
-INSERT INTO cliente (nombre, apellido, correo) VALUES ('Ana', 'Demo', 'ana.demo@example.test');
+INSERT INTO cliente (nombre, apellido, telefono, correo)
+VALUES ('Ana', 'Demo', '85815705', 'ana.demo@example.test');
 SET @cliente = LAST_INSERT_ID();
 INSERT INTO tipo_servicio (nombre, precio_base) VALUES ('Grabado demo', 350.00);
 SET @servicio = LAST_INSERT_ID();

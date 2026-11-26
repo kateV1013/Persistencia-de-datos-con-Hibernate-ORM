@@ -244,8 +244,6 @@
 .tab:selected .tab-label { -fx-font-weight: bold; }
 .tab-contenido { -fx-padding: 14 0 0 0; }
 .scan-bar { -fx-background-color: -q-suave; -fx-padding: 10; -fx-background-radius: 10; }
-.profit-box { -fx-background-color: -q-suave; -fx-background-radius: 9; -fx-padding: 10 14; }
-.profit-box .titulo-seccion { -fx-font-size: 13; }
 .client-insights { -fx-padding: 14; -fx-background-color: -q-suave; -fx-background-radius: 10; }
 .insight-value { -fx-font-size: 18; -fx-font-family: "Georgia"; }
 .preview-panel {

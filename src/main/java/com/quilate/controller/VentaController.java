@@ -12,7 +12,9 @@ import com.quilate.service.CalculadoraVenta;
 import com.quilate.service.SolicitudDetalleVenta;
 import com.quilate.service.VentaService;
 import com.quilate.ui.DialogoPeriodo;
+import com.quilate.ui.MonedaVista;
 import com.quilate.util.AlertUtil;
+import com.quilate.util.Formatos;
 import com.quilate.util.ReporteUtil;
 import com.quilate.util.Tareas;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -27,6 +29,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -39,12 +42,16 @@ public class VentaController implements com.quilate.ui.Actualizable {
     @FXML private ComboBox<Pieza> cmbPieza;
     @FXML private TextField txtCantidad;
     @FXML private TextField txtDescuento;
+    @FXML private Label lblMonedaDescuento;
     @FXML private Label lblDescuentoMaximo;
     @FXML private Label lblTotal;
     @FXML private Label lblMensaje;
     @FXML private TextField txtCodigoVenta;
-    @FXML private Label lblGanancia, lblMargen, lblAhorro;
+    @FXML private Label lblAhorro;
     private boolean ventaHistorica;
+    private BigDecimal tasaDescuento;
+    private BigDecimal descuentoMostradoEnCordobas;
+    private String textoDescuentoMostrado;
 
     @FXML private TableView<LineaCarrito> tablaDetalles;
     @FXML private TableColumn<LineaCarrito, String> colPieza;
@@ -81,7 +88,9 @@ public class VentaController implements com.quilate.ui.Actualizable {
 
     @FXML
     private void initialize() {
-        com.quilate.ui.MonedaVista.observar(lblTotal, this::actualizarTotal);
+        tasaDescuento = MonedaVista.tasa();
+        actualizarEtiquetaDescuento();
+        MonedaVista.observar(lblTotal, this::actualizarMoneda);
         colPieza.setCellValueFactory(f -> new ReadOnlyStringWrapper(f.getValue().pieza().getNombre()));
         colCantidad.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(f.getValue().cantidad()));
         colPrecio.setCellValueFactory(f -> new ReadOnlyObjectWrapper<>(f.getValue().precio()));
@@ -105,7 +114,7 @@ public class VentaController implements com.quilate.ui.Actualizable {
             if (linea != null) {
                 cmbPieza.setValue(linea.pieza());
                 txtCantidad.setText(Integer.toString(linea.cantidad()));
-                txtDescuento.setText(linea.descuento().toPlainString());
+                mostrarDescuento(linea.descuento());
             }
         });
         recargar();
@@ -154,7 +163,7 @@ public class VentaController implements com.quilate.ui.Actualizable {
             } catch (NumberFormatException e) {
                 throw new ReglaNegocioException("La cantidad debe ser un número entero.");
             }
-            BigDecimal descuento = decimalOZero(txtDescuento.getText());
+            BigDecimal descuento = leerDescuento();
             if (cantidad > pieza.getExistencias()) {
                 throw new ReglaNegocioException(
                         "Stock insuficiente. Disponible: " + pieza.getExistencias() + ".");
@@ -169,7 +178,7 @@ public class VentaController implements com.quilate.ui.Actualizable {
             carrito.add(new LineaCarrito(pieza, cantidad, precio, costo, descuento, subtotal));
             actualizarTotal();
             txtCantidad.setText("1");
-            txtDescuento.setText("0.00");
+            mostrarDescuento(BigDecimal.ZERO);
             mensaje("Pieza agregada.");
         } catch (RuntimeException e) {
             Tareas.mostrarError(e);
@@ -274,7 +283,7 @@ public class VentaController implements com.quilate.ui.Actualizable {
         cmbPieza.setValue(null);
         cmbMetodoPago.setValue("EFECTIVO");
         txtCantidad.setText("1");
-        txtDescuento.setText("0.00");
+        mostrarDescuento(BigDecimal.ZERO);
         tablaVentas.getSelectionModel().clearSelection();
         actualizarTotal();
         mensaje("Nueva venta.");
@@ -403,7 +412,9 @@ public class VentaController implements com.quilate.ui.Actualizable {
         try {
             BigDecimal maximo = CalculadoraVenta.calcularDescuentoMaximo(
                     BigDecimal.valueOf(pieza.getPrecioVenta()), BigDecimal.valueOf(pieza.getCosto()));
-            lblDescuentoMaximo.setText("Descuento máximo por unidad: " + com.quilate.ui.MonedaVista.formatear(maximo));
+            BigDecimal maximoEditable = maximo.divide(tasaDescuento, 2, RoundingMode.DOWN);
+            lblDescuentoMaximo.setText("Descuento máximo por unidad: "
+                    + MonedaVista.moneda().simbolo() + " " + maximoEditable.toPlainString());
         } catch (RuntimeException e) {
             lblDescuentoMaximo.setText(e.getMessage());
         }
@@ -412,24 +423,45 @@ public class VentaController implements com.quilate.ui.Actualizable {
     private void actualizarTotal() {
         BigDecimal total = CalculadoraVenta.calcularTotal(
                 carrito.stream().map(LineaCarrito::subtotal).toList());
-        lblTotal.setText(com.quilate.ui.MonedaVista.formatear(total));
-        BigDecimal costo = carrito.stream().map(l -> l.costo().multiply(BigDecimal.valueOf(l.cantidad())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        lblTotal.setText(MonedaVista.formatear(total));
         BigDecimal descuentos = carrito.stream().map(l -> l.descuento().multiply(BigDecimal.valueOf(l.cantidad())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal ganancia = total.subtract(costo);
-        lblGanancia.setText("Ganancia bruta: " + com.quilate.ui.MonedaVista.formatear(ganancia));
-        lblMargen.setText(carrito.isEmpty() ? "Agrega piezas para calcular el margen."
-                : ganancia.signum()==0 ? "Punto de equilibrio · sin ganancia bruta"
-                : "Margen: " + com.quilate.service.AnalisisService.margen(ganancia,total) + " % · antes de gastos operativos");
-        lblAhorro.setText("Descuentos: " + com.quilate.ui.MonedaVista.formatear(descuentos));
+        lblAhorro.setText("Descuento total: " + MonedaVista.formatear(descuentos));
     }
 
-    private BigDecimal decimalOZero(String texto) {
-        if (texto == null || texto.isBlank()) {
-            return BigDecimal.ZERO;
+    private void actualizarMoneda() {
+        BigDecimal descuentoPendiente = null;
+        if (tasaDescuento.compareTo(MonedaVista.tasa()) != 0) {
+            try {
+                descuentoPendiente = leerDescuento();
+            } catch (ReglaNegocioException e) {
+                // Se conserva el texto inválido para que el usuario pueda corregirlo.
+            }
         }
-        return com.quilate.util.Formatos.leerDinero(texto, "descuento");
+        tasaDescuento = MonedaVista.tasa();
+        if (descuentoPendiente != null) mostrarDescuento(descuentoPendiente);
+        actualizarEtiquetaDescuento();
+        mostrarDescuentoMaximo(cmbPieza.getValue());
+        actualizarTotal();
+    }
+
+    private void actualizarEtiquetaDescuento() {
+        lblMonedaDescuento.setText("DESCUENTO/U. (" + MonedaVista.moneda().simbolo() + ")");
+    }
+
+    private void mostrarDescuento(BigDecimal cordobas) {
+        descuentoMostradoEnCordobas = cordobas;
+        textoDescuentoMostrado = cordobas.divide(tasaDescuento, 2, RoundingMode.HALF_UP).toPlainString();
+        txtDescuento.setText(textoDescuentoMostrado);
+    }
+
+    private BigDecimal leerDescuento() {
+        String texto = txtDescuento.getText();
+        if (texto == null || texto.isBlank()) return BigDecimal.ZERO;
+        // Reutiliza el valor original al ajustar solo la cantidad de una línea.
+        if (texto.equals(textoDescuentoMostrado)) return descuentoMostradoEnCordobas;
+        return Formatos.leerDinero(texto, "descuento").multiply(tasaDescuento)
+                .setScale(CalculadoraVenta.DECIMALES_MONEDA, RoundingMode.HALF_UP);
     }
 
     private void mensaje(String texto) {

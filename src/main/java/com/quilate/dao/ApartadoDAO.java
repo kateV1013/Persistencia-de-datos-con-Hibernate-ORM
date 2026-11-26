@@ -5,15 +5,12 @@ import com.quilate.exception.ValidacionException;
 import com.quilate.model.Apartado;
 import com.quilate.model.Cliente;
 import com.quilate.model.EstadoApartado;
-import com.quilate.model.HistorialCompra;
 import com.quilate.model.Pieza;
 import com.quilate.util.JPAUtil;
 import com.quilate.util.Transaccion;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class ApartadoDAO {
@@ -86,34 +83,6 @@ public class ApartadoDAO {
                                     + "JOIN FETCH a.cliente JOIN FETCH a.pieza "
                                     + "ORDER BY a.fecha DESC", Apartado.class)
                     .getResultList();
-        } finally {
-            em.close();
-        }
-    }
-
-    /**
-     * HQL: compras confirmadas del cliente, con el precio y descuento históricos.
-     * El total de cada fila es cantidad * (precioUnitario - descuentoAplicado).
-     */
-    public List<HistorialCompra> historialPorCliente(Long clienteId) {
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            List<Object[]> filas = em.createQuery(
-                            "SELECT v.fechaHora, p.nombre, d.cantidad, (d.precioUnitario - d.descuentoAplicado) "
-                                    + "FROM DetalleVenta d JOIN d.venta v JOIN d.pieza p "
-                                    + "WHERE v.cliente.id = :clienteId AND v.estado = :confirmada "
-                                    + "ORDER BY v.fechaHora DESC", Object[].class)
-                    .setParameter("clienteId", clienteId)
-                    .setParameter("confirmada", com.quilate.model.EstadoVenta.CONFIRMADA)
-                    .getResultList();
-
-            return filas.stream()
-                    .map(f -> new HistorialCompra(
-                            (LocalDateTime) f[0],
-                            (String) f[1],
-                            ((Number) f[2]).intValue(),
-                            new BigDecimal(f[3].toString())))
-                    .toList();
         } finally {
             em.close();
         }
