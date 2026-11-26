@@ -240,6 +240,44 @@ Una pieza inexistente devuelve `404`. Si la pieza no tiene quilates o peso, la v
 piezas, si Frankfurter no está disponible, `precioDolares` queda en `null` y el precio en córdobas
 sigue disponible.
 
+#### Pruebas de la API con Postman
+
+La [colección de Postman](evidencias/rest/quilate-spring.postman_collection.json) se ejecutó el **25 de noviembre de 2026** contra el servidor local con **Newman 6.2.3**, el ejecutor de colecciones de Postman. Resultado **3 solicitudes y 5 comprobaciones aprobadas**.
+
+| Solicitud | Resultado observado | Comprobación |
+|---|---|---|
+| `GET /api/oro` | `200 OK` | Metal `XAU`, fecha de consulta y precios positivos por gramo para 10k, 14k, 18k y 24k en USD y NIO. |
+| `GET /api/cambio` | `200 OK` | Moneda de origen `USD`, moneda de destino `NIO` y tasa positiva. |
+| `GET /api/piezas/abc` | `400 Bad Request` | La API rechaza un identificador de pieza que no es numérico. |
+
+Fragmentos del JSON devuelto en esa ejecución:
+
+```json
+{"metal":"XAU","precioPorGramo":{"24k":{"usd":112.56,"nio":4122.25}}}
+{"de":"USD","a":"NIO","tasa":36.624}
+{"status":400,"error":"Bad Request","path":"/api/piezas/abc"}
+```
+
+Para repetir la prueba, ejecuta `QuilateApiApplication`, importa la colección en Postman Desktop y pulsa **Send** en cada solicitud. Los resultados aparecen en **Test Results**. También puedes ejecutar la colección completa desde la raíz del proyecto:
+
+```powershell
+npx.cmd --yes newman@6.2.3 run evidencias/rest/quilate-spring.postman_collection.json
+```
+
+Los importes registrados son una muestra de la ejecución. La colección toma los datos del servidor al ejecutar cada solicitud y no contiene credenciales.
+
+**Precio del oro · HTTP 200**
+
+![Postman muestra el JSON del precio del oro y dos comprobaciones aprobadas](evidencias/rest/postman-oro.png)
+
+**Tipo de cambio USD a NIO · HTTP 200**
+
+![Postman muestra el JSON del tipo de cambio y dos comprobaciones aprobadas](evidencias/rest/postman-cambio.png)
+
+**Identificador de pieza inválido · HTTP 400**
+
+![Postman muestra la respuesta HTTP 400 y la comprobación aprobada](evidencias/rest/postman-error-id.png)
+
 En la app de escritorio, el selector de moneda permite ver los importes en C$, US$ o € con las tasas de
 Frankfurter (sin internet usa la tasa fija del BCN). El menú principal muestra el precio del gramo de oro
 10k, 14k y 18k, e Inventario muestra el valor del oro de la pieza seleccionada (quilates × peso).
