@@ -301,7 +301,7 @@ public class PiezaDAO {
             tx.begin();
             Pieza actual = em.find(Pieza.class, datos.getId(), LockModeType.PESSIMISTIC_WRITE);
             if (actual == null) {
-                throw new IllegalArgumentException("La pieza ya no existe. Pulsa Actualizar.");
+                throw new IllegalArgumentException("La pieza ya no existe.");
             }
             Categoria categoria = em.find(Categoria.class, datos.getCategoria().getId());
             if (categoria == null) {
@@ -313,7 +313,7 @@ public class PiezaDAO {
             if (nuevasExistencias < 0) {
                 throw new IllegalArgumentException(
                         "Las existencias cambiaron mientras editabas: ahora hay "
-                                + actual.getExistencias() + ". Pulsa Actualizar y vuelve a intentarlo.");
+                                + actual.getExistencias() + ". Vuelve a abrir Inventario y revisa la cantidad antes de guardar.");
             }
 
             actual.setCodigoBarras(datos.getCodigoBarras());

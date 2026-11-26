@@ -1,7 +1,2 @@
-/**
- * Entidades JPA (@Entity) mapeadas a las tablas de PostgreSQL.
- * Integrante 1: Categoria, Pieza, Cliente.
- * Integrante 2: Empleado, Venta, DetalleVenta.
- * Integrante 3: Descuento, PedidoPersonalizado.
- */
+/** Entidades y tipos del dominio que Hibernate persiste en la base de datos. */
 package com.quilate.model;

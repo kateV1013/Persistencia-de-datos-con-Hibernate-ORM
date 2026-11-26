@@ -1,15 +1,24 @@
 package com.quilate.controller;
 
-import com.quilate.model.*;
-import com.quilate.service.*;
+import com.quilate.dto.HistorialCompra;
+import com.quilate.model.Cliente;
+import com.quilate.service.AnalisisService;
+import com.quilate.service.ClienteService;
 import com.quilate.util.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
+import java.text.Normalizer;
+import java.util.Locale;
 
 public class ClientesController implements com.quilate.ui.Actualizable {
     @FXML private TableView<Cliente> tabla;
     @FXML private TableView<HistorialCompra> historial;
-    @FXML private TextField nombre, apellido, telefono, correo;
+    @FXML private TextField nombre, apellido, telefono, correo, busqueda;
     @FXML private Label mensaje, lblPerfilCompras, lblPerfilMonto, lblPerfilDia, lblPerfilHora;
     private long revisionPerfil;
     private record DatosPerfil(java.util.List<HistorialCompra> historial, AnalisisService.Resumen analisis) { }
@@ -19,23 +28,43 @@ public class ClientesController implements com.quilate.ui.Actualizable {
         lblPerfilDia.setText("Selecciona un cliente"); lblPerfilHora.setText("Selecciona un cliente");
     }
     private final ClienteService servicio = new ClienteService();
+    private final ObservableList<Cliente> clientes = FXCollections.observableArrayList();
     @FXML private void initialize() {
         Tablas.columna(tabla, "Cliente", Cliente::getNombreCompleto);
-        Tablas.columna(tabla, "Teléfono", Cliente::getTelefono);
+        Tablas.columna(tabla, "Teléfono", c -> Formatos.telefono(c.getTelefono()));
         Tablas.columna(tabla, "Correo", Cliente::getCorreo);
         Tablas.columna(historial, "Fecha y hora", HistorialCompra::fecha);
         Tablas.columna(historial, "Pieza", HistorialCompra::pieza);
         Tablas.columna(historial, "Cantidad", HistorialCompra::cantidad);
         Tablas.columna(historial, "Total neto", HistorialCompra::total);
+        FilteredList<Cliente> filtrados = new FilteredList<>(clientes);
+        SortedList<Cliente> ordenados = new SortedList<>(filtrados);
+        ordenados.comparatorProperty().bind(tabla.comparatorProperty());
+        tabla.setItems(ordenados);
+        busqueda.textProperty().addListener((observable, anterior, texto) -> {
+            String consulta = normalizarBusqueda(texto.strip());
+            String digitos = consulta.replaceAll("[^0-9]", "");
+            boolean buscarTelefono = !digitos.isEmpty() && consulta.matches("[0-9+ -]+");
+            filtrados.setPredicate(c -> consulta.isEmpty()
+                    || normalizarBusqueda(c.getNombreCompleto()).contains(consulta)
+                    || normalizarBusqueda(c.getCorreo()).contains(consulta)
+                    || (buscarTelefono && c.getTelefono() != null
+                        && c.getTelefono().replaceAll("[^0-9]", "").contains(digitos)));
+            tabla.setPlaceholder(new Label(consulta.isEmpty()
+                    ? "Todavía no hay registros para mostrar" : "No se encontraron clientes"));
+            if (seleccionado != null && !filtrados.contains(seleccionado)) {
+                nuevo();
+            }
+        });
         tabla.getSelectionModel().selectedItemProperty().addListener((o,a,c) -> {
             if(c == null) return;
             seleccionado=c;
             nombre.setText(c.getNombre()); apellido.setText(c.getApellido());
-            telefono.setText(c.getTelefono()); correo.setText(c.getCorreo());
+            telefono.setText(Formatos.telefono(c.getTelefono())); correo.setText(c.getCorreo());
             long revision=++revisionPerfil;
             historial.getItems().clear(); lblPerfilCompras.setText("—"); lblPerfilMonto.textProperty().unbind(); lblPerfilMonto.setText("—");
             lblPerfilDia.setText("Calculando…"); lblPerfilHora.setText("Calculando…");
-            Tareas.ejecutar(() -> new DatosPerfil(new ApartadoService().historial(c.getId()), new AnalisisService().perfil(c.getId())), datos -> {
+            Tareas.ejecutar(() -> new DatosPerfil(servicio.historial(c.getId()), new AnalisisService().perfil(c.getId())), datos -> {
                 if(revision!=revisionPerfil) return;
                 historial.getItems().setAll(datos.historial());
                 lblPerfilCompras.setText(Long.toString(datos.analisis().total().ventas()));
@@ -46,10 +75,14 @@ public class ClientesController implements com.quilate.ui.Actualizable {
         });
         recargar();
     }
+    private static String normalizarBusqueda(String texto) {
+        return texto == null ? "" : Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "").toLowerCase(Locale.ROOT);
+    }
     /** Solo la tabla: el formulario y el perfil abierto se conservan. */
     @Override public void actualizarAlVolver() { recargar(); }
     @FXML private void recargar() {
-        Tareas.ejecutar(servicio::listar, filas -> tabla.getItems().setAll(filas),
+        Tareas.ejecutar(servicio::listar, clientes::setAll,
             e -> mensaje.setText(Tareas.mensajeCorto(e)));
     }
     @FXML private void nuevo() {

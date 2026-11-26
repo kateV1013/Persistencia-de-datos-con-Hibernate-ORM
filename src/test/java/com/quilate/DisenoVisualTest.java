@@ -89,6 +89,22 @@ class DisenoVisualTest {
                 });
                 Thread.sleep(500);
                 if (modulo == Modulo.CLIENTES) {
+                    esperar(() -> !((TableView<?>) ventana.getScene().lookup("#tabla")).getItems().isEmpty());
+                    fx(() -> {
+                        var tabla = (TableView<?>) ventana.getScene().lookup("#tabla");
+                        var filtro = (TextField) ventana.getScene().lookup("#busqueda");
+                        int total = tabla.getItems().size();
+                        filtro.setText("8888-0001");
+                        assertEquals(1, tabla.getItems().size());
+                        assertEquals("8888-0001", tabla.getColumns().get(1).getCellData(0));
+                        filtro.setText("88880001");
+                        assertEquals(1, tabla.getItems().size());
+                        filtro.setText("CLIENTE1@EXAMPLE.COM");
+                        assertEquals(1, tabla.getItems().size());
+                        filtro.clear();
+                        assertEquals(total, tabla.getItems().size());
+                        return null;
+                    });
                     fx(() -> { ((TableView<?>)ventana.getScene().lookup("#tabla")).getSelectionModel().selectFirst(); return null; });
                     esperar(() -> !"—".equals(((Label)ventana.getScene().lookup("#lblPerfilCompras")).getText()));
                     fx(() -> { assertNotEquals("—",((Label)ventana.getScene().lookup("#lblPerfilCompras")).getText()); return null; });
@@ -158,6 +174,21 @@ class DisenoVisualTest {
                         Thread.sleep(100);
                         if(capturar) fx(() -> { captura(ventana,"10-reporte-"+indice); return null; });
                     }
+                    fx(() -> {
+                        var escena = ventana.getScene();
+                        LocalDate manana = LocalDate.now().plusDays(1);
+                        ((DatePicker) escena.lookup("#dpHasta")).setValue(manana);
+                        ((DatePicker) escena.lookup("#dpDesde")).setValue(manana);
+                        return null;
+                    });
+                    esperar(() -> "0".equals(((Label) ventana.getScene().lookup("#lblVentas")).getText()));
+                    fx(() -> {
+                        var escena = ventana.getScene();
+                        ((DatePicker) escena.lookup("#dpDesde")).setValue(LocalDate.now().minusDays(29));
+                        ((DatePicker) escena.lookup("#dpHasta")).setValue(LocalDate.now());
+                        return null;
+                    });
+                    esperar(() -> Integer.parseInt(((Label) ventana.getScene().lookup("#lblVentas")).getText()) > 0);
                 }
                 // Esc cierra la ventana del módulo (y la quita de las abiertas).
                 fx(() -> {
@@ -200,6 +231,32 @@ class DisenoVisualTest {
         fx(() -> { codigo.setText("NO-EXISTE"); codigo.fireEvent(new javafx.event.ActionEvent()); return null; });
         esperar(() -> mensaje.getText().contains("No existe"));
         fx(() -> { assertEquals(2,tabla.getColumns().get(1).getCellData(0)); codigo.clear(); return null; });
+        fx(() -> {
+            var escena = ventana.getScene();
+            var descuento = (TextField) escena.lookup("#txtDescuento");
+            var moneda = (Label) escena.lookup("#lblMonedaDescuento");
+            var agregar = escena.getRoot().lookupAll(".button").stream()
+                    .filter(n -> n instanceof Button b && "Agregar pieza".equals(b.getText()))
+                    .map(Button.class::cast).findFirst().orElseThrow();
+            var selector = com.quilate.ui.MonedaVista.selector();
+            try {
+                tabla.getSelectionModel().selectFirst();
+                descuento.setText("10.00");
+                selector.getItems().get(1).fire();
+                assertTrue(moneda.getText().contains("US$"));
+                assertEquals("0.27", descuento.getText());
+                agregar.fire();
+                assertEquals(0, new BigDecimal("10.00").compareTo(
+                        (BigDecimal) tabla.getColumns().get(3).getCellData(0)));
+                assertTrue(((Label) escena.lookup("#lblAhorro")).getText().contains("US$"));
+                tabla.getSelectionModel().clearAndSelect(0);
+                selector.getItems().getFirst().fire();
+                assertEquals("10.00", descuento.getText());
+            } finally {
+                selector.getItems().getFirst().fire();
+            }
+            return null;
+        });
     }
     @SuppressWarnings("unchecked")
     private static void esperar(Callable<Boolean> condicion) throws Exception {

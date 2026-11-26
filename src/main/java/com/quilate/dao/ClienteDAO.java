@@ -1,9 +1,10 @@
 package com.quilate.dao;
 
-import com.quilate.exception.ValidacionException;
-
+import com.quilate.dto.HistorialCompra;
 import com.quilate.exception.EntidadConDependenciasException;
+import com.quilate.exception.ValidacionException;
 import com.quilate.model.Cliente;
+import com.quilate.model.EstadoVenta;
 import com.quilate.util.JPAUtil;
 import com.quilate.util.Transaccion;
 import jakarta.persistence.EntityManager;
@@ -38,6 +39,22 @@ public class ClienteDAO {
         }
     }
 
+    /** Compras confirmadas con los precios y descuentos del momento de la venta. */
+    public List<HistorialCompra> historialPorCliente(Long clienteId) {
+        try (EntityManager em = JPAUtil.getEntityManager()) {
+            return em.createQuery("""
+                            select new com.quilate.dto.HistorialCompra(
+                                v.fechaHora, p.nombre, d.cantidad, d.precioUnitario - d.descuentoAplicado)
+                            from DetalleVenta d join d.venta v join d.pieza p
+                            where v.cliente.id = :clienteId and v.estado = :estado
+                            order by v.fechaHora desc
+                            """, HistorialCompra.class)
+                    .setParameter("clienteId", clienteId)
+                    .setParameter("estado", EstadoVenta.CONFIRMADA)
+                    .getResultList();
+        }
+    }
+
     /** Indica si otro cliente ya usa ese correo (sin distinguir mayúsculas). */
     public boolean existeCorreo(String correo, Long excluirId) {
         EntityManager em = JPAUtil.getEntityManager();
@@ -61,7 +78,7 @@ public class ClienteDAO {
         });
     }
 
-    /** No permite eliminar un cliente que ya tiene apartados. */
+    /** Impide eliminar clientes con apartados, ventas o pedidos asociados. */
     public void eliminar(Long id) {
         Transaccion.ejecutar(em -> {
             Long total = em.createQuery(
@@ -78,7 +95,7 @@ public class ClienteDAO {
             }
             Cliente cliente = em.find(Cliente.class, id);
             if (cliente == null) {
-                throw new ValidacionException("El cliente ya no existe. Pulsa Actualizar.");
+                throw new ValidacionException("El cliente ya no existe.");
             }
             em.remove(cliente);
             return null;

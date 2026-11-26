@@ -97,8 +97,8 @@ public final class JPAUtil {
 
         copiarEntorno(props, "DB_URL", "jakarta.persistence.jdbc.url");
         copiarEntorno(props, "DB_USER", "jakarta.persistence.jdbc.user");
-        copiarEntorno(props, "DB_PASSWORD", "jakarta.persistence.jdbc.password");
         copiarEntorno(props, "DB_PASS", "jakarta.persistence.jdbc.password");
+        copiarEntorno(props, "DB_PASSWORD", "jakarta.persistence.jdbc.password");
 
         String modoEsquema = entorno("DB_SCHEMA_MODE");
         if (modoEsquema != null) {

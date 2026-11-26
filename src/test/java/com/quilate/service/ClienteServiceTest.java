@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,7 +35,7 @@ class ClienteServiceTest {
         Cliente c = servicio.guardar(new Cliente("  Ana ", "Lopez", "88880000", "ana@example.com"));
         assertEquals("Ana", c.getNombre());
 
-        c.setTelefono("88881111");
+        c.setTelefono("8888-1111");
         servicio.guardar(c);   // conserva su propio correo sin marcarlo como repetido
 
         assertEquals("88881111", servicio.listar().get(0).getTelefono());
@@ -80,6 +81,27 @@ class ClienteServiceTest {
         assertThrows(ValidacionException.class,
                 () -> servicio.guardar(new Cliente("Luis", "999", null, null)));
         assertNotNull(servicio.guardar(new Cliente("Luis", null, "+505 8888-1111", null)).getId());
+    }
+
+    @Test
+    void historialMultiplicaCantidadYExcluyeVentasAnuladas() {
+        Long clienteId = servicio.guardar(new Cliente("Ana", "55550000", "ana@example.com")).getId();
+        Long piezaId = Transaccion.ejecutar(em -> {
+            Pieza pieza = new Pieza("CLI-2", "Anillo", "Oro", new BigDecimal("60"), new BigDecimal("100"), null, 5);
+            em.persist(pieza);
+            em.flush();
+            return pieza.getId();
+        });
+        VentaService ventas = new VentaService();
+        var v = ventas.crearEnPreparacion(clienteId,
+                List.of(new SolicitudDetalleVenta(piezaId, 2, new BigDecimal("10"))));
+        assertTrue(servicio.historial(clienteId).isEmpty());
+        ventas.confirmar(v.getId());
+        var historial = servicio.historial(clienteId);
+        assertEquals(1, historial.size());
+        assertEquals(0, new BigDecimal("180").compareTo(historial.getFirst().total()));
+        ventas.anular(v.getId());
+        assertTrue(servicio.historial(clienteId).isEmpty());
     }
 
     @Test

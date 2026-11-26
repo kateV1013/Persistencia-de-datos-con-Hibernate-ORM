@@ -7,7 +7,7 @@ Ejecuta en una base PostgreSQL vacía, en este orden:
 1. 01_quilate_bd_inicial.sql: tablas base y categorías.
 2. 02_pedidos_y_estado_venta.sql: servicios y pedidos.
 3. 03_diseno_personalizado.sql: campos del diseño personalizado.
-4. 04_reemplazar_datos_demo.sql: datos ficticios para practicar.
+4. 04_reemplazar_datos_demo.sql (opcional): reemplaza los datos por ejemplos ficticios.
 
 Los scripts 01 y 02 ya no insertan los clientes, piezas ni servicios anteriores.
 El nombre técnico de la base y la configuración de conexión se mantienen.
@@ -24,10 +24,16 @@ El reemplazo es una sola transacción; si falla, ejecuta ROLLBACK en la misma
 consola antes de reintentar. No usa CASCADE: una dependencia externa impide
 el borrado. Repetirlo descarta lo agregado desde la carga anterior.
 
+## Agregar teléfonos a una demo ya cargada
+
+Ejecuta [`05_telefonos_clientes_demo.sql`](05_telefonos_clientes_demo.sql).
+Completa los teléfonos vacíos y sustituye la numeración provisional de los
+clientes ficticios. Conserva los teléfonos personalizados y los movimientos.
+
 ## Contenido ficticio ampliado
 
 - 5 categorías y 64 piezas: 16 modelos base y 48 variantes por talla o medida.
-- 60 clientes con correos example.com y sin teléfonos personales.
+- 60 clientes con correos example.com y teléfonos ficticios de ocho dígitos.
 - 120 ventas: 100 confirmadas, 10 anuladas y 10 en preparación; 234 detalles.
 - 24 apartados: 12 activos, 6 cancelados y 6 completados vinculados a sus ventas.
 - 8 servicios de ejemplo y 60 pedidos: 48 grabados y 12 mantenimientos.

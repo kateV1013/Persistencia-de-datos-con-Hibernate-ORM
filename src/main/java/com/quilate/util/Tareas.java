@@ -60,7 +60,7 @@ public final class Tareas {
     /** Mensaje corto para mostrar en una etiqueta cuando falla la carga inicial. */
     public static String mensajeCorto(Throwable e) {
         if (esFallaDeConexion(e)) {
-            return "No hay conexión con la base de datos. Revisa que PostgreSQL esté encendido y pulsa Actualizar.";
+            return "No hay conexión con la base de datos. Revisa que PostgreSQL esté encendido y vuelve a abrir este módulo.";
         }
         // Si la app ya explicó el error (por ejemplo "Ya existe una pieza con el código…"),
         // se muestra ese texto y no el de PostgreSQL que viene como causa.

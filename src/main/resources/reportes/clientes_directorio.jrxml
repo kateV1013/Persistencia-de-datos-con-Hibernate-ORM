@@ -87,7 +87,7 @@ ORDER BY c.nombre, c.apellido]]>
 				<reportElement x="170" y="0" width="90" height="18"/>
 				<box leftPadding="4" rightPadding="4"/>
 				<textElement textAlignment="Left" verticalAlignment="Middle"/>
-				<textFieldExpression><![CDATA[$F{telefono}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{telefono} == null ? null : $F{telefono}.replaceFirst("^([0-9]{4})[ -]*([0-9]{4})$", "$1-$2")]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="260" y="0" width="185" height="18"/>

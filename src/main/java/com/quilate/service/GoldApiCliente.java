@@ -15,9 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GoldApiCliente {
 
@@ -31,10 +31,10 @@ public class GoldApiCliente {
 
     private static final String URL = "https://www.goldapi.io/api/";
     private static final Duration CACHE = Duration.ofHours(1);
-    private static final Map<String, PrecioMetal> guardados = new HashMap<>();
+    private static final Map<String, PrecioMetal> guardados = new ConcurrentHashMap<>();
 
-    private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
-    private final ObjectMapper json = new ObjectMapper();
+    private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     public PrecioMetal oro() {
         return consultar("XAU");
@@ -44,11 +44,13 @@ public class GoldApiCliente {
         return consultar("XAG");
     }
 
-    private synchronized PrecioMetal consultar(String metal) {
-        PrecioMetal guardado = guardados.get(metal);
-        if (guardado != null && guardado.fecha().plus(CACHE).isAfter(Instant.now())) {
-            return guardado;
-        }
+    private PrecioMetal consultar(String metal) {
+        return guardados.compute(metal, (codigo, guardado) ->
+                guardado != null && guardado.fecha().plus(CACHE).isAfter(Instant.now())
+                        ? guardado : solicitarPrecio(codigo));
+    }
+
+    private PrecioMetal solicitarPrecio(String metal) {
         String clave = clave();
         if (clave == null) {
             throw new ServicioExternoException("Falta la clave de GoldAPI. Define GOLDAPI_KEY o goldapi.key en db.properties.");
@@ -58,17 +60,15 @@ public class GoldApiCliente {
                     .header("x-access-token", clave)
                     .timeout(Duration.ofSeconds(10))
                     .GET().build();
-            HttpResponse<String> respuesta = http.send(solicitud, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> respuesta = HTTP.send(solicitud, HttpResponse.BodyHandlers.ofString());
             if (respuesta.statusCode() != 200) {
                 throw new ServicioExternoException("GoldAPI respondió " + respuesta.statusCode() + ".");
             }
-            JsonNode datos = json.readTree(respuesta.body());
-            PrecioMetal precio = new PrecioMetal(metal,
+            JsonNode datos = JSON.readTree(respuesta.body());
+            return new PrecioMetal(metal,
                     datos.get("price").decimalValue(),
                     datos.get("price_gram_24k").decimalValue(),
                     Instant.now());
-            guardados.put(metal, precio);
-            return precio;
         } catch (ServicioExternoException e) {
             throw e;
         } catch (Exception e) {

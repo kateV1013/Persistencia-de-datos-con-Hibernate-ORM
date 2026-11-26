@@ -1,6 +1,7 @@
 package com.quilate.service;
 
 import com.quilate.dao.ClienteDAO;
+import com.quilate.dto.HistorialCompra;
 import com.quilate.exception.ValidacionException;
 import com.quilate.model.Cliente;
 
@@ -24,6 +25,11 @@ public class ClienteService {
 
     public List<Cliente> listar() {
         return dao.listar();
+    }
+
+    public List<HistorialCompra> historial(Long clienteId) {
+        if (clienteId == null) throw new ValidacionException("Selecciona un cliente.");
+        return dao.historialPorCliente(clienteId);
     }
 
     public void eliminar(Long id) {
@@ -54,6 +60,10 @@ public class ClienteService {
                 && (!TELEFONO.matcher(c.getTelefono().trim()).matches()
                     || c.getTelefono().chars().filter(Character::isDigit).count() < 8)) {
             throw new ValidacionException("El teléfono debe tener al menos 8 dígitos; también admite +, - y espacios.");
+        }
+        if (c.getTelefono() != null && c.getTelefono().matches("[0-9 -]+")) {
+            String digitos = c.getTelefono().replaceAll("[ -]", "");
+            if (digitos.length() == 8) c.setTelefono(digitos);
         }
         if (!contieneLetra(c.getNombre())) {
             throw new ValidacionException("El nombre debe contener letras.");
